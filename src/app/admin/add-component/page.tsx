@@ -158,8 +158,13 @@ export default function AddComponentPage() {
 const handleSubmit = async () => {
 	try {
 		// Validate required fields first
-		if (!componentData.name || componentData.price <= 0) {
-			toast.error('Пожалуйста, заполните все обязательные поля')
+		if (!componentData.name) {
+			toast.error('Пожалуйста, введите название продукта')
+			return
+		}
+
+		if (componentData.price <= 0) {
+			toast.error('Цена должна быть больше нуля')
 			return
 		}
 
@@ -173,16 +178,17 @@ const handleSubmit = async () => {
 		// Prepare data with proper types
 		const productData = {
 			name: componentData.name,
-			price: Number(componentData.price), // Ensure price is a number
-			brand: componentData.brand || '', // Provide default for brand
+			price: Number(componentData.price),
+			brand: componentData.brand || '',
 			image_url: imageUrl,
-			category_id: Number(selectedCategory), // Ensure category_id is a number
-			hidden: componentData.hidden || false, // Provide default for hidden
+			category_id: Number(selectedCategory),
+			hidden: false,
 		}
 
 		console.log('Sending data to API:', productData)
 
-		const res = await fetch('/api/products', {
+		// Send request to API
+		const response = await fetch('/api/products', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -190,13 +196,25 @@ const handleSubmit = async () => {
 			body: JSON.stringify(productData),
 		})
 
-		// Check if the response is valid before attempting to parse JSON
-		if (!res.ok) {
-			const responseText = await res.text() // Read response body as text
-			throw new Error(responseText || 'Ошибка при сохранении')
+		// Get full response text for debugging
+		const responseText = await response.text()
+		console.log('API Response Status:', response.status)
+		console.log('API Response Text:', responseText)
+
+		// Try to parse JSON response
+		let responseData
+		try {
+			responseData = JSON.parse(responseText)
+		} catch (e) {
+			console.error('Failed to parse response as JSON:', e)
+			toast.error('Неверный формат ответа от сервера')
+			return
 		}
 
-		const responseData = await res.json()
+		// Check if response is successful
+		if (!response.ok) {
+			throw new Error(responseData.message || 'Ошибка при сохранении продукта')
+		}
 
 		toast.success('Продукт успешно добавлен!')
 
@@ -213,7 +231,7 @@ const handleSubmit = async () => {
 	} catch (error) {
 		console.error('Ошибка при добавлении продукта:', error)
 		toast.error(
-			(error instanceof Error ? error.message : 'Ошибка при добавлении продукта!')
+			error instanceof Error ? error.message : 'Ошибка при добавлении продукта!'
 		)
 	}
 }

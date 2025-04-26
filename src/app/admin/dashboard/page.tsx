@@ -6,6 +6,7 @@ import useConfirmation from '@/hooks/useConfirmation'
 import { toast, ToastContainer } from 'react-toastify'
 import Link from 'next/link'
 import DashboardActions from '../_components/DashboardActions'
+import Sidebar from '../_components/Sidebar'
 
 interface Component {
 	id: number
@@ -15,6 +16,7 @@ interface Component {
 	image_url?: string
 	category_id: number
 	created_at: string
+	hidden?: boolean
 }
 
 interface Category {
@@ -138,7 +140,7 @@ const Admin = () => {
 
 	return (
 		<div className='flex bg-[#171C1F] min-h-screen'>
-			{/* <Sidebar /> */}
+			<Sidebar />
 			<div className='px-4 py-6 w-full max-w-screen-lg mx-auto flex flex-col'>
 				<ToastContainer />
 
@@ -279,11 +281,15 @@ const Admin = () => {
 								>
 									<div className='flex justify-center'>
 										<Image
-											src={component.image_url || '/placeholder-image.png'}
+											src={
+												component.image_url &&
+												component.image_url.startsWith('http')
+													? component.image_url
+													: '/placeholder-image.png'
+											}
 											alt={component.name}
 											width={50}
 											height={50}
-											className='rounded object-cover'
 										/>
 									</div>
 									<div>{component.name}</div>

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
-import db from '@/lib/db'
-import { NextApiRequest, NextApiResponse } from 'next/types'
 
 export async function GET(req: NextRequest) {
 	try {
@@ -13,30 +11,98 @@ export async function GET(req: NextRequest) {
 			components: resComponents.rows,
 		})
 	} catch (error) {
-		console.error('Ошибка при запросе данных:', error)
-		return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
+		console.error('Error fetching data:', error)
+		return NextResponse.json({ error: 'Server error' }, { status: 500 })
 	}
 }
 
-export default async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse
-) {
-	if (req.method === 'POST') {
-		const { name, price, brand, image_url, category_id } = req.body
-		try {
-			// Insert the product into the database
-			const query =
-				'INSERT INTO products (name, price, brand, image_url, category_id) VALUES ($1, $2, $3, $4, $5)'
-			const values = [name, price, brand, image_url, category_id]
-			await db.query(query, values)
-			res.status(201).json({ message: 'Product added successfully' })
-		} catch (error) {
-			console.error('Error adding product:', error)
-			res.status(500).json({ message: 'Database error', error: (error as Error).message })
+export async function POST(req: NextRequest) {
+	console.log('POST request received to /api/products')
+
+	try {
+		// Parse request body
+		const body = await req.json()
+		console.log('Request body:', body)
+
+		const { name, price, brand, image_url, category_id, hidden } = body
+
+		// Validate required fields
+		if (!name) {
+			return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 		}
-	} else {
-		res.status(405).json({ message: 'Method Not Allowed' })
+
+		// Execute database query
+		console.log('Executing database query with values:', {
+			name,
+			price,
+			brand,
+			image_url,
+			category_id,
+			hidden,
+		})
+
+		// First, let's alter the table to make the id column auto-increment if it's not already
+		await pool.query(`
+			DO $$
+			BEGIN
+				-- Check if the column exists and is not already a serial
+				IF EXISTS (
+					SELECT 1 FROM information_schema.columns 
+					WHERE table_name = 'products' AND column_name = 'id' 
+					AND column_default NOT LIKE 'nextval%'
+				) THEN
+					-- Create a sequence if it doesn't exist
+					IF NOT EXISTS (
+						SELECT 1 FROM pg_sequences WHERE sequencename = 'products_id_seq'
+					) THEN
+						CREATE SEQUENCE products_id_seq;
+					END IF;
+
+					-- Set the default value of the id column to use the sequence
+					ALTER TABLE products ALTER COLUMN id SET DEFAULT nextval('products_id_seq');
+					-- Make the sequence owned by the column to ensure proper deletion
+					ALTER SEQUENCE products_id_seq OWNED BY products.id;
+				END IF;
+			END
+			$$;
+		`)
+
+		// Now insert the product, letting the database handle the ID
+		const query = `
+			INSERT INTO products (name, price, brand, image_url, category_id, hidden) 
+			VALUES ($1, $2, $3, $4, $5, $6) 
+			RETURNING *
+		`
+		const values = [
+			name,
+			Number(price),
+			brand,
+			image_url,
+			Number(category_id),
+			Boolean(hidden),
+		]
+
+		const result = await pool.query(query, values)
+		const insertedProduct = result.rows[0]
+
+		console.log('Product inserted successfully:', insertedProduct)
+
+		return NextResponse.json(
+			{
+				success: true,
+				message: 'Product added successfully',
+				product: insertedProduct,
+			},
+			{ status: 201 }
+		)
+	} catch (error) {
+		console.error('Error inserting product:', error)
+		return NextResponse.json(
+			{
+				error: 'Database error',
+				message: error instanceof Error ? error.message : 'Unknown error',
+			},
+			{ status: 500 }
+		)
 	}
 }
-
