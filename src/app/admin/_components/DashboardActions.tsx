@@ -33,7 +33,7 @@ const DashboardActions = ({
 			{isOpen && (
 				<div className='absolute right-0 bottom-full mb-2 w-40 bg-gray-800 rounded-lg shadow-lg p-2 flex flex-col'>
 					<Link
-						href={`/admin/edit-component?id=${componentId}`}
+						href={`/admin/edit-component/${componentId}`}
 						className='flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg text-white'
 					>
 						<Edit size={16} />

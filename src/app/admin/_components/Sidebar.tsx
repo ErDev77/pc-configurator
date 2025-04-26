@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/context/AuthContext'
 import {
 	CircleUserRound,
 	Home,
@@ -19,44 +20,20 @@ type User = {
 }
 
 const Sidebar = () => {
-	const [user, setUser] = useState<User | null>(null)
+	const { user, loading, logout } = useAuth()
 	const [isOpen, setIsOpen] = useState(false)
 	const router = useRouter()
 
 useEffect(() => {
-	const fetchUser = async () => {
-		try {
-			const res = await fetch('/api/admin/me', {
-				method: 'GET',
-				credentials: 'include', 
-			})
-			if (res.ok) {
-				const data = await res.json()
-				setUser(data)
-			} else {
-				setUser(null)
-			}
-		} catch (error) {
-			console.error('Error fetching user:', error)
-			setUser(null)
-		}
+	if (!loading && user === null) {
+		router.push('/admin/login')
 	}
-	fetchUser()
-}, [])
+}, [user, loading])
 
-		const handleLogout = async () => {
-			try {
-				const res = await fetch('/api/admin/logout', {
-					method: 'POST',
-					credentials: 'include',
-				})
-				if (res.ok) {
-					router.push('/admin/signin')
-				}
-			} catch (error) {
-				console.error('Ошибка выхода:', error)
-			}
-		}
+const handleLogout = async () => {
+	await logout()
+}
+
 
 	return (
 		<div className='relative'>

@@ -1,5 +1,3 @@
-// src/api/admin/profile/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/jwt'
@@ -15,7 +13,9 @@ export async function GET(req: NextRequest) {
 			return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 		}
 
-		const decoded = verifyToken(token) as { id: number; email: string }
+		// Добавляем await для корректного получения результата
+		const decoded = await verifyToken(token) // Используем await
+
 		console.log('Decoded token:', decoded) // Логирование декодированного токена
 
 		return NextResponse.json({ id: decoded.id, email: decoded.email })

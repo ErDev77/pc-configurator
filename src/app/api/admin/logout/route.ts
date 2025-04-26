@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
 export async function POST(req: NextRequest) {
-	const cookieStore = cookies()
-	;(await cookieStore).set('admin_auth', '', {
+	// Properly await the cookie store
+	const cookieStore = await cookies()
+
+	cookieStore.set('admin_auth', '', {
 		httpOnly: true,
-		secure: true,
-		maxAge: 0, 
+		secure: process.env.NODE_ENV === 'production', // Убедитесь, что secure стоит правильно
+		maxAge: 0, // Удаление куки
 		path: '/',
 	})
+
 
 	return NextResponse.json({ success: true })
 }

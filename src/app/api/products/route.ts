@@ -3,18 +3,24 @@ import pool from '@/lib/db'
 
 export async function GET(req: NextRequest) {
 	try {
+		// Получение данных
 		const resCategories = await pool.query('SELECT * FROM category')
 		const resComponents = await pool.query('SELECT * FROM products LIMIT 10')
 
+		// Проверьте, что ответ приходит правильно
+		console.log('Fetched categories:', resCategories.rows)
+		console.log('Fetched components:', resComponents.rows)
+
 		return NextResponse.json({
-			categories: resCategories.rows,
-			components: resComponents.rows,
+			categories: resCategories.rows, // Должно быть categories
+			components: resComponents.rows, // Должно быть components
 		})
 	} catch (error) {
 		console.error('Error fetching data:', error)
 		return NextResponse.json({ error: 'Server error' }, { status: 500 })
 	}
 }
+
 
 export async function POST(req: NextRequest) {
 	console.log('POST request received to /api/products')
