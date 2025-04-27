@@ -1,5 +1,3 @@
-// /app/api/compatibility/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
@@ -8,19 +6,20 @@ export async function GET(req: NextRequest) {
 		const { searchParams } = new URL(req.url)
 		const componentId = searchParams.get('componentId')
 
-		if (!componentId) {
-			return NextResponse.json(
-				{ error: 'Component ID is required' },
-				{ status: 400 }
+		let result
+
+		if (componentId) {
+			// Если передан componentId — ищем по нему
+			result = await pool.query(
+				`SELECT * FROM compatibility WHERE component1_id = $1 OR component2_id = $1`,
+				[componentId]
 			)
+		} else {
+			// Иначе — просто все записи
+			result = await pool.query(`SELECT * FROM compatibility`)
 		}
 
-		const result = await pool.query(
-			`SELECT * FROM compatibility WHERE component1_id = $1 OR component2_id = $1`,
-			[componentId]
-		)
-
-		return NextResponse.json(result.rows)
+		return NextResponse.json(result.rows, { status: 200 })
 	} catch (error) {
 		console.error('Error fetching compatibility:', error)
 		return NextResponse.json({ error: 'Server error' }, { status: 500 })
@@ -44,7 +43,10 @@ export async function POST(req: NextRequest) {
 			[component1_id, component2_id]
 		)
 
-		return NextResponse.json({ success: true, compatibility: result.rows[0] })
+		return NextResponse.json(
+			{ success: true, compatibility: result.rows[0] },
+			{ status: 201 }
+		)
 	} catch (error) {
 		console.error('Error adding compatibility:', error)
 		return NextResponse.json({ error: 'Server error' }, { status: 500 })

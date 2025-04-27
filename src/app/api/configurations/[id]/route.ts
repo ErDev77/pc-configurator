@@ -1,108 +1,81 @@
+// app/api/configurations/[id]/route.ts
 import pool from '@/lib/db'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Получить одну конфигурацию по ID
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
 	const { id } = params
+	console.log('API: Fetching configuration ID:', id)
 
 	try {
-		const result = await pool.query(
+		// Get the configuration
+		const configResult = await pool.query(
 			'SELECT * FROM configurations WHERE id = $1',
 			[id]
 		)
 
-		if (result.rows.length === 0) {
+		if (configResult.rows.length === 0) {
+			console.log('API: Configuration not found')
 			return NextResponse.json(
-				{ error: 'Конфигурация не найдена' },
+				{ error: 'Configuration not found' },
 				{ status: 404 }
 			)
 		}
 
-		return NextResponse.json(result.rows[0])
-	} catch (error) {
-		console.error('Ошибка получения конфигурации:', error)
-		return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
-	}
-}
+		const configuration = configResult.rows[0]
+		console.log('API: Configuration found:', configuration)
 
-// Обновить конфигурацию по ID
-export async function PUT(
-	request: NextRequest,
-	{ params }: { params: { id: string } }
-) {
-	const { id } = params
-	const { name, description, image_url, price, products } = await request.json()
-
-	try {
-		// Проверим, что конфигурация существует
-		const configCheck = await pool.query(
-			'SELECT * FROM configurations WHERE id = $1',
+		// Get the associated products
+		const productsResult = await pool.query(
+			`
+      SELECT p.*
+      FROM configuration_products cp
+      JOIN products p ON cp.product_id = p.id
+      WHERE cp.configuration_id = $1
+      `,
 			[id]
 		)
 
-		if (configCheck.rows.length === 0) {
-			return NextResponse.json(
-				{ error: 'Конфигурация не найдена' },
-				{ status: 404 }
-			)
+		const products = productsResult.rows
+		console.log('API: Products found:', products.length)
+
+		// Combine configuration with products
+		const fullConfiguration = {
+			...configuration,
+			products,
 		}
 
-		// Обновляем конфигурацию
-		await pool.query(
-			'UPDATE configurations SET name = $1, description = $2, image_url = $3, price = $4 WHERE id = $5',
-			[name, description, image_url, price, id]
-		)
-
-		// Удаляем старые привязанные продукты
-		await pool.query(
-			'DELETE FROM configuration_products WHERE configuration_id = $1',
-			[id]
-		)
-
-		// Добавляем новые привязанные продукты
-		for (const product of products) {
-			await pool.query(
-				'INSERT INTO configuration_products (configuration_id, product_id) VALUES ($1, $2)',
-				[id, product.id]
-			)
-		}
-
-		return NextResponse.json(
-			{ message: 'Конфигурация успешно обновлена' },
-			{ status: 200 }
-		)
+		return NextResponse.json(fullConfiguration)
 	} catch (error) {
-		console.error('Ошибка обновления конфигурации:', error)
-		return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
+		console.error('API Error getting configuration:', error)
+		return NextResponse.json({ error: 'Server error' }, { status: 500 })
 	}
 }
-
-// Удалить конфигурацию по ID
 export async function DELETE(
-	request: Request,
+	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
 	const { id } = params
-
+	console.log('API: Deleting configuration ID:', id)
+	
 	try {
-		// Сначала удаляем связанные продукты
+		// Удаляем все связи с продуктами
 		await pool.query(
 			'DELETE FROM configuration_products WHERE configuration_id = $1',
 			[id]
 		)
 
-		// Потом сам конфиг
+		// Удаляем саму конфигурацию
 		await pool.query('DELETE FROM configurations WHERE id = $1', [id])
 
-		return NextResponse.json(
-			{ message: 'Конфигурация удалена' },
-			{ status: 200 }
-		)
+		console.log('API: Configuration deleted successfully')
+
+		return NextResponse.json({ message: 'Configuration deleted' })
 	} catch (error) {
-		console.error('Ошибка удаления конфигурации:', error)
-		return NextResponse.json({ error: 'Ошибка удаления' }, { status: 500 })
+		console.error('API Error deleting configuration:', error)
+		return NextResponse.json({ error: 'Server error' }, { status: 500 })
 	}
 }
+

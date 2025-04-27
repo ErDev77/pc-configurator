@@ -1,6 +1,7 @@
 import type { PageProps } from './$types'
-import ClientConfiguration from './client-component'
+import ClientConfiguration from './client-component' // importing your ClientConfiguration component
 import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 
 export default async function Page(props: PageProps) {
 	const params = await props.params
@@ -9,9 +10,10 @@ export default async function Page(props: PageProps) {
 	const { id } = params || {}
 
 	if (!id) {
-		return <div>Некорректный ID конфигурации</div>
+		return <div>Invalid configuration ID</div>
 	}
 
+	// Fetch the configuration from your backend
 	const res = await fetch(
 		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${id}`,
 		{
@@ -20,26 +22,62 @@ export default async function Page(props: PageProps) {
 	)
 
 	if (!res.ok) {
-		console.error('Ошибка загрузки конфигурации')
-		return <div>Ошибка загрузки конфигурации</div>
+		console.error('Failed to load configuration')
+		if (res.status === 404) {
+			return notFound()
+		}
+		return <div>Error loading configuration</div>
 	}
 
-	const data = await res.json()
+	const configuration = await res.json()
 
-	if (!data) {
-		return <div>Конфигурация не найдена</div>
+	if (!configuration) {
+		return notFound()
 	}
 
-	return <ClientConfiguration configuration={data} />
+	return <ClientConfiguration configuration={configuration} />
 }
 
 export async function generateMetadata({
 	params,
 }: Pick<PageProps, 'params'>): Promise<Metadata> {
 	const resolvedParams = await params
+	const { id } = resolvedParams || {}
 
-	return {
-		title: `Конфигурация ${resolvedParams?.id}`,
-		description: 'Управление конфигурацией',
+	if (!id) {
+		return {
+			title: 'Configuration',
+			description: 'PC Configuration',
+		}
+	}
+
+	try {
+		// Fetch configuration for metadata
+		const res = await fetch(
+			`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${id}`,
+			{
+				cache: 'no-store',
+			}
+		)
+
+		if (!res.ok) {
+			return {
+				title: 'Configuration',
+				description: 'PC Configuration',
+			}
+		}
+
+		const configuration = await res.json()
+
+		return {
+			title: `${configuration.name} | PC Configuration`,
+			description: configuration.description || 'Custom PC Configuration',
+		}
+	} catch (error) {
+		console.error('Error fetching metadata:', error)
+		return {
+			title: 'Configuration',
+			description: 'PC Configuration',
+		}
 	}
 }

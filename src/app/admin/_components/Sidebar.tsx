@@ -13,6 +13,8 @@ import {
 	Cpu,
 	PcCase,
 	Box,
+	ListFilterPlus,
+	ScrollText,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 type User = {
@@ -72,30 +74,38 @@ const handleLogout = async () => {
 					<div className='flex items-center text-white space-x-4'>
 						{' '}
 						{/* space-x-4 для расстояния между иконками */}
-						<Cpu />
+						<Cpu className='w-8 mr-2' />
 						{/* Показываем текст, если панель открыта */}
 						<div className={`${isOpen ? 'block' : 'hidden'}`}>
-							<Link href='/admin/add-component' className='font-bold'>
-								Добавить комплектующее
+							<Link href='/admin/components' className='font-bold'>
+								Управление комплектующими
+							</Link>
+						</div>
+					</div>
+
+					<div className='flex items-center text-white space-x-4'>
+						<PcCase className='w-8 mr-2' />
+
+						<div className={`${isOpen ? 'block' : 'hidden'}`}>
+							<Link href='/admin/configurations' className='font-bold'>
+								Управление конфигурациями
 							</Link>
 						</div>
 					</div>
 					<div className='flex items-center text-white space-x-4'>
-						{' '}
-						{/* space-x-4 для расстояния между иконками */}
-						<PcCase />
-						{/* Показываем текст, если панель открыта */}
+						<ListFilterPlus className='w-8 mr-2' />
 						<div className={`${isOpen ? 'block' : 'hidden'}`}>
-							<Link href='/admin/add-config' className='font-bold'>
-								Добавить конфигурацию
+							<Link href='/admin/categories' className='font-bold'>
+								Управление категориями
 							</Link>
 						</div>
 					</div>
+
 					<div className='flex items-center text-white space-x-4'>
-						<Box className='w-8 mr-2' />
+						<ScrollText className='w-8 mr-2' />
 						<div className={`${isOpen ? 'block' : 'hidden'}`}>
-							<Link href='/admin/config-list' className='font-bold'>
-								Посмотреть конфигурации
+							<Link href='/admin/orders' className='font-bold'>
+								Управление заказами
 							</Link>
 						</div>
 					</div>

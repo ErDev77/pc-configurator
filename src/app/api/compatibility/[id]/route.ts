@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
-// Получить информацию о совместимости
-// /api/compatibility/route.ts
 
-// Получить информацию о совместимости
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)

@@ -1,24 +1,60 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-// import { Button } from '@/components/ui/button' // если у тебя подключены shadcn/ui
 import { Trash2, Eye } from 'lucide-react'
 
-async function getConfigurations() {
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations`,
-		{
-			cache: 'no-store',
+async function deleteConfiguration(id: string) {
+	try {
+		const res = await fetch(`/api/configurations/${id}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		})
+
+		const data = await res.json()
+
+		if (data.message === 'Configuration deleted') {
+			return true // Возвращаем true, если удаление прошло успешно
+		} else {
+			console.error('Ошибка при удалении конфигурации:', data.error)
+			return false
 		}
-	)
-
-	if (!res.ok) {
-		throw new Error('Не удалось получить конфигурации')
+	} catch (error) {
+		console.error(
+			'Ошибка при отправке запроса на удаление конфигурации:',
+			error
+		)
+		return false
 	}
-
-	return res.json()
 }
 
-export default async function ConfigurationsPage() {
-	const configurations = await getConfigurations()
+export default function ConfigurationsPage() {
+	const [configurations, setConfigurations] = useState<any[]>([])
+
+	useEffect(() => {
+		const fetchConfigurations = async () => {
+			const res = await fetch('/api/configurations')
+			if (res.ok) {
+				const data = await res.json()
+				setConfigurations(data)
+			}
+		}
+
+		fetchConfigurations()
+	}, [])
+
+	const handleDeleteConfiguration = async (id: string) => {
+		const success = await deleteConfiguration(id)
+
+		if (success) {
+			// Если удаление прошло успешно, обновляем состояние
+			setConfigurations(configurations.filter(config => config.id !== id))
+		} else {
+			console.error('Не удалось удалить конфигурацию')
+		}
+	}
 
 	return (
 		<div className='p-6'>
@@ -42,15 +78,13 @@ export default async function ConfigurationsPage() {
 								</button>
 							</Link>
 
-							<form
-								action={`/api/configurations/${config.id}`}
-								method='POST'
-								className='inline'
+							{/* Кнопка удаления */}
+							<button
+								onClick={() => handleDeleteConfiguration(config.id)}
+								className='flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600'
 							>
-								<button className='flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600'>
-									<Eye className='w-4 h-4 mr-2' /> Удалить
-								</button>
-							</form>
+								<Trash2 className='w-4 h-4 mr-2' /> Удалить
+							</button>
 						</div>
 					</div>
 				))}
