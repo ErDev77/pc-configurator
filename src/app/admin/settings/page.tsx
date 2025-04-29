@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Sidebar from '../_components/Sidebar'
+import { useTheme } from '@/context/ThemeContext'
+
 import {
 	User,
 	Lock,
@@ -46,6 +48,7 @@ interface NotificationSettings {
 export default function SettingsPage() {
 	const { user } = useAuth()
 	const router = useRouter()
+  	const { theme, setTheme } = useTheme()
 
 	// Settings states
 	const [activeSection, setActiveSection] = useState('account')
@@ -225,6 +228,10 @@ export default function SettingsPage() {
 					},
 					body: JSON.stringify({
 						notifications: notificationSettings,
+						appearance: {
+							theme,
+							language,
+						},
 					}),
 				})
 
@@ -658,24 +665,28 @@ export default function SettingsPage() {
 						{/* Appearance Settings */}
 						{activeSection === 'appearance' && (
 							<div className='space-y-8'>
-								<div className='pb-5 border-b border-gray-700'>
-									<h2 className='text-xl font-bold text-white mb-1'>
+								<div className='pb-5 border-b border-[color:var(--border-color)]'>
+									<h2 className='text-xl font-bold text-[color:var(--text-primary)] mb-1'>
 										Appearance Settings
 									</h2>
-									<p className='text-gray-400 text-sm'>
+									<p className='text-[color:var(--text-secondary)] text-sm'>
 										Customize how the admin panel looks
 									</p>
 								</div>
 
 								<div>
-									<h3 className='text-lg font-medium text-white mb-4'>Theme</h3>
+									<h3 className='text-lg font-medium text-[color:var(--text-primary)] mb-4'>
+										Theme
+									</h3>
 
 									<div className='flex gap-4'>
 										<div
-											className={`p-4 bg-[#2a2f35] rounded-lg border-2 ${
-												isDarkMode ? 'border-blue-500' : 'border-transparent'
-											} cursor-pointer transition-all hover:bg-[#353a42]`}
-											onClick={() => setIsDarkMode(true)}
+											className={`p-4 bg-[color:var(--bg-tertiary)] rounded-lg border-2 ${
+												theme === 'dark'
+													? 'border-blue-500'
+													: 'border-transparent'
+											} cursor-pointer transition-all hover:opacity-90`}
+											onClick={() => setTheme('dark')}
 										>
 											<div className='h-32 bg-[#171C1F] rounded-md mb-4 p-3'>
 												<div className='w-1/4 h-full bg-[#202529] rounded'></div>
@@ -683,20 +694,24 @@ export default function SettingsPage() {
 											<div className='flex items-center gap-2'>
 												<div
 													className={`w-4 h-4 rounded-full border ${
-														isDarkMode
+														theme === 'dark'
 															? 'bg-blue-500 border-blue-500'
 															: 'border-gray-500'
 													}`}
 												></div>
-												<span className='text-white'>Dark Mode</span>
+												<span className='text-[color:var(--text-primary)]'>
+													Dark Mode
+												</span>
 											</div>
 										</div>
 
 										<div
-											className={`p-4 bg-[#2a2f35] rounded-lg border-2 ${
-												!isDarkMode ? 'border-blue-500' : 'border-transparent'
-											} cursor-pointer transition-all hover:bg-[#353a42]`}
-											onClick={() => setIsDarkMode(false)}
+											className={`p-4 bg-[color:var(--bg-tertiary)] rounded-lg border-2 ${
+												theme === 'light'
+													? 'border-blue-500'
+													: 'border-transparent'
+											} cursor-pointer transition-all hover:opacity-90`}
+											onClick={() => setTheme('light')}
 										>
 											<div className='h-32 bg-gray-100 rounded-md mb-4 p-3'>
 												<div className='w-1/4 h-full bg-white rounded border border-gray-300'></div>
@@ -704,19 +719,21 @@ export default function SettingsPage() {
 											<div className='flex items-center gap-2'>
 												<div
 													className={`w-4 h-4 rounded-full border ${
-														!isDarkMode
+														theme === 'light'
 															? 'bg-blue-500 border-blue-500'
 															: 'border-gray-500'
 													}`}
 												></div>
-												<span className='text-white'>Light Mode</span>
+												<span className='text-[color:var(--text-primary)]'>
+													Light Mode
+												</span>
 											</div>
 										</div>
 									</div>
 								</div>
 
-								<div className='pt-4 border-t border-gray-700'>
-									<h3 className='text-lg font-medium text-white mb-4'>
+								<div className='pt-4 border-t border-[color:var(--border-color)]'>
+									<h3 className='text-lg font-medium text-[color:var(--text-primary)] mb-4'>
 										Language
 									</h3>
 
@@ -724,7 +741,7 @@ export default function SettingsPage() {
 										<select
 											value={language}
 											onChange={e => setLanguage(e.target.value)}
-											className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
+											className='w-full bg-[color:var(--bg-tertiary)] border border-[color:var(--border-color)] rounded-lg px-4 py-2 text-[color:var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500'
 										>
 											<option value='en'>English</option>
 											<option value='ru'>Russian</option>

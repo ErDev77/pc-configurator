@@ -21,9 +21,12 @@ import {
 	BarChart3,
 	HelpCircle,
 	Bell,
+	Moon,
+	Sun,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useTheme } from '@/context/ThemeContext'
 
 type User = {
 	email?: string
@@ -33,8 +36,8 @@ type User = {
 
 const Sidebar = () => {
 	const { user, loading, logout } = useAuth()
+	const { theme, toggleTheme } = useTheme()
 	const [isOpen, setIsOpen] = useState(false)
-	const [isDarkMode, setIsDarkMode] = useState(true)
 	const [notifications, setNotifications] = useState<
 		{ id: number; message: string; read: boolean }[]
 	>([
@@ -77,11 +80,6 @@ const Sidebar = () => {
 	const handleLogout = async () => {
 		await logout()
 		router.push('/admin/login')
-	}
-
-	const toggleTheme = () => {
-		setIsDarkMode(!isDarkMode)
-		// In a real app, this would update the application theme
 	}
 
 	const markAllAsRead = () => {
@@ -175,18 +173,20 @@ const Sidebar = () => {
 			<div
 				className={`fixed top-0 left-0 h-full transition-all duration-300 z-30 ${
 					isOpen ? 'w-64' : 'w-20'
-				} bg-[#1a1d21] border-r border-[#2a2d35] shadow-lg`}
+				} bg-[color:var(--bg-secondary)] border-r border-[color:var(--border-color)] shadow-lg`}
 				onMouseEnter={() => setIsOpen(true)}
 				onMouseLeave={() => setIsOpen(false)}
 			>
 				{/* Logo section */}
-				<div className='p-4 border-b border-[#2a2d35] flex items-center justify-center h-16'>
+				<div className='p-4 border-b border-[color:var(--border-color)] flex items-center justify-center h-16'>
 					{isOpen ? (
 						<div className='flex items-center'>
 							<div className='w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold mr-2'>
 								PC
 							</div>
-							<span className='text-white font-bold'>Admin Panel</span>
+							<span className='text-[color:var(--text-primary)] font-bold'>
+								Admin Panel
+							</span>
 						</div>
 					) : (
 						<div className='w-10 h-10 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold'>
@@ -196,20 +196,20 @@ const Sidebar = () => {
 				</div>
 
 				{/* User profile section */}
-				<div className='px-4 py-5 border-b border-[#2a2d35] flex items-center'>
+				<div className='px-4 py-5 border-b border-[color:var(--border-color)] flex items-center'>
 					<div className='relative'>
 						<div className='w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden'>
 							<CircleUserRound size={32} className='text-gray-300' />
 						</div>
-						<div className='absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-[#1a1d21]'></div>
+						<div className='absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-[color:var(--bg-secondary)]'></div>
 					</div>
 
 					{isOpen && (
 						<div className='ml-3 overflow-hidden'>
-							<p className='text-white font-semibold truncate'>
+							<p className='text-[color:var(--text-primary)] font-semibold truncate'>
 								{user?.name || user?.email || 'Admin User'}
 							</p>
-							<p className='text-gray-400 text-xs'>
+							<p className='text-[color:var(--text-secondary)] text-xs'>
 								{user?.role || 'Administrator'}
 							</p>
 						</div>
@@ -221,7 +221,7 @@ const Sidebar = () => {
 					{navigationLinks.map((group, groupIndex) => (
 						<div key={groupIndex} className='mb-6'>
 							{isOpen && (
-								<p className='text-gray-400 text-xs uppercase tracking-wider mb-2 pl-2'>
+								<p className='text-[color:var(--text-secondary)] text-xs uppercase tracking-wider mb-2 pl-2'>
 									{group.category}
 								</p>
 							)}
@@ -233,14 +233,14 @@ const Sidebar = () => {
 									className={`flex items-center py-3 px-3 rounded-lg mb-1 group transition-colors ${
 										isActive(link.href)
 											? 'bg-blue-600 text-white'
-											: 'text-gray-400 hover:bg-[#2a2d35] hover:text-white'
+											: 'text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)]'
 									}`}
 								>
 									<div
 										className={`${
 											isActive(link.href)
 												? 'text-white'
-												: 'text-gray-400 group-hover:text-white'
+												: 'text-[color:var(--text-secondary)] group-hover:text-[color:var(--text-primary)]'
 										}`}
 									>
 										{link.icon}
@@ -258,7 +258,7 @@ const Sidebar = () => {
 						</div>
 					))}
 				</div>
-				<div className='flex items-center text-white space-x-4'>
+				<div className='flex items-center text-[color:var(--text-primary)] space-x-4'>
 					<Bell className='w-8 mr-2' />
 					<div className={`${isOpen ? 'block' : 'hidden'}`}>
 						<Link href='/admin/settings/notification' className='font-bold'>
@@ -268,22 +268,22 @@ const Sidebar = () => {
 				</div>
 
 				{/* Bottom actions */}
-				<div className='absolute bottom-0 left-0 right-0 border-t border-[#2a2d35] bg-[#1a1d21]'>
+				<div className='absolute bottom-0 left-0 right-0 border-t border-[color:var(--border-color)] bg-[color:var(--bg-secondary)]'>
 					{isOpen ? (
 						<div className='p-4 space-y-3'>
 							<button
 								onClick={toggleTheme}
-								className='flex items-center w-full py-3 px-3 rounded-lg text-gray-400 hover:bg-[#2a2d35] hover:text-white transition-colors'
+								className='flex items-center w-full py-3 px-3 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
 							>
-								<SunMoon size={20} />
+								{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
 								<span className='ml-3'>
-									{isDarkMode ? 'Light Mode' : 'Dark Mode'}
+									{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
 								</span>
 							</button>
 
 							<button
 								onClick={() => setShowHelpPopup(!showHelpPopup)}
-								className='flex items-center w-full py-3 px-3 rounded-lg text-gray-400 hover:bg-[#2a2d35] hover:text-white transition-colors relative'
+								className='flex items-center w-full py-3 px-3 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors relative'
 							>
 								<HelpCircle size={20} />
 								<span className='ml-3'>Help & Support</span>
@@ -301,17 +301,19 @@ const Sidebar = () => {
 						<div className='p-4 flex flex-col items-center space-y-6'>
 							<button
 								onClick={toggleTheme}
-								className='p-2 rounded-lg text-gray-400 hover:bg-[#2a2d35] hover:text-white transition-colors'
+								className='p-2 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
 								title={
-									isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'
+									theme === 'dark'
+										? 'Switch to Light Mode'
+										: 'Switch to Dark Mode'
 								}
 							>
-								<SunMoon size={20} />
+								{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
 							</button>
 
 							<button
 								onClick={() => setShowHelpPopup(!showHelpPopup)}
-								className='p-2 rounded-lg text-gray-400 hover:bg-[#2a2d35] hover:text-white transition-colors'
+								className='p-2 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
 								title='Help & Support'
 							>
 								<HelpCircle size={20} />
@@ -333,10 +335,10 @@ const Sidebar = () => {
 			{showHelpPopup && (
 				<div
 					ref={helpRef}
-					className='fixed bottom-24 left-24 z-50 w-64 bg-[#2a2d35] rounded-lg shadow-xl overflow-hidden border border-[#3a3d45]'
+					className='fixed bottom-24 left-24 z-50 w-64 bg-[color:var(--bg-tertiary)] rounded-lg shadow-xl overflow-hidden border border-[color:var(--border-color)]'
 				>
-					<div className='p-3 border-b border-[#3a3d45] bg-blue-600/20'>
-						<h3 className='font-medium text-white flex items-center gap-2'>
+					<div className='p-3 border-b border-[color:var(--border-color)] bg-blue-600/20'>
+						<h3 className='font-medium text-[color:var(--text-primary)] flex items-center gap-2'>
 							<HelpCircle size={16} />
 							<span>Help & Resources</span>
 						</h3>
@@ -348,14 +350,14 @@ const Sidebar = () => {
 								<Link
 									key={index}
 									href={link.href}
-									className='block p-2 text-gray-300 hover:bg-[#353a42] hover:text-white rounded transition-colors'
+									className='block p-2 text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-primary)] hover:text-[color:var(--text-primary)] rounded transition-colors'
 								>
 									{link.title}
 								</Link>
 							))}
 						</div>
 
-						<div className='mt-3 pt-3 border-t border-[#3a3d45]'>
+						<div className='mt-3 pt-3 border-t border-[color:var(--border-color)]'>
 							<button
 								onClick={() => router.push('/admin/help')}
 								className='w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm font-medium'
@@ -370,7 +372,7 @@ const Sidebar = () => {
 			{/* Notifications button */}
 			<div className='fixed top-5 right-5 z-40'>
 				<button
-					className='relative rounded-full p-2 bg-[#2a2d35] text-gray-300 hover:text-white transition-colors'
+					className='relative rounded-full p-2 bg-[color:var(--bg-tertiary)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors'
 					onClick={() => setShowNotifications(!showNotifications)}
 				>
 					<Bell size={20} />
@@ -385,10 +387,12 @@ const Sidebar = () => {
 				{showNotifications && (
 					<div
 						ref={notificationRef}
-						className='absolute top-full right-0 mt-2 w-80 bg-[#2a2d35] rounded-lg shadow-lg overflow-hidden'
+						className='absolute top-full right-0 mt-2 w-80 bg-[color:var(--bg-tertiary)] rounded-lg shadow-lg overflow-hidden'
 					>
-						<div className='p-3 border-b border-[#3a3d45] flex justify-between items-center'>
-							<h3 className='font-medium text-white'>Notifications</h3>
+						<div className='p-3 border-b border-[color:var(--border-color)] flex justify-between items-center'>
+							<h3 className='font-medium text-[color:var(--text-primary)]'>
+								Notifications
+							</h3>
 							{unreadCount > 0 && (
 								<button
 									onClick={markAllAsRead}
@@ -404,7 +408,7 @@ const Sidebar = () => {
 								notifications.map(notification => (
 									<div
 										key={notification.id}
-										className={`p-3 border-b border-[#3a3d45] hover:bg-[#343841] transition-colors flex items-start ${
+										className={`p-3 border-b border-[color:var(--border-color)] hover:bg-[color:var(--bg-primary)] transition-colors flex items-start ${
 											notification.read ? 'opacity-70' : ''
 										}`}
 									>
@@ -414,27 +418,29 @@ const Sidebar = () => {
 											}`}
 										></div>
 										<div className='flex-grow'>
-											<p className='text-sm text-white'>
+											<p className='text-sm text-[color:var(--text-primary)]'>
 												{notification.message}
 											</p>
-											<p className='text-xs text-gray-400 mt-1'>Just now</p>
+											<p className='text-xs text-[color:var(--text-secondary)] mt-1'>
+												Just now
+											</p>
 										</div>
 										<button
 											onClick={() => deleteNotification(notification.id)}
-											className='text-gray-500 hover:text-gray-300'
+											className='text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]'
 										>
 											&times;
 										</button>
 									</div>
 								))
 							) : (
-								<div className='p-4 text-center text-gray-400'>
+								<div className='p-4 text-center text-[color:var(--text-secondary)]'>
 									<p>No notifications</p>
 								</div>
 							)}
 						</div>
 
-						<div className='p-2 border-t border-[#3a3d45] text-center'>
+						<div className='p-2 border-t border-[color:var(--border-color)] text-center'>
 							<button className='text-xs text-blue-400 hover:text-blue-300'>
 								View all
 							</button>
