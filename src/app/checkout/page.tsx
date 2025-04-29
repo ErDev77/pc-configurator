@@ -745,38 +745,6 @@ export default function CheckoutPage() {
 										</div>
 									)}
 								</div>
-
-								{/* Notification Preferences */}
-								<div className='bg-[#222227] rounded-lg p-6 mb-8'>
-									<h2 className='text-xl font-semibold mb-6'>Notifications</h2>
-									<div className='space-y-3'>
-										<label className='flex items-center text-sm'>
-											<input
-												type='checkbox'
-												name='email'
-												checked={notificationPreferences.email}
-												onChange={handleNotificationChange}
-												className='mr-3 accent-[#00b5ed]'
-											/>
-											Send order confirmation email
-										</label>
-										<label className='flex items-center text-sm'>
-											<input
-												type='checkbox'
-												name='telegram'
-												checked={notificationPreferences.telegram}
-												onChange={handleNotificationChange}
-												className='mr-3 accent-[#00b5ed]'
-											/>
-											Notify store about my order
-										</label>
-										<p className='text-xs text-gray-400 mt-3'>
-											We use these notifications to process your order. You can
-											disable either option, but we recommend keeping at least
-											one enabled for better service.
-										</p>
-									</div>
-								</div>
 							</form>
 						</div>
 

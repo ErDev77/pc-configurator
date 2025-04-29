@@ -5,27 +5,31 @@ export async function middleware(request: NextRequest) {
 	const pathname = request.nextUrl.pathname
 	const isAdminRoute = pathname.startsWith('/admin')
 	const isLoginPage = pathname === '/admin/login'
+	const isPublicApiRoute =
+		pathname.startsWith('/api/admin/login') ||
+		pathname.startsWith('/api/admin/2fa')
 
 	console.log('Middleware checking route:', pathname)
 
-	// 1. Если мы на странице логина, пропускаем без всяких проверок
-	if (isLoginPage) {
+	// Skip middleware for login page and public API routes
+	if (isLoginPage || isPublicApiRoute) {
 		return NextResponse.next()
 	}
 
 	const token = request.cookies.get('admin_auth')?.value
 	console.log('Token from cookie:', token)
 
-	// 2. Если нет токена на админке — редиректим на логин
 	if (isAdminRoute && !token) {
 		console.log('No token found, redirecting to login')
-		return NextResponse.redirect(new URL('/admin/login', request.url))
+		const url = new URL('/admin/login', request.url)
+		url.searchParams.set('from', pathname)
+		return NextResponse.redirect(url)
 	}
 
-	// 3. Если токен есть, проверяем его
 	if (token) {
 		try {
-			const decoded = await verifyToken(token) // ← ← ← добавил await !!!
+			// Verify the token
+			const decoded = await verifyToken(token)
 
 			if (
 				typeof decoded === 'object' &&
@@ -33,6 +37,19 @@ export async function middleware(request: NextRequest) {
 				'id' in decoded
 			) {
 				console.log('Token verified for user:', decoded.email)
+
+				// Check if 2FA is required based only on the token info
+				// We'll include 2FA status in the token when we generate it
+				if (decoded.twoFactorEnabled && !decoded.twoFactorVerified) {
+					console.log('2FA verification required for user:', decoded.email)
+					// User has not completed 2FA verification, redirect to login with 2FA flag
+					const url = new URL('/admin/login', request.url)
+					url.searchParams.set('require2fa', 'true')
+					url.searchParams.set('from', pathname)
+					return NextResponse.redirect(url)
+				}
+
+				// User is authenticated and 2FA verified if needed, allow access
 				return NextResponse.next()
 			} else {
 				throw new Error('Invalid token payload')

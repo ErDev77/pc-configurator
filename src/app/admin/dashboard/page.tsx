@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast, ToastContainer } from 'react-toastify'
 import Sidebar from '../_components/Sidebar'
+import { injectThemeClasses } from '@/lib/themeInjection'
+
 import {
 	Chart as ChartJS,
 	CategoryScale,
@@ -87,6 +89,9 @@ const Admin = () => {
 	// For performance tracking
 	const [pageLoadTime, setPageLoadTime] = useState<number | null>(null)
 	const [resourcesLoaded, setResourcesLoaded] = useState<boolean>(false)
+	useEffect(() => {
+		injectThemeClasses()
+	}, [])
 
 	useEffect(() => {
 		const startTime = performance.now()
@@ -329,7 +334,6 @@ const Admin = () => {
 	if (isLoading) {
 		return (
 			<div className='flex min-h-screen bg-[#171C1F]'>
-				<Sidebar />
 				<div className='flex-1 p-8 ml-16'>
 					<div className='flex items-center justify-center h-full'>
 						<div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500'></div>

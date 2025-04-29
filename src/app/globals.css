@@ -1,5 +1,48 @@
 @import "tailwindcss";
 
+/* src/app/globals.css - Add this at the top */
+
+:root[data-theme="light"] {
+  --bg-primary: #F7FAFC;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #EDF2F7;
+  --text-primary: #1A202C;
+  --text-secondary: #4A5568;
+  --border-color: #E2E8F0;
+}
+
+:root[data-theme="dark"] {
+  --bg-primary: #171C1F;
+  --bg-secondary: #202529;
+  --bg-tertiary: #2A2F35;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0AEC0;
+  --border-color: #2D3748;
+}
+
+/* Apply these variables to admin pages */
+.admin-page {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.admin-card, 
+.settings-card,
+.admin-panel {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.admin-heading {
+  color: var(--text-primary) !important;
+}
+
+.admin-subtext {
+  color: var(--text-secondary) !important;
+}
+
+/* Add more as needed */
 :root {
   --background: #ffffff;
   --foreground: #171717;

@@ -15,13 +15,11 @@ import {
 	Filter,
 	Search,
 	X,
-	LayoutGrid,
-	Package,
 	ShoppingCart,
-	Folder,
 	ChevronRight,
 	StarOff,
-	Settings,
+	PcCase,
+	Cpu,
 } from 'lucide-react'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -35,7 +33,6 @@ interface Configuration {
 	price: number
 	createdAt: string
 	description?: string
-	isFavorite?: boolean
 	components?: string[]
 }
 
@@ -496,10 +493,11 @@ export default function FavoritesPage() {
 
 	if (isLoading) {
 		return (
-			<div className='flex items-center justify-center min-h-screen bg-gray-900'>
-				<div className='flex flex-col items-center'>
-					<RefreshCw className='w-12 h-12 text-blue-500 animate-spin mb-4' />
-					<p className='text-xl font-medium text-white'>Loading favorites...</p>
+			<div className='flex min-h-screen bg-[#171C1F]'>
+				<div className='flex-1 p-8 ml-16'>
+					<div className='flex items-center justify-center h-full'>
+						<div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500'></div>
+					</div>
 				</div>
 			</div>
 		)
@@ -600,7 +598,7 @@ export default function FavoritesPage() {
 									: 'text-gray-400 hover:text-gray-300'
 							}`}
 						>
-							<Settings className='w-5 h-5 mr-2' />
+							<PcCase className='w-5 h-5 mr-2' />
 							Configurations
 							{configurations.length > 0 && (
 								<span className='ml-2 bg-blue-900 text-blue-200 text-xs rounded-full px-2 py-0.5'>
@@ -617,7 +615,7 @@ export default function FavoritesPage() {
 									: 'text-gray-400 hover:text-gray-300'
 							}`}
 						>
-							<Package className='w-5 h-5 mr-2' />
+							<Cpu className='w-5 h-5 mr-2' />
 							Components
 							{components.length > 0 && (
 								<span className='ml-2 bg-blue-900 text-blue-200 text-xs rounded-full px-2 py-0.5'>

@@ -340,12 +340,11 @@ export default function ConfigurationsPage() {
 
 	if (isLoading) {
 		return (
-			<div className='flex items-center justify-center min-h-screen bg-gradient-to-b from-[#f8fafc] to-[#e2e8f0]'>
-				<div className='flex flex-col items-center'>
-					<RefreshCw className='w-12 h-12 text-blue-500 animate-spin mb-4' />
-					<p className='text-xl font-medium text-gray-800'>
-						Loading configurations...
-					</p>
+			<div className='flex min-h-screen bg-[#171C1F]'>
+				<div className='flex-1 p-8 ml-16'>
+					<div className='flex items-center justify-center h-full'>
+						<div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500'></div>
+					</div>
 				</div>
 			</div>
 		)

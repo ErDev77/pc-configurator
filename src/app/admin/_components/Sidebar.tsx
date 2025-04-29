@@ -8,24 +8,19 @@ import {
 	CircleUserRound,
 	Home,
 	LogOut,
-	Plus,
-	SunMoon,
-	User,
 	Cpu,
 	PcCase,
-	Box,
 	ListFilterPlus,
-	ScrollText,
 	ChevronRight,
 	Settings,
-	BarChart3,
 	HelpCircle,
 	Bell,
 	Moon,
 	Sun,
+	ShoppingCart,
+	Star,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { useTheme } from '@/context/ThemeContext'
 
 type User = {
@@ -100,11 +95,11 @@ const Sidebar = () => {
 					icon: <Home className='w-5 h-5' />,
 					href: '/admin/dashboard',
 				},
-				// {
-				// 	name: 'Analytics',
-				// 	icon: <BarChart3 className='w-5 h-5' />,
-				// 	href: '/admin/analytics',
-				// },
+				{
+					name: 'Favorites',
+					icon: <Star className='w-5 h-5' />,
+					href: '/admin/favorites',
+				},
 			],
 		},
 		{
@@ -132,7 +127,7 @@ const Sidebar = () => {
 			links: [
 				{
 					name: 'Manage Orders',
-					icon: <ScrollText className='w-5 h-5' />,
+					icon: <ShoppingCart className='w-5 h-5' />,
 					href: '/admin/orders',
 				},
 			],
@@ -145,11 +140,11 @@ const Sidebar = () => {
 					icon: <Settings className='w-5 h-5' />,
 					href: '/admin/settings',
 				},
-				// {
-				// 	name: 'Help',
-				// 	icon: <HelpCircle className='w-5 h-5' />,
-				// 	href: '/admin/help',
-				// },
+				{
+					name: 'Help',
+					icon: <HelpCircle className='w-5 h-5' />,
+					href: '/admin/help',
+				},
 			],
 		},
 	]

@@ -25,6 +25,7 @@ import {
     ShoppingCart,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { SecuritySettings } from './_components/SecuritySettings'
 
 interface SettingsSection {
 	id: string
@@ -292,6 +293,18 @@ export default function SettingsPage() {
 		const newKey = 'sk_test_' + Math.random().toString(36).substring(2, 15)
 		setApiKey(newKey)
 		toast.success('API key regenerated successfully!')
+	}
+
+	if (isLoading) {
+		return (
+			<div className='flex min-h-screen bg-[#171C1F]'>
+				<div className='flex-1 p-8 ml-16'>
+					<div className='flex items-center justify-center h-full'>
+						<div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500'></div>
+					</div>
+				</div>
+			</div>
+		)
 	}
 
 	return (
@@ -865,104 +878,9 @@ export default function SettingsPage() {
 						)}
 
 						{/* Security Settings */}
-						{activeSection === 'security' && (
-							<div className='space-y-8'>
-								<div className='pb-5 border-b border-gray-700'>
-									<h2 className='text-xl font-bold text-white mb-1'>
-										Security Settings
-									</h2>
-									<p className='text-gray-400 text-sm'>
-										Manage your security preferences
-									</p>
-								</div>
-
-								<div>
-									<h3 className='text-lg font-medium text-white mb-4'>
-										Authentication
-									</h3>
-
-									<div className='flex items-center justify-between p-4 bg-[#2a2f35] rounded-lg mb-4'>
-										<div className='flex items-center gap-3'>
-											<div className='p-2 bg-blue-600/20 rounded-full'>
-												<Lock size={18} className='text-blue-400' />
-											</div>
-											<div>
-												<p className='font-medium text-white'>
-													Two-Factor Authentication
-												</p>
-												<p className='text-sm text-gray-400'>
-													Add an extra layer of security to your account
-												</p>
-											</div>
-										</div>
-										<button className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors'>
-											Enable
-										</button>
-									</div>
-
-									<div className='flex items-center justify-between p-4 bg-[#2a2f35] rounded-lg'>
-										<div className='flex items-center gap-3'>
-											<div className='p-2 bg-blue-600/20 rounded-full'>
-												<Shield size={18} className='text-blue-400' />
-											</div>
-											<div>
-												<p className='font-medium text-white'>
-													Password Requirements
-												</p>
-												<p className='text-sm text-gray-400'>
-													Set minimum password complexity requirements
-												</p>
-											</div>
-										</div>
-										<button className='px-4 py-2 border border-gray-600 hover:border-gray-500 text-white rounded-lg transition-colors'>
-											Configure
-										</button>
-									</div>
-								</div>
-
-								<div className='pt-4 border-t border-gray-700'>
-									<h3 className='text-lg font-medium text-white mb-4'>
-										Session
-									</h3>
-
-									<div className='space-y-4'>
-										<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-											<div>
-												<label className='block text-sm font-medium text-gray-300 mb-2'>
-													Session Timeout (minutes)
-												</label>
-												<input
-													type='number'
-													min='5'
-													max='1440'
-													defaultValue='60'
-													className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-												/>
-											</div>
-
-											<div>
-												<label className='block text-sm font-medium text-gray-300 mb-2'>
-													Maximum Login Attempts
-												</label>
-												<input
-													type='number'
-													min='1'
-													max='10'
-													defaultValue='5'
-													className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-												/>
-											</div>
-										</div>
-
-										<div className='mt-4'>
-											<button className='px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors'>
-												Sign Out All Devices
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
+						{activeSection === 'security' && 
+						<SecuritySettings />
+						}
 
 						{/* Integrations Settings */}
 						{activeSection === 'integrations' && (

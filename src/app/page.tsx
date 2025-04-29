@@ -1,6 +1,7 @@
 // pages/index.tsx
 'use client'
 
+import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
@@ -185,6 +186,7 @@ const HomePage = () => {
 					)}
 				</main>
 			</div>
+			<Footer />
 		</>
 	)
 }

@@ -290,15 +290,17 @@ export default function AddComponentPage() {
     }
   }
 
-  // Loading UI
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-[#171C1F] bg-opacity-75 flex items-center justify-center z-50">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-        <span className="ml-4 text-white text-xl">Загрузка...</span>
-      </div>
-    )
-  }
+		return (
+			<div className='flex min-h-screen bg-[#171C1F]'>
+				<div className='flex-1 p-8 ml-16'>
+					<div className='flex items-center justify-center h-full'>
+						<div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500'></div>
+					</div>
+				</div>
+			</div>
+		)
+	}
 
   return (
     <div className="p-6 bg-gradient-to-b from-[#171C1F] to-[#13161A] min-h-screen">

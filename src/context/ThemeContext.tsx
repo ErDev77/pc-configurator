@@ -7,6 +7,7 @@ import React, {
 	useState,
 	ReactNode,
 } from 'react'
+import { injectThemeClasses } from '@/lib/themeInjection'
 
 type Theme = 'dark' | 'light'
 
@@ -36,7 +37,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 	// Apply the theme to the document
 	const applyTheme = (newTheme: Theme) => {
-		const root = document.documentElement
+		 const root = document.documentElement
+  		document.body.className = newTheme === 'dark' ? 'theme-dark' : 'theme-light'
 		if (newTheme === 'dark') {
 			root.classList.add('dark')
 			root.style.setProperty('--bg-primary', '#171C1F')
@@ -62,6 +64,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 		setTheme(newTheme)
 		applyTheme(newTheme)
 		localStorage.setItem('theme', newTheme)
+
+		// Call the injection function after a small delay to ensure DOM is updated
+		setTimeout(() => {
+			injectThemeClasses()
+		}, 100)
 	}
 
 	// Function to set theme directly
