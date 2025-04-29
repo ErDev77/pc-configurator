@@ -4,7 +4,6 @@ import { useAppSelector, useAppDispatch } from '@/redux/hooks/hook'
 import { clearCart } from '@/redux/slices/cartSlice'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
-// import Footer from '@/app/_components/Footer'
 import { toast } from 'react-toastify'
 
 // Form field type
@@ -21,9 +20,9 @@ export default function CheckoutPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [orderPlaced, setOrderPlaced] = useState(false)
 	const [orderNumber, setOrderNumber] = useState('')
-	const [notificationStatus, setNotificationStatus] = useState({
-		email: false,
-		telegram: false,
+	const [notificationPreferences, setNotificationPreferences] = useState({
+		email: true,
+		telegram: true,
 	})
 
 	// Form state
@@ -87,6 +86,15 @@ export default function CheckoutPage() {
 				error,
 				touched: true,
 			},
+		}))
+	}
+
+	// Handle notification preference changes
+	const handleNotificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const { name, checked } = e.target
+		setNotificationPreferences(prev => ({
+			...prev,
+			[name]: checked,
 		}))
 	}
 
@@ -163,83 +171,6 @@ export default function CheckoutPage() {
 		return isValid
 	}
 
-	const sendEmailNotification = async (orderData: {
-		orderNumber: string
-		customer: {
-			firstName: string
-			lastName: string
-			email: string
-			phone: string
-		}
-		totals: { total: number }
-		items: any[]
-	}) => {
-		try {
-			const response = await fetch('/api/checkout/notifications/email', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					to: process.env.EMAIL_TO, // Replace with your admin email
-					subject: `New Order #${orderData.orderNumber}`,
-					orderData: orderData,
-				}),
-			})
-
-			if (!response.ok) {
-				throw new Error('Failed to send email notification')
-			}
-
-			setNotificationStatus(prev => ({ ...prev, email: true }))
-			return true
-		} catch (error) {
-			console.error('Email notification error:', error)
-			return false
-		}
-	}
-
-	const sendTelegramNotification = async (orderData: {
-		orderNumber: string
-		customer: {
-			firstName: string
-			lastName: string
-			email: string
-			phone: string
-		}
-		totals: { total: number }
-		items: any[]
-	}) => {
-		try {
-			const response = await fetch('/api/checkout/notifications/telegram', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					message:
-						`🛒 NEW ORDER #${orderData.orderNumber}\n\n` +
-						`Customer: ${orderData.customer.firstName} ${orderData.customer.lastName}\n` +
-						`Email: ${orderData.customer.email}\n` +
-						`Phone: ${orderData.customer.phone}\n` +
-						`Total: $${orderData.totals.total.toFixed(2)}\n` +
-						`Items: ${orderData.items.length}\n\n` +
-						`View details in admin panel: https://localhost/admin/orders/${orderData.orderNumber}`,
-				}),
-			})
-
-			if (!response.ok) {
-				throw new Error('Failed to send telegram notification')
-			}
-
-			setNotificationStatus(prev => ({ ...prev, telegram: true }))
-			return true
-		} catch (error) {
-			console.error('Telegram notification error:', error)
-			return false
-		}
-	}
-
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -288,11 +219,12 @@ export default function CheckoutPage() {
 					tax,
 					total,
 				},
+				notifications: notificationPreferences,
 				orderedAt: new Date().toISOString(),
 			}
 
-			// Send order data to backend
-			const response = await fetch('/api/checkout', {
+			// Send order data to backend - UNIFIED ENDPOINT
+			const response = await fetch('/api/checkout/process-order', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -305,28 +237,21 @@ export default function CheckoutPage() {
 			}
 
 			const data = await response.json()
-			console.log('Received order data:', data)
-			// Send notifications
-			const emailSent = await sendEmailNotification(orderData)
-			const telegramSent = await sendTelegramNotification(orderData)
-
-			// Show notification status
-			if (emailSent) {
-				toast.success('Email notification sent successfully')
-			} else {
-				toast.error('Failed to send email notification')
-			}
-
-			if (telegramSent) {
-				toast.success('Telegram notification sent successfully')
-			} else {
-				toast.error('Failed to send Telegram notification')
-			}
 
 			// On success, clear cart and show success message
 			dispatch(clearCart())
 			setOrderNumber(data.orderNumber || generatedOrderNumber)
 			setOrderPlaced(true)
+
+			// Show notification status
+			if (data.notifications) {
+				if (data.notifications.email) {
+					toast.success('Order confirmation email sent')
+				}
+				if (data.notifications.telegram) {
+					toast.success('Order notification sent to shop')
+				}
+			}
 		} catch (error) {
 			console.error('Checkout error:', error)
 			toast.error('There was an error processing your order. Please try again.')
@@ -354,7 +279,6 @@ export default function CheckoutPage() {
 						</button>
 					</div>
 				</div>
-				{/* <Footer /> */}
 			</>
 		)
 	}
@@ -413,7 +337,6 @@ export default function CheckoutPage() {
 						</div>
 					</div>
 				</div>
-				{/* <Footer /> */}
 			</>
 		)
 	}
@@ -822,6 +745,38 @@ export default function CheckoutPage() {
 										</div>
 									)}
 								</div>
+
+								{/* Notification Preferences */}
+								<div className='bg-[#222227] rounded-lg p-6 mb-8'>
+									<h2 className='text-xl font-semibold mb-6'>Notifications</h2>
+									<div className='space-y-3'>
+										<label className='flex items-center text-sm'>
+											<input
+												type='checkbox'
+												name='email'
+												checked={notificationPreferences.email}
+												onChange={handleNotificationChange}
+												className='mr-3 accent-[#00b5ed]'
+											/>
+											Send order confirmation email
+										</label>
+										<label className='flex items-center text-sm'>
+											<input
+												type='checkbox'
+												name='telegram'
+												checked={notificationPreferences.telegram}
+												onChange={handleNotificationChange}
+												className='mr-3 accent-[#00b5ed]'
+											/>
+											Notify store about my order
+										</label>
+										<p className='text-xs text-gray-400 mt-3'>
+											We use these notifications to process your order. You can
+											disable either option, but we recommend keeping at least
+											one enabled for better service.
+										</p>
+									</div>
+								</div>
 							</form>
 						</div>
 
@@ -860,7 +815,7 @@ export default function CheckoutPage() {
 									<div className='flex justify-between'>
 										<span className='text-gray-400'>Shipping</span>
 										<span>
-											{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+											{shipping === 0 ? 'FREE' : `${shipping.toFixed(2)}`}
 										</span>
 									</div>
 
@@ -893,7 +848,6 @@ export default function CheckoutPage() {
 					</div>
 				</div>
 			</div>
-			{/* <Footer /> */}
 		</>
 	)
 }

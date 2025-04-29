@@ -1,15 +1,28 @@
-import { NextResponse } from 'next/server'
+// src/app/api/notifications/telegram/route.ts
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json()
 		const { message } = body
+
+		if (!message) {
+			return NextResponse.json(
+				{ success: false, error: 'Message is required' },
+				{ status: 400 }
+			)
+		}
 
 		const botToken = process.env.TELEGRAM_BOT_TOKEN
 		const chatId = process.env.TELEGRAM_CHAT_ID
 
 		if (!botToken || !chatId) {
-			throw new Error('Telegram bot token or chat ID not configured')
+			console.warn('Telegram bot token or chat ID not configured')
+			// Return success even if not configured to avoid blocking checkout
+			return NextResponse.json({
+				success: true,
+				warning: 'Telegram not configured',
+			})
 		}
 
 		const response = await fetch(

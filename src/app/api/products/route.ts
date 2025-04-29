@@ -4,15 +4,39 @@ import pool from '@/lib/db'
 // Получение категорий и компонентов
 export async function GET(req: NextRequest) {
 	try {
-		const resCategories = await pool.query('SELECT * FROM category')
-		const resComponents = await pool.query('SELECT * FROM products LIMIT 10')
+		// Parse page and pageSize from URL params
+		const url = new URL(req.url)
+		const page = parseInt(url.searchParams.get('page') || '1')
+		const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
 
-		console.log('Fetched categories:', resCategories.rows)
-		console.log('Fetched components:', resComponents.rows)
+		// Calculate offset
+		const offset = (page - 1) * pageSize
+
+		// Fetch total count for pagination metadata
+		const totalCountResult = await pool.query('SELECT COUNT(*) FROM products')
+		const totalCount = parseInt(totalCountResult.rows[0].count)
+
+		const resCategories = await pool.query('SELECT * FROM category')
+
+		// Use LIMIT and OFFSET for pagination
+		const resComponents = await pool.query(
+			'SELECT * FROM products ORDER BY id LIMIT $1 OFFSET $2',
+			[pageSize, offset]
+		)
+
+		console.log(
+			`Fetched page ${page} with ${resComponents.rows.length} components (offset: ${offset})`
+		)
 
 		return NextResponse.json({
 			categories: resCategories.rows,
 			components: resComponents.rows,
+			pagination: {
+				currentPage: page,
+				pageSize: pageSize,
+				totalCount: totalCount,
+				totalPages: Math.ceil(totalCount / pageSize),
+			},
 		})
 	} catch (error) {
 		console.error('Error fetching data:', error)

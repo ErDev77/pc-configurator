@@ -25,6 +25,7 @@ interface Component {
 	specs_am: Array<string>
 	category_id: number
 	discount?: number
+	hidden?: boolean
 }
 
 interface Category {
@@ -817,45 +818,52 @@ export default function ClientConfiguration({
 										}`}
 									>
 										<div className='grid grid-cols-2 gap-4 mt-4'>
-											{category.components.map((component, index) => {
-												const isSelected =
-													selectedComponents[category.id]?.id === component.id
-												const isDisabled = !isCompatibleWithSelected(component)
-												const discount = component.discount || 10
-												return (
-													<div
-														key={component.id}
-														onClick={() =>
-															!isSelecting && handleSelect(category, component)
-														}
-														className={`p-2 border border-[#454545] rounded-sm cursor-pointer flex items-center gap-4 h-[150px] transition-all duration-500 ${
-															isSelected ? 'bg-[#303A50]' : 'bg-[#2E2E35]'
-														} ${
-															isDisabled && !isSelected
-																? 'opacity-70 hover:border-yellow-400'
-																: 'hover:bg-[#303A50]'
-														} ${
-															isSelecting ? 'opacity-50 cursor-not-allowed' : ''
-														}`}
-													>
-														{isSelecting ? (
-															<div className='w-6 h-6 border-4 border-blue-500 border-dotted rounded-full animate-spin'></div>
-														) : (
-															<>
-																<Image
-																	src={
-																		component.image_url || '/category-icon.png'
-																	}
-																	alt={component.name}
-																	width={60}
-																	height={60}
-																/>
-																<div className='flex-1'>
-																	<h3 className='text-sm font-medium text-white'>
-																		{component.name}
-																	</h3>
+											{category.components
+												.filter(component => !component.hidden)
+												.map((component, index) => {
+													const isSelected =
+														selectedComponents[category.id]?.id === component.id
+													const isDisabled =
+														!isCompatibleWithSelected(component)
+													const discount = component.discount || 10
+													return (
+														<div
+															key={component.id}
+															onClick={() =>
+																!isSelecting &&
+																handleSelect(category, component)
+															}
+															className={`p-2 border border-[#454545] rounded-sm cursor-pointer flex items-center gap-4 h-[150px] transition-all duration-500 ${
+																isSelected ? 'bg-[#303A50]' : 'bg-[#2E2E35]'
+															} ${
+																isDisabled && !isSelected
+																	? 'opacity-70 hover:border-yellow-400'
+																	: 'hover:bg-[#303A50]'
+															} ${
+																isSelecting
+																	? 'opacity-50 cursor-not-allowed'
+																	: ''
+															}`}
+														>
+															{isSelecting ? (
+																<div className='w-6 h-6 border-4 border-blue-500 border-dotted rounded-full animate-spin'></div>
+															) : (
+																<>
+																	<Image
+																		src={
+																			component.image_url ||
+																			'/category-icon.png'
+																		}
+																		alt={component.name}
+																		width={60}
+																		height={60}
+																	/>
+																	<div className='flex-1'>
+																		<h3 className='text-sm font-medium text-white'>
+																			{component.name}
+																		</h3>
 
-																	{/* <div className='relative w-fit'>
+																		{/* <div className='relative w-fit'>
 																		<p className='text-sm font-medium text-gray-500 overflow-hidden max-h-[3em] line-clamp-2 cursor-pointer peer'>
 																			{formatSpecs(
 																				language === 'ru'
@@ -877,40 +885,41 @@ export default function ClientConfiguration({
 																		</div>
 																	</div> */}
 
-																	{!isDisabled && !isSelected && (
-																		<div className='text-white text-[12px] mt-3'>
-																			{getPriceDifference(
-																				category,
-																				component,
-																				discount
+																		{!isDisabled && !isSelected && (
+																			<div className='text-white text-[12px] mt-3'>
+																				{getPriceDifference(
+																					category,
+																					component,
+																					discount
+																				)}
+																			</div>
+																		)}
+
+																		{isDisabled && !isSelected && (
+																			<h3 className='text-sm font-normal text-yellow-200'>
+																				Not compatible with your other
+																				components
+																			</h3>
+																		)}
+
+																		<div className='flex items-center gap-2'>
+																			{isSelected && (
+																				<h4 className='mt-3 text-white font-inter text-xs font-normal leading-[17px] bg-[#02B5ED] rounded-full w-[63px] text-center'>
+																					Selected
+																				</h4>
+																			)}
+																			{isSelected && (
+																				<span className='mt-3 text-white font-inter text-xs font-normal leading-[17px] bg-[#FF9E40] rounded-full w-[75px] text-center'>
+																					Saving ${discount}
+																				</span>
 																			)}
 																		</div>
-																	)}
-
-																	{isDisabled && !isSelected && (
-																		<h3 className='text-sm font-normal text-yellow-200'>
-																			Not compatible with your other components
-																		</h3>
-																	)}
-
-																	<div className='flex items-center gap-2'>
-																		{isSelected && (
-																			<h4 className='mt-3 text-white font-inter text-xs font-normal leading-[17px] bg-[#02B5ED] rounded-full w-[63px] text-center'>
-																				Selected
-																			</h4>
-																		)}
-																		{isSelected && (
-																			<span className='mt-3 text-white font-inter text-xs font-normal leading-[17px] bg-[#FF9E40] rounded-full w-[75px] text-center'>
-																				Saving ${discount}
-																			</span>
-																		)}
 																	</div>
-																</div>
-															</>
-														)}
-													</div>
-												)
-											})}
+																</>
+															)}
+														</div>
+													)
+												})}
 										</div>
 									</div>
 								</div>

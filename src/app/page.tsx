@@ -23,6 +23,7 @@ interface Configuration {
 	name: string
 	components: string[]
 	image_url: string
+	hidden: boolean
 }
 
 const HomePage = () => {
@@ -145,39 +146,41 @@ const HomePage = () => {
 						</p>
 					) : (
 						<div className='grid grid-cols-3 gap-8 bg-[#2E2E35]'>
-							{filteredConfigurations.map(config => (
-								<div
-									key={config.id}
-									className='border rounded shadow hover:shadow-lg transition'
-								>
-									{config.image_url && (
-										<Image
-											width={500}
-											height={500}
-											src={config.image_url}
-											alt={config.name}
-											className='w-full h-48 object-cover rounded-t'
-										/>
-									)}
-									<div className='p-4'>
-										<h3 className='text-lg font-semibold'>{config.name}</h3>
-										<ul className='mt-2 text-sm space-y-1'>
-											{Array.isArray(config.components) &&
-											config.components.length > 0 ? (
-												config.components.map((component, index) => (
-													<li key={index}>{component}</li>
-												))
-											) : (
-												<li>Нет компонентов</li> // Fallback message if components is not an array or is empty
-											)}
-										</ul>
+							{filteredConfigurations
+								.filter(config => !config.hidden)
+								.map(config => (
+									<div
+										key={config.id}
+										className='border rounded shadow hover:shadow-lg transition'
+									>
+										{config.image_url && (
+											<Image
+												width={500}
+												height={500}
+												src={config.image_url}
+												alt={config.name}
+												className='w-full h-48 object-cover rounded-t'
+											/>
+										)}
+										<div className='p-4'>
+											<h3 className='text-lg font-semibold'>{config.name}</h3>
+											<ul className='mt-2 text-sm space-y-1'>
+												{Array.isArray(config.components) &&
+												config.components.length > 0 ? (
+													config.components.map((component, index) => (
+														<li key={index}>{component}</li>
+													))
+												) : (
+													<li>Нет компонентов</li> // Fallback message if components is not an array or is empty
+												)}
+											</ul>
 
-										<button className='mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'>
-											Подробнее
-										</button>
+											<button className='mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'>
+												Подробнее
+											</button>
+										</div>
 									</div>
-								</div>
-							))}
+								))}
 						</div>
 					)}
 				</main>

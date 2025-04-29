@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 type User = {
+	[x: string]: any
 	email?: string
 }
 
