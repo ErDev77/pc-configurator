@@ -19,6 +19,24 @@ export function SecuritySettings() {
 	const [sessionTimeout, setSessionTimeout] = useState(60)
 	const [maxLoginAttempts, setMaxLoginAttempts] = useState(5)
 	const [saving, setSaving] = useState(false)
+	const [accountSettings, setAccountSettings] = useState({
+		name: user?.name || 'Admin User',
+		email: user?.email || 'admin@example.com',
+		currentPassword: '',
+		newPassword: '',
+		confirmPassword: '',
+	})
+
+	useEffect(() => {
+		// Update account settings when user data changes
+		if (user) {
+			setAccountSettings(prev => ({
+				...prev,
+				name: user.name || prev.name,
+				email: user.email || prev.email,
+			}))
+		}
+	}, [user])
 
 	const handlePasswordChange = () => {
 		if (accountSettings.newPassword !== accountSettings.confirmPassword) {
@@ -31,9 +49,14 @@ export function SecuritySettings() {
 			return
 		}
 
+		if (accountSettings.newPassword.length < 8) {
+			toast.error('Password must be at least 8 characters long')
+			return
+		}
+
 		setSaving(true)
 
-		// Simulate API call
+		// Simulate API call - in a real app, this would be an actual API request
 		setTimeout(() => {
 			toast.success('Password changed successfully!')
 			setAccountSettings({
@@ -45,14 +68,6 @@ export function SecuritySettings() {
 			setSaving(false)
 		}, 1500)
 	}
-const [accountSettings, setAccountSettings] = useState({
-	name: user?.name || 'Admin User',
-	email: user?.email || 'admin@example.com',
-	currentPassword: '',
-	newPassword: '',
-	confirmPassword: '',
-})
-
 
 	return (
 		<div className='space-y-8'>
@@ -123,9 +138,24 @@ const [accountSettings, setAccountSettings] = useState({
 					<div>
 						<button
 							onClick={handlePasswordChange}
-							className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors'
+							disabled={saving}
+							className={`px-4 py-2 ${
+								saving
+									? 'bg-blue-700 opacity-75 cursor-not-allowed'
+									: 'bg-blue-600 hover:bg-blue-700'
+							} text-white rounded-lg transition-colors flex items-center gap-2`}
 						>
-							Update Password
+							{saving ? (
+								<>
+									<Loader size={16} className='animate-spin' />
+									<span>Updating...</span>
+								</>
+							) : (
+								<>
+									<Lock size={16} />
+									<span>Update Password</span>
+								</>
+							)}
 						</button>
 					</div>
 				</div>
