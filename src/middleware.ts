@@ -7,7 +7,6 @@ export async function middleware(request: NextRequest) {
 	const isLoginPage = pathname === '/admin/login'
 	const isPublicApiRoute =
 		pathname.startsWith('/api/admin/login') ||
-		pathname.startsWith('/api/admin/2fa')
 
 	console.log('Middleware checking route:', pathname)
 
@@ -37,17 +36,6 @@ export async function middleware(request: NextRequest) {
 				'id' in decoded
 			) {
 				console.log('Token verified for user:', decoded.email)
-
-				// Check if 2FA is required based only on the token info
-				// We'll include 2FA status in the token when we generate it
-				if (decoded.twoFactorEnabled && !decoded.twoFactorVerified) {
-					console.log('2FA verification required for user:', decoded.email)
-					// User has not completed 2FA verification, redirect to login with 2FA flag
-					const url = new URL('/admin/login', request.url)
-					url.searchParams.set('require2fa', 'true')
-					url.searchParams.set('from', pathname)
-					return NextResponse.redirect(url)
-				}
 
 				// User is authenticated and 2FA verified if needed, allow access
 				return NextResponse.next()

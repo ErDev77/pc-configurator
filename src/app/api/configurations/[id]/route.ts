@@ -111,7 +111,7 @@ export async function PUT(
     const updateConfigResult = await pool.query(
       `
       UPDATE configurations
-      SET name = $1, description = $2, price = $3, image_url = $4, hidden = $5, isfavorite = $6
+      SET name = $1, description = $2, price = $3, image_url = $4, hidden = $5,
       WHERE id = $7
       RETURNING *
       `,

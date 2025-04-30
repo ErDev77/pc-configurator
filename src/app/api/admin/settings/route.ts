@@ -1,37 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
-import { verifyToken } from '@/lib/jwt'
-import { cookies } from 'next/headers'
 
-// Helper function to get the current admin ID from the token
-async function getCurrentAdminId(req: NextRequest) {
-	const cookieStore = await cookies()
-	const token = cookieStore.get('admin_auth')?.value
 
-	if (!token) {
-		return null
-	}
-
-	try {
-		const decoded = await verifyToken(token)
-		return decoded.id
-	} catch (error) {
-		console.error('Error verifying token:', error)
-		return null
-	}
-}
-
-// GET handler to retrieve notification settings
+// GET: Получение настроек
 export async function GET(req: NextRequest) {
 	try {
-		// Get the current admin ID
-		const adminId = await getCurrentAdminId(req)
-
-		if (!adminId) {
-			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-		}
-
-		// Check if settings table exists, and create it if it doesn't
+		
+		// Проверка существования таблицы
 		const checkTableResult = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
@@ -39,52 +14,34 @@ export async function GET(req: NextRequest) {
       );
     `)
 
-		const tableExists = checkTableResult.rows[0].exists
-
-		if (!tableExists) {
-			// Create settings table with admin_id column
+		if (!checkTableResult.rows[0].exists) {
 			await pool.query(`
         CREATE TABLE settings (
           id SERIAL PRIMARY KEY,
-          admin_id INTEGER NOT NULL,
-          key VARCHAR(255) NOT NULL,
+          key VARCHAR(255) UNIQUE NOT NULL,
           value JSONB NOT NULL,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(admin_id, key)
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
       `)
 		}
 
-		// Query the current notification settings for this admin
+		// Получение настроек
 		const result = await pool.query(
-			`
-      SELECT value FROM settings 
-      WHERE key = 'notifications' AND admin_id = $1;
-    `,
-			[adminId]
+			`SELECT value FROM settings WHERE key = 'notifications';`
 		)
 
 		if (result.rows.length === 0) {
-			// If no settings found for this admin, insert default ones
+			// Вставка дефолтных настроек
 			const defaultSettings = { email: true, telegram: true }
-
 			await pool.query(
-				`
-        INSERT INTO settings (admin_id, key, value) 
-        VALUES ($1, 'notifications', $2);
-      `,
-				[adminId, JSON.stringify(defaultSettings)]
+				`INSERT INTO settings (key, value) VALUES ('notifications', $1);`,
+				[JSON.stringify(defaultSettings)]
 			)
-
-			return NextResponse.json({
-				notifications: defaultSettings,
-			})
+			return NextResponse.json({ notifications: defaultSettings })
 		}
 
-		return NextResponse.json({
-			notifications: result.rows[0].value,
-		})
+		return NextResponse.json({ notifications: result.rows[0].value })
 	} catch (error) {
 		console.error('Error retrieving settings:', error)
 		return NextResponse.json(
@@ -94,16 +51,9 @@ export async function GET(req: NextRequest) {
 	}
 }
 
-// POST handler to update notification settings
+// POST: Обновление настроек
 export async function POST(req: NextRequest) {
 	try {
-		// Get the current admin ID
-		const adminId = await getCurrentAdminId(req)
-
-		if (!adminId) {
-			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-		}
-
 		const body = await req.json()
 		const { notifications } = body
 
@@ -114,40 +64,20 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
-		// Check if settings table exists, and create it if it doesn't
-		const checkTableResult = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_name = 'settings'
-      );
-    `)
+		// Убедимся, что существует уникальный индекс по key
+		await pool.query(
+			`CREATE UNIQUE INDEX IF NOT EXISTS settings_key_unique ON settings(key);`
+		)
 
-		const tableExists = checkTableResult.rows[0].exists
-
-		if (!tableExists) {
-			// Create settings table with admin_id column
-			await pool.query(`
-        CREATE TABLE settings (
-          id SERIAL PRIMARY KEY,
-          admin_id INTEGER NOT NULL,
-          key VARCHAR(255) NOT NULL,
-          value JSONB NOT NULL,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(admin_id, key)
-        );
-      `)
-		}
-
-		// Upsert notification settings for this admin
+		// Обновление или вставка
 		await pool.query(
 			`
-      INSERT INTO settings (admin_id, key, value, updated_at) 
-      VALUES ($1, 'notifications', $2, CURRENT_TIMESTAMP)
-      ON CONFLICT (admin_id, key) 
-      DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP;
-    `,
-			[adminId, JSON.stringify(notifications)]
+  INSERT INTO settings (key, value, updated_at) 
+  VALUES ('notifications', $1, CURRENT_TIMESTAMP)
+  ON CONFLICT (key) 
+  DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP;
+  `,
+			[JSON.stringify(notifications)]
 		)
 
 		return NextResponse.json({

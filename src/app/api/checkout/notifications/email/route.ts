@@ -1,5 +1,3 @@
-// Update src/app/api/checkout/notifications/email/route.ts
-
 import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import pool from '@/lib/db'
@@ -42,38 +40,30 @@ interface OrderData {
 export async function POST(request: Request) {
 	try {
 		const body = await request.json()
-		const { subject, orderData, adminId } = body
+		const { subject, orderData } = body
 
-		// If adminId was provided, check this specific admin's settings
-		// Otherwise fallback to a default admin (for backward compatibility)
-		const id = adminId || 1
-
-		// Check if this admin has email notifications enabled
+		// Проверяем, включены ли email-уведомления в глобальных настройках
 		const settingsResult = await pool.query(
 			`SELECT value->>'email' as email_enabled 
        FROM settings 
-       WHERE admin_id = $1 AND key = 'notifications'`,
-			[id]
+       WHERE key = 'notifications'`
 		)
 
-		// If settings exist and email is explicitly disabled, don't send notification
 		if (settingsResult.rows.length > 0) {
 			const emailEnabled = settingsResult.rows[0].email_enabled === 'true'
 			if (!emailEnabled) {
 				return NextResponse.json({
 					success: false,
-					message: 'Email notifications disabled for this admin',
+					message: 'Email notifications are disabled',
 				})
 			}
 		}
 
-		// Get the admin's email from the database
+		// Получаем email администратора (или берём из .env)
 		const adminResult = await pool.query(
-			'SELECT email FROM admins WHERE id = $1',
-			[id]
+			'SELECT email FROM admins ORDER BY id ASC LIMIT 1'
 		)
 
-		// Use the admin's email if available, otherwise fall back to environment variable
 		const to =
 			adminResult.rows.length > 0
 				? adminResult.rows[0].email
@@ -144,45 +134,3 @@ export async function POST(request: Request) {
 		)
 	}
 }
-// src/app/api/notifications/email/route.ts
-// import { NextRequest, NextResponse } from 'next/server'
-// import nodemailer from 'nodemailer'
-
-// export async function POST(request: NextRequest) {
-//   try {
-//     const body = await request.json()
-//     const { to, subject, html } = body
-    
-//     if (!to || !subject || !html) {
-//       return NextResponse.json(
-//         { success: false, error: 'Missing required fields' },
-//         { status: 400 }
-//       )
-//     }
-
-//     const transporter = nodemailer.createTransport({
-//       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-//       port: parseInt(process.env.EMAIL_PORT || '587'),
-//       secure: process.env.EMAIL_SECURE === 'true',
-//       auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASSWORD,
-//       },
-//     })
-
-//     await transporter.sendMail({
-//       from: process.env.EMAIL_FROM || 'store@example.com',
-//       to,
-//       subject,
-//       html,
-//     })
-
-//     return NextResponse.json({ success: true })
-//   } catch (error) {
-//     console.error('Email sending error:', error)
-//     return NextResponse.json(
-//       { success: false, error: 'Failed to send email' },
-//       { status: 500 }
-//     )
-//   }
-// }
