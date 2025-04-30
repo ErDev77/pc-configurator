@@ -1,11 +1,17 @@
-// Update src/app/api/orders/route.ts
-import { NextResponse } from 'next/server'
+// src/app/api/orders/route.ts
+import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
 	try {
-		// Get all orders with all columns
-		const res = await pool.query(`
+		// Get query parameters
+		const { searchParams } = new URL(request.url)
+		const sinceId = searchParams.get('since')
+		const limit = searchParams.get('limit')
+		const sortOrder = searchParams.get('sortOrder') || 'desc'
+
+		// Build the base query
+		let query = `
       SELECT 
         id, 
         generated_order_number, 
@@ -28,8 +34,37 @@ export async function GET() {
         total,
         items
       FROM orders
-      ORDER BY created_at DESC
-    `)
+    `
+
+		const params: any[] = []
+		let paramIndex = 1
+
+		// Add where clauses
+		const whereClauses = []
+
+		// If sinceId is provided, only fetch orders with a higher ID
+		if (sinceId) {
+			whereClauses.push(`id > $${paramIndex}`)
+			params.push(sinceId)
+			paramIndex++
+		}
+
+		// Add all where clauses to the query
+		if (whereClauses.length > 0) {
+			query += ` WHERE ${whereClauses.join(' AND ')}`
+		}
+
+		// Add order by
+		query += ` ORDER BY created_at ${sortOrder === 'asc' ? 'ASC' : 'DESC'}`
+
+		// Add limit if specified
+		if (limit) {
+			query += ` LIMIT $${paramIndex}`
+			params.push(parseInt(limit))
+			paramIndex++
+		}
+
+		const res = await pool.query(query, params)
 
 		return NextResponse.json(res.rows)
 	} catch (error) {

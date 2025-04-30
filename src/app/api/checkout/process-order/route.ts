@@ -10,6 +10,8 @@ interface OrderItem {
 	price: number
 	quantity: number
 	totalPrice: number
+	configId?: number
+	configName?: string
 	components?: any[]
 }
 
@@ -212,15 +214,35 @@ async function createOrder(orderData: OrderData) {
 
 // Create formatted HTML for order details - used in both email and telegram
 function createOrderDetailsHtml(orderData: OrderData): string {
-	// Create a list of items with their details
+	// Create a list of items with their details and components
 	const itemsList = orderData.items
-		.map(
-			(item: OrderItem) =>
-				`${item.name} x ${item.quantity} - $${formatPrice(
-					item.price * item.quantity
-				).toFixed(2)}`
-		)
-		.join('\n')
+		.map((item: OrderItem) => {
+			const itemDetails = `<h3>${item.name || item.configName} - ${
+				item.quantity
+			} x $${formatPrice(item.price).toFixed(2)} = $${formatPrice(
+				item.price * item.quantity
+			).toFixed(2)}</h3>`
+
+			// Add components details if available
+			let componentsDetails = ''
+			if (item.components && item.components.length > 0) {
+				componentsDetails = `
+				<ul style="margin-left: 20px; margin-top: 5px; margin-bottom: 15px;">
+					${item.components
+						.map(
+							comp => `
+						<li style="margin-bottom: 5px;">
+							${comp.name} - $${formatPrice(comp.price).toFixed(2)}
+						</li>
+					`
+						)
+						.join('')}
+				</ul>`
+			}
+
+			return `${itemDetails}${componentsDetails}`
+		})
+		.join('')
 
 	// Create full HTML content
 	return `
@@ -232,8 +254,9 @@ function createOrderDetailsHtml(orderData: OrderData): string {
     <p><strong>Email:</strong> ${orderData.customer.email}</p>
     <p><strong>Phone:</strong> ${orderData.customer.phone}</p>
     <h2>Order Details</h2>
-    <p><strong>Items:</strong></p>
-    <pre>${itemsList}</pre>
+    <div>
+      ${itemsList}
+    </div>
     <p><strong>Subtotal:</strong> $${formatPrice(
 			orderData.totals.subtotal
 		).toFixed(2)}</p>
@@ -260,14 +283,28 @@ function createOrderDetailsHtml(orderData: OrderData): string {
 
 // Create plain text version of order details for Telegram
 function createOrderDetailsText(orderData: OrderData): string {
-	// Create a list of items with their details
+	// Create a list of items with their details and components
 	const itemsList = orderData.items
-		.map(
-			(item: OrderItem) =>
-				`- ${item.name} x ${item.quantity} - $${formatPrice(
-					item.price * item.quantity
-				).toFixed(2)}`
-		)
+		.map((item: OrderItem) => {
+			const itemDetails = `- ${item.name || item.configName} - ${
+				item.quantity
+			} x $${formatPrice(item.price).toFixed(2)} = $${formatPrice(
+				item.price * item.quantity
+			).toFixed(2)}`
+
+			// Add components details if available
+			let componentsDetails = ''
+			if (item.components && item.components.length > 0) {
+				componentsDetails = `\n  Components:\n${item.components
+					.map(
+						comp =>
+							`    • ${comp.name} - $${formatPrice(comp.price).toFixed(2)}`
+					)
+					.join('\n')}`
+			}
+
+			return `${itemDetails}${componentsDetails}`
+		})
 		.join('\n')
 
 	// Create full text content

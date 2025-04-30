@@ -5,6 +5,7 @@ import { clearCart } from '@/redux/slices/cartSlice'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import { toast } from 'react-toastify'
+import { useNotifications } from '@/context/NotificationContext'
 
 // Form field type
 interface FormField {
@@ -24,6 +25,7 @@ export default function CheckoutPage() {
 		email: true,
 		telegram: true,
 	})
+	const { addNotification } = useNotifications()
 
 	// Form state
 	const [form, setForm] = useState({
@@ -172,6 +174,8 @@ export default function CheckoutPage() {
 	}
 
 	// Handle form submission
+	// Modified handleSubmit function for src/app/checkout/page.tsx
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 
@@ -223,7 +227,7 @@ export default function CheckoutPage() {
 				orderedAt: new Date().toISOString(),
 			}
 
-			// Send order data to backend - UNIFIED ENDPOINT
+			// Send order data to backend
 			const response = await fetch('/api/checkout/process-order', {
 				method: 'POST',
 				headers: {
@@ -242,6 +246,13 @@ export default function CheckoutPage() {
 			dispatch(clearCart())
 			setOrderNumber(data.orderNumber || generatedOrderNumber)
 			setOrderPlaced(true)
+
+			// Add notification for the new order
+			// This creates a notification that will show up in the admin sidebar
+			// if browser notifications are enabled
+			addNotification(
+				`New order received #${data.orderNumber || generatedOrderNumber}`
+			)
 
 			// Show notification status
 			if (data.notifications) {

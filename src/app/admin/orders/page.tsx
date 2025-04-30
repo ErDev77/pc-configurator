@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { JSX, useEffect, useState } from 'react'
 import {
   Search,
   Filter,
@@ -15,6 +15,7 @@ import {
   StarOff,
   AlertCircle,
   Info,
+  Bell,
 } from 'lucide-react'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -95,7 +96,6 @@ const OrdersPage = () => {
 
 	// State for edit modal
 	const [editOrder, setEditOrder] = useState<Order | null>(null)
-	const [editModalOpen, setEditModalOpen] = useState<boolean>(false)
 
 	// State for confirm delete modal
 	const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false)
@@ -179,7 +179,6 @@ const OrdersPage = () => {
 
 	// Updated version of the formatCurrency function
 	// Removed duplicate declaration of formatCurrency
-
 
 	const handleUpdateStatus = async (orderId: number, newStatus: string) => {
 		try {
@@ -272,15 +271,7 @@ const OrdersPage = () => {
 		setViewModalOpen(true)
 	}
 
-	const handleEditOrder = (order: Order) => {
-		setEditOrder({ ...order })
-		setEditModalOpen(true)
-	}
 
-	const handleCloseEditModal = () => {
-		setEditOrder(null)
-		setEditModalOpen(false)
-	}
 
 	const handleSaveEditOrder = async () => {
 		if (!editOrder) return
@@ -316,7 +307,6 @@ const OrdersPage = () => {
 			)
 
 			toast.success('Order updated successfully')
-			handleCloseEditModal()
 		} catch (error) {
 			console.error('Error updating order:', error)
 			toast.error('Failed to update order')
@@ -578,31 +568,20 @@ const OrdersPage = () => {
 		}).format(numberAmount)
 	}
 
+	// This is the updated renderOrderItems function for the OrdersPage component
+
 	const renderOrderItems = (items: any) => {
 		// Handle items based on their type
 		if (Array.isArray(items)) {
-			return items.map((item, index) => (
-				<tr key={index} className='hover:bg-gray-850'>
-					<td className='px-4 py-3 text-sm text-gray-200'>{item.name}</td>
-					<td className='px-4 py-3 text-sm text-gray-300 text-right'>
-						{formatCurrency(item.price)}
-					</td>
-					<td className='px-4 py-3 text-sm text-gray-300 text-right'>
-						{item.quantity}
-					</td>
-					<td className='px-4 py-3 text-sm font-medium text-gray-200 text-right'>
-						{formatCurrency(
-							ensureNumberPrice(item.price) * ensureNumberPrice(item.quantity)
-						)}
-					</td>
-				</tr>
-			))
-		} else if (typeof items === 'string') {
-			try {
-				const parsedItems = JSON.parse(items)
-				return parsedItems.map((item: any, index: number) => (
-					<tr key={index} className='hover:bg-gray-850'>
-						<td className='px-4 py-3 text-sm text-gray-200'>{item.name}</td>
+			let rows: JSX.Element[] = []
+
+			items.forEach((item, index) => {
+				// Add main item row
+				rows.push(
+					<tr key={`item-${index}`} className='hover:bg-gray-850'>
+						<td className='px-4 py-3 text-sm font-medium text-gray-200'>
+							{item.name || item.configName}
+						</td>
 						<td className='px-4 py-3 text-sm text-gray-300 text-right'>
 							{formatCurrency(item.price)}
 						</td>
@@ -615,7 +594,96 @@ const OrdersPage = () => {
 							)}
 						</td>
 					</tr>
-				))
+				)
+
+				// Add component rows if they exist
+				if (item.components && item.components.length > 0) {
+					item.components.forEach((comp: any, compIndex: number) => {
+						rows.push(
+							<tr
+								key={`item-${index}-comp-${compIndex}`}
+								className='bg-gray-900'
+							>
+								<td className='px-4 py-2 text-xs text-gray-400 pl-8'>
+									└ {comp.name}
+								</td>
+								<td className='px-4 py-2 text-xs text-gray-400 text-right'>
+									{formatCurrency(comp.price)}
+								</td>
+								<td className='px-4 py-2 text-xs text-gray-400 text-right'>
+									{comp.quantity || 1}
+								</td>
+								<td className='px-4 py-2 text-xs text-gray-400 text-right'>
+									{formatCurrency(
+										ensureNumberPrice(comp.price) *
+											ensureNumberPrice(comp.quantity || 1)
+									)}
+								</td>
+							</tr>
+						)
+					})
+				}
+			})
+
+			return rows
+		} else if (typeof items === 'string') {
+			try {
+				const parsedItems = JSON.parse(items)
+
+				let rows: JSX.Element[] = []
+
+				parsedItems.forEach((item: any, index: number) => {
+					// Add main item row
+					rows.push(
+						<tr key={`item-${index}`} className='hover:bg-gray-850'>
+							<td className='px-4 py-3 text-sm font-medium text-gray-200'>
+								{item.name || item.configName}
+							</td>
+							<td className='px-4 py-3 text-sm text-gray-300 text-right'>
+								{formatCurrency(item.price)}
+							</td>
+							<td className='px-4 py-3 text-sm text-gray-300 text-right'>
+								{item.quantity}
+							</td>
+							<td className='px-4 py-3 text-sm font-medium text-gray-200 text-right'>
+								{formatCurrency(
+									ensureNumberPrice(item.price) *
+										ensureNumberPrice(item.quantity)
+								)}
+							</td>
+						</tr>
+					)
+
+					// Add component rows if they exist
+					if (item.components && item.components.length > 0) {
+						item.components.forEach((comp: any, compIndex: number) => {
+							rows.push(
+								<tr
+									key={`item-${index}-comp-${compIndex}`}
+									className='bg-gray-900'
+								>
+									<td className='px-4 py-2 text-xs text-gray-400 pl-8'>
+										└ {comp.name}
+									</td>
+									<td className='px-4 py-2 text-xs text-gray-400 text-right'>
+										{formatCurrency(comp.price)}
+									</td>
+									<td className='px-4 py-2 text-xs text-gray-400 text-right'>
+										{comp.quantity || 1}
+									</td>
+									<td className='px-4 py-2 text-xs text-gray-400 text-right'>
+										{formatCurrency(
+											ensureNumberPrice(comp.price) *
+												ensureNumberPrice(comp.quantity || 1)
+										)}
+									</td>
+								</tr>
+							)
+						})
+					}
+				})
+
+				return rows
 			} catch (e) {
 				console.error('Error parsing order items:', e)
 				return (

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { toast, ToastContainer } from 'react-toastify'
 import Sidebar from '../_components/Sidebar'
 import { injectThemeClasses } from '@/lib/themeInjection'
+import { useNotifications } from '@/context/NotificationContext'
 
 import {
 	Chart as ChartJS,
@@ -30,6 +31,9 @@ import {
 	ShoppingCart,
 	Package,
 	Clock,
+	Cpu,
+	PcCase,
+	Bell,
 } from 'lucide-react'
 
 // Register ChartJS components
@@ -66,6 +70,12 @@ interface Order {
 	created_at: string
 	status: string
 	generated_order_number: string
+	total: any // Could be number, string, or object
+	subtotal: any
+	tax: any
+	shipping_cost: any
+	customer_first_name: string
+	customer_last_name: string
 }
 
 interface StatsCard {
@@ -76,6 +86,33 @@ interface StatsCard {
 	color: string
 }
 
+// Helper function to ensure all price values are properly formatted as numbers
+function ensureNumberPrice(price: any): number {
+	// If it's null or undefined, return 0
+	if (price === null || price === undefined) {
+		return 0
+	}
+
+	// If it's an object (like {value: 123}), extract the value
+	if (typeof price === 'object') {
+		return ensureNumberPrice(price.value || price.price || 0)
+	}
+
+	// If it's a string, convert to number
+	if (typeof price === 'string') {
+		const parsed = parseFloat(price)
+		return isNaN(parsed) ? 0 : parsed
+	}
+
+	// If it's a number but NaN, return 0
+	if (typeof price === 'number' && isNaN(price)) {
+		return 0
+	}
+
+	// If it's already a valid number, return it
+	return typeof price === 'number' ? price : 0
+}
+
 const Admin = () => {
 	const [categories, setCategories] = useState<Category[]>([])
 	const [configurations, setConfigurations] = useState<any[]>([])
@@ -84,11 +121,16 @@ const Admin = () => {
 	const [components, setComponents] = useState<Component[]>([])
 	const [recentOrders, setRecentOrders] = useState<Order[]>([])
 	const [salesByMonth, setSalesByMonth] = useState<number[]>([])
+	const [orderStatusCounts, setOrderStatusCounts] = useState<{
+		[key: string]: number
+	}>({})
 	const router = useRouter()
+	const { addNotification } = useNotifications()
 
 	// For performance tracking
 	const [pageLoadTime, setPageLoadTime] = useState<number | null>(null)
 	const [resourcesLoaded, setResourcesLoaded] = useState<boolean>(false)
+
 	useEffect(() => {
 		injectThemeClasses()
 	}, [])
@@ -131,17 +173,30 @@ const Admin = () => {
 				}
 
 				if (ordersData) {
-					setOrders(ordersData)
-					// Get recent orders (last 5)
-					setRecentOrders(ordersData.slice(0, 5))
-				}
+					// Process order data to ensure numerical values
+					const processedOrders = ordersData.map((order: Order) => ({
+						...order,
+						total: ensureNumberPrice(order.total),
+						subtotal: ensureNumberPrice(order.subtotal),
+						tax: ensureNumberPrice(order.tax),
+						shipping_cost: ensureNumberPrice(order.shipping_cost),
+					}))
 
-				// Generate mock sales data (would be real data in production)
-				const mockSalesData = [
-					12000, 15000, 10000, 18000, 14000, 17000, 22000, 19000, 24000, 21000,
-					25000, 28000,
-				]
-				setSalesByMonth(mockSalesData)
+					setOrders(processedOrders)
+					// Get recent orders (last 5)
+					setRecentOrders(processedOrders.slice(0, 5))
+
+					// Process order statuses for the chart
+					const statusCounts: { [key: string]: number } = {}
+					processedOrders.forEach((order: Order) => {
+						const status = order.status || 'pending' // Default to pending if no status
+						statusCounts[status] = (statusCounts[status] || 0) + 1
+					})
+					setOrderStatusCounts(statusCounts)
+
+					// Generate real monthly revenue data from orders
+					generateMonthlyRevenueData(processedOrders)
+				}
 
 				const endTime = performance.now()
 				setPageLoadTime(endTime - startTime)
@@ -157,6 +212,27 @@ const Admin = () => {
 		fetchAllData()
 	}, [])
 
+	// Function to generate real monthly revenue data
+	const generateMonthlyRevenueData = (ordersData: Order[]) => {
+		// Initialize array with zeros for all 12 months
+		const monthlyRevenue = Array(12).fill(0)
+
+		// Current year
+		const currentYear = new Date().getFullYear()
+
+		// Process each order
+		ordersData.forEach(order => {
+			const orderDate = new Date(order.created_at)
+			// Only include orders from current year
+			if (orderDate.getFullYear() === currentYear) {
+				const month = orderDate.getMonth() // 0-11
+				monthlyRevenue[month] += ensureNumberPrice(order.total)
+			}
+		})
+
+		setSalesByMonth(monthlyRevenue)
+	}
+
 	// Stats for dashboard
 	const totalConfigurations = configurations?.length || 0
 	const totalComponents = components?.length || 0
@@ -165,16 +241,15 @@ const Admin = () => {
 	const hiddenComponentsCount = components.filter(
 		component => component.hidden
 	).length
-	const totalRevenue = calculateTotalRevenue()
 
-	function calculateTotalRevenue() {
-		// In a real app, you would calculate from actual orders
-		// This is a placeholder calculation
+	// Properly calculate total revenue
+	function calculateTotalRevenue(orders: Order[]): number {
 		return orders.reduce((total, order) => {
-			// Assuming average order value of $800
-			return total + 800
+			return total + ensureNumberPrice(order.total)
 		}, 0)
 	}
+
+	const totalRevenue = calculateTotalRevenue(orders)
 
 	const statsCards: StatsCard[] = [
 		{
@@ -255,7 +330,6 @@ const Admin = () => {
 		],
 	}
 
-	// Sales data for bar chart (by month)
 	const months = [
 		'Jan',
 		'Feb',
@@ -284,39 +358,61 @@ const Admin = () => {
 		],
 	}
 
-	// Order status chart data (dummy data for demo)
-	const orderStatusChartData = {
-		labels: ['Delivered', 'Processing', 'Shipped', 'Cancelled'],
-		datasets: [
-			{
-				data: [65, 20, 10, 5],
-				backgroundColor: [
-					'rgba(75, 192, 192, 0.8)',
-					'rgba(54, 162, 235, 0.8)',
-					'rgba(255, 206, 86, 0.8)',
-					'rgba(255, 99, 132, 0.8)',
-				],
-				borderColor: [
-					'rgba(75, 192, 192, 1)',
-					'rgba(54, 162, 235, 1)',
-					'rgba(255, 206, 86, 1)',
-					'rgba(255, 99, 132, 1)',
-				],
-				borderWidth: 1,
-			},
-		],
+	// Order status chart data (uses real data now)
+	const getOrderStatusChartData = () => {
+		// Define standard statuses and colors (even if some have 0 orders)
+		const statusLabels = [
+			'pending',
+			'processing',
+			'shipped',
+			'delivered',
+			'cancelled',
+		]
+		const backgroundColors = [
+			'rgba(255, 206, 86, 0.8)', // pending - yellow
+			'rgba(54, 162, 235, 0.8)', // processing - blue
+			'rgba(153, 102, 255, 0.8)', // shipped - purple
+			'rgba(75, 192, 192, 0.8)', // delivered - green
+			'rgba(255, 99, 132, 0.8)', // cancelled - red
+		]
+		const borderColors = [
+			'rgba(255, 206, 86, 1)',
+			'rgba(54, 162, 235, 1)',
+			'rgba(153, 102, 255, 1)',
+			'rgba(75, 192, 192, 1)',
+			'rgba(255, 99, 132, 1)',
+		]
+
+		// Map actual data to these standard statuses
+		const statusData = statusLabels.map(
+			status => orderStatusCounts[status] || 0
+		)
+
+		// Create proper chart data
+		return {
+			labels: statusLabels.map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+			datasets: [
+				{
+					data: statusData,
+					backgroundColor: backgroundColors,
+					borderColor: borderColors,
+					borderWidth: 1,
+				},
+			],
+		}
 	}
 
-	// Quick actions for dashboard
+	const orderStatusChartData = getOrderStatusChartData()
+
 	const quickActions = [
 		{
 			name: 'Add Component',
-			icon: <PlusCircle size={20} />,
+			icon: <Cpu size={20} />,
 			href: '/admin/add-component',
 		},
 		{
 			name: 'Add Configuration',
-			icon: <Layers size={20} />,
+			icon: <PcCase size={20} />,
 			href: '/admin/add-config',
 		},
 		{
@@ -330,6 +426,16 @@ const Admin = () => {
 			href: '/admin/categories',
 		},
 	]
+
+	// Function to test notifications
+	const testNotification = () => {
+		addNotification(
+			`New order received #ORD${Math.floor(Math.random() * 10000)
+				.toString()
+				.padStart(4, '0')}`
+		)
+		toast.success('Test notification sent')
+	}
 
 	if (isLoading) {
 		return (
@@ -384,7 +490,7 @@ const Admin = () => {
 								<div className='flex items-end gap-3'>
 									<p className='text-3xl font-bold'>
 										{stat.title === 'Total Revenue'
-											? `$${stat.value.toLocaleString()}`
+											? `$${stat.value.toFixed(2)}`
 											: stat.value.toLocaleString()}
 									</p>
 									{stat.trend !== undefined && (
@@ -481,6 +587,33 @@ const Admin = () => {
 												backgroundColor: '#22282e',
 												titleFont: { size: 14 },
 												bodyFont: { size: 13 },
+												callbacks: {
+													label: function (context) {
+														const label = context.label || ''
+														const value = context.raw
+
+														// Safe type checking
+														if (typeof value !== 'number') {
+															return `${label}: 0 (0%)`
+														}
+
+														// Calculate total - safely
+														const datasetData =
+															context.chart.data.datasets[0].data
+														let total = 0
+
+														for (let i = 0; i < datasetData.length; i++) {
+															const currentValue = datasetData[i]
+															if (typeof currentValue === 'number') {
+																total += currentValue
+															}
+														}
+
+														const percentage =
+															total > 0 ? Math.round((value / total) * 100) : 0
+														return `${label}: ${value} (${percentage}%)`
+													},
+												},
 											},
 										},
 										cutout: '70%',
@@ -558,12 +691,14 @@ const Admin = () => {
 											<div>
 												<span
 													className={`px-3 py-1 rounded-full text-xs font-medium ${
-														order.status === 'completed'
+														order.status === 'delivered'
 															? 'bg-green-900 text-green-200'
 															: order.status === 'pending'
 															? 'bg-yellow-900 text-yellow-200'
 															: order.status === 'cancelled'
 															? 'bg-red-900 text-red-200'
+															: order.status === 'shipped'
+															? 'bg-purple-900 text-purple-200'
 															: 'bg-blue-900 text-blue-200'
 													}`}
 												>

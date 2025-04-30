@@ -9,6 +9,8 @@ interface CartItem {
 	quantity: number
 	price: number
 	totalPrice: number
+	components?: any[]
+	configName?: string
 }
 
 // Define the shape of order data for better type safety
@@ -37,6 +39,20 @@ interface OrderData {
 		tax: number
 		total: number
 	}
+}
+
+// Helper function to format prices consistently
+function formatPrice(price: any): number {
+	if (typeof price === 'object' && price !== null) {
+		return price.value || price.price || 0
+	}
+
+	if (typeof price === 'string') {
+		const parsed = parseFloat(price)
+		return isNaN(parsed) ? 0 : parsed
+	}
+
+	return typeof price === 'number' ? price : 0
 }
 
 export async function POST(request: Request) {
@@ -87,15 +103,37 @@ export async function POST(request: Request) {
 			},
 		})
 
-		// Create the email content
+		// Create the email content with detailed item and component information
 		const itemsList = orderData.items
-			.map(
-				(item: CartItem) =>
-					`${item.name} x ${item.quantity} - $${(
-						item.price * item.quantity
-					).toFixed(2)}`
-			)
-			.join('\n')
+			.map((item: CartItem) => {
+				const itemDetails = `<div style="margin-bottom: 15px;">
+					<h3 style="margin-bottom: 5px;">${item.name || item.configName} - ${
+					item.quantity
+				} × ${formatPrice(item.price).toFixed(2)} = $${(
+					formatPrice(item.price) * item.quantity
+				).toFixed(2)}</h3>`
+
+				// Add components if they exist
+				let componentsHtml = ''
+				if (item.components && item.components.length > 0) {
+					componentsHtml = `
+						<ul style="margin-left: 20px; padding-left: 10px;">
+							${item.components
+								.map(
+									comp => `
+								<li style="margin-bottom: 5px;">
+									${comp.name} - $${formatPrice(comp.price).toFixed(2)}
+								</li>
+							`
+								)
+								.join('')}
+						</ul>
+					`
+				}
+
+				return `${itemDetails}${componentsHtml}</div>`
+			})
+			.join('')
 
 		const emailContent = `
       <h1>New Order Notification</h1>
@@ -106,12 +144,21 @@ export async function POST(request: Request) {
       <p><strong>Email:</strong> ${orderData.customer.email}</p>
       <p><strong>Phone:</strong> ${orderData.customer.phone}</p>
       <h2>Order Details</h2>
-      <p><strong>Items:</strong></p>
-      <pre>${itemsList}</pre>
-      <p><strong>Subtotal:</strong> $${orderData.totals.subtotal.toFixed(2)}</p>
-      <p><strong>Shipping:</strong> $${orderData.totals.shipping.toFixed(2)}</p>
-      <p><strong>Tax:</strong> $${orderData.totals.tax.toFixed(2)}</p>
-      <p><strong>Total:</strong> $${orderData.totals.total.toFixed(2)}</p>
+      <div>
+        ${itemsList}
+      </div>
+      <p><strong>Subtotal:</strong> $${formatPrice(
+				orderData.totals.subtotal
+			).toFixed(2)}</p>
+      <p><strong>Shipping:</strong> $${formatPrice(
+				orderData.totals.shipping
+			).toFixed(2)}</p>
+      <p><strong>Tax:</strong> $${formatPrice(orderData.totals.tax).toFixed(
+				2
+			)}</p>
+      <p><strong>Total:</strong> $${formatPrice(orderData.totals.total).toFixed(
+				2
+			)}</p>
       <h2>Shipping Address</h2>
       <p>${orderData.shipping.address}</p>
       <p>${orderData.shipping.city}, ${orderData.shipping.state} ${

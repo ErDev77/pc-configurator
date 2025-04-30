@@ -4,45 +4,40 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { useNotifications } from '@/context/NotificationContext'
 import {
 	CircleUserRound,
 	Home,
 	LogOut,
 	Cpu,
 	PcCase,
-	ListFilterPlus,
 	ChevronRight,
 	Settings,
-	HelpCircle,
 	Bell,
 	Moon,
 	Sun,
 	ShoppingCart,
 	Star,
+	Layers,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/context/ThemeContext'
-
-type User = {
-	email?: string
-	name?: string
-	role?: string
-}
 
 const Sidebar = () => {
 	const { user, loading, logout } = useAuth()
 	const { theme, toggleTheme } = useTheme()
 	const [isOpen, setIsOpen] = useState(false)
-	const [notifications, setNotifications] = useState<
-		{ id: number; message: string; read: boolean }[]
-	>([
-		{ id: 1, message: 'New order received #ORD8721', read: false },
-		{ id: 2, message: 'Low stock alert: GPU RTX 4080', read: false },
-	])
+
+	const {
+		notifications,
+		unreadCount,
+		markAllAsRead,
+		deleteNotification,
+		browserNotificationsEnabled,
+	} = useNotifications()
+
 	const [showNotifications, setShowNotifications] = useState(false)
-	const [showHelpPopup, setShowHelpPopup] = useState(false)
 	const notificationRef = useRef<HTMLDivElement>(null)
-	const helpRef = useRef<HTMLDivElement>(null)
 	const router = useRouter()
 	const pathname = usePathname()
 
@@ -53,16 +48,13 @@ const Sidebar = () => {
 	}, [user, loading, router])
 
 	useEffect(() => {
-		// Close panels when clicking outside
+		// Close notification panel when clicking outside
 		const handleClickOutside = (event: MouseEvent) => {
 			if (
 				notificationRef.current &&
 				!notificationRef.current.contains(event.target as Node)
 			) {
 				setShowNotifications(false)
-			}
-			if (helpRef.current && !helpRef.current.contains(event.target as Node)) {
-				setShowHelpPopup(false)
 			}
 		}
 
@@ -77,12 +69,21 @@ const Sidebar = () => {
 		router.push('/admin/login')
 	}
 
-	const markAllAsRead = () => {
-		setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
-	}
+	// Format the timestamp to a readable format
+	const formatTimestamp = (timestamp: string) => {
+		const date = new Date(timestamp)
+		const now = new Date()
+		const diffMs = now.getTime() - date.getTime()
+		const diffMin = Math.round(diffMs / 60000)
+		const diffHrs = Math.round(diffMs / 3600000)
+		const diffDays = Math.round(diffMs / 86400000)
 
-	const deleteNotification = (id: number) => {
-		setNotifications(prev => prev.filter(notif => notif.id !== id))
+		if (diffMin < 1) return 'Just now'
+		if (diffMin < 60) return `${diffMin} min ago`
+		if (diffHrs < 24) return `${diffHrs} hr ago`
+		if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+
+		return date.toLocaleDateString()
 	}
 
 	// Navigation links grouped by category
@@ -117,7 +118,7 @@ const Sidebar = () => {
 				},
 				{
 					name: 'Categories',
-					icon: <ListFilterPlus className='w-5 h-5' />,
+					icon: <Layers className='w-5 h-5' />,
 					href: '/admin/categories',
 				},
 			],
@@ -140,11 +141,6 @@ const Sidebar = () => {
 					icon: <Settings className='w-5 h-5' />,
 					href: '/admin/settings',
 				},
-				{
-					name: 'Help',
-					icon: <HelpCircle className='w-5 h-5' />,
-					href: '/admin/help',
-				},
 			],
 		},
 	]
@@ -153,27 +149,17 @@ const Sidebar = () => {
 		return pathname === href
 	}
 
-	const unreadCount = notifications.filter(n => !n.read).length
-
-	// Quick help resources for the help popup
-	const quickHelpLinks = [
-		{ title: 'Admin Documentation', href: '/admin/help#documentation' },
-		{ title: 'Video Tutorials', href: '/admin/help#tutorials' },
-		{ title: 'API Reference', href: '/admin/help#api' },
-		{ title: 'Contact Support', href: '/admin/help#support' },
-	]
-
 	return (
 		<div className='relative'>
 			<div
 				className={`fixed top-0 left-0 h-full transition-all duration-300 z-30 ${
 					isOpen ? 'w-64' : 'w-20'
-				} bg-[color:var(--bg-secondary)] border-r border-[color:var(--border-color)] shadow-lg`}
+				} bg-[color:var(--bg-secondary)] border-r border-[color:var(--border-color)] shadow-lg flex flex-col`}
 				onMouseEnter={() => setIsOpen(true)}
 				onMouseLeave={() => setIsOpen(false)}
 			>
 				{/* Logo section */}
-				<div className='p-4 border-b border-[color:var(--border-color)] flex items-center justify-center h-16'>
+				<div className='p-4 border-b border-[color:var(--border-color)] flex items-center justify-center h-16 flex-shrink-0'>
 					{isOpen ? (
 						<div className='flex items-center'>
 							<div className='w-8 h-8 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold mr-2'>
@@ -191,7 +177,7 @@ const Sidebar = () => {
 				</div>
 
 				{/* User profile section */}
-				<div className='px-4 py-5 border-b border-[color:var(--border-color)] flex items-center'>
+				<div className='px-4 py-5 border-b border-[color:var(--border-color)] flex items-center flex-shrink-0'>
 					<div className='relative'>
 						<div className='w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden'>
 							<CircleUserRound size={32} className='text-gray-300' />
@@ -212,157 +198,104 @@ const Sidebar = () => {
 				</div>
 
 				{/* Navigation section */}
-				<div className='p-4 overflow-y-auto h-[calc(100vh-140px)]'>
-					{navigationLinks.map((group, groupIndex) => (
-						<div key={groupIndex} className='mb-6'>
-							{isOpen && (
-								<p className='text-[color:var(--text-secondary)] text-xs uppercase tracking-wider mb-2 pl-2'>
-									{group.category}
-								</p>
-							)}
+				<div className='p-4 flex-1 flex flex-col justify-between'>
+					{/* Navigation links */}
+					<div>
+						{navigationLinks.map((group, groupIndex) => (
+							<div key={groupIndex} className={`${isOpen ? 'mb-5' : 'mb-8'}`}>
+								{isOpen && (
+									<p className='text-[color:var(--text-secondary)] text-xs uppercase tracking-wider mb-2 pl-2'>
+										{group.category}
+									</p>
+								)}
 
-							{group.links.map((link, linkIndex) => (
-								<Link
-									href={link.href}
-									key={linkIndex}
-									className={`flex items-center py-3 px-3 rounded-lg mb-1 group transition-colors ${
-										isActive(link.href)
-											? 'bg-blue-600 text-white'
-											: 'text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)]'
-									}`}
-								>
-									<div
-										className={`${
+								{group.links.map((link, linkIndex) => (
+									<Link
+										href={link.href}
+										key={linkIndex}
+										className={`flex items-center justify-center ${
+											isOpen ? 'justify-start' : ''
+										} ${isOpen ? 'py-2' : 'py-3'} px-3 rounded-lg ${
+											isOpen ? 'mb-1' : 'mb-4'
+										} group transition-colors ${
 											isActive(link.href)
-												? 'text-white'
-												: 'text-[color:var(--text-secondary)] group-hover:text-[color:var(--text-primary)]'
+												? 'bg-blue-600 text-white'
+												: 'text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)]'
 										}`}
 									>
-										{link.icon}
-									</div>
-
-									{isOpen && <span className='ml-3 truncate'>{link.name}</span>}
-
-									{isOpen && isActive(link.href) && (
-										<div className='ml-auto'>
-											<ChevronRight size={16} />
+										<div
+											className={`${
+												isActive(link.href)
+													? 'text-white'
+													: 'text-[color:var(--text-secondary)] group-hover:text-[color:var(--text-primary)]'
+											}`}
+										>
+											{link.icon}
 										</div>
-									)}
-								</Link>
-							))}
-						</div>
-					))}
-				</div>
-				<div className='flex items-center text-[color:var(--text-primary)] space-x-4'>
-					<Bell className='w-8 mr-2' />
-					<div className={`${isOpen ? 'block' : 'hidden'}`}>
-						<Link href='/admin/settings/notification' className='font-bold'>
-							Настройки уведомлений
-						</Link>
+
+										{isOpen && (
+											<span className='ml-3 truncate'>{link.name}</span>
+										)}
+
+										{isOpen && isActive(link.href) && (
+											<div className='ml-auto'>
+												<ChevronRight size={16} />
+											</div>
+										)}
+									</Link>
+								))}
+							</div>
+						))}
 					</div>
-				</div>
 
-				{/* Bottom actions */}
-				<div className='absolute bottom-0 left-0 right-0 border-t border-[color:var(--border-color)] bg-[color:var(--bg-secondary)]'>
-					{isOpen ? (
-						<div className='p-4 space-y-3'>
-							<button
-								onClick={toggleTheme}
-								className='flex items-center w-full py-3 px-3 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
-							>
-								{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-								<span className='ml-3'>
-									{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-								</span>
-							</button>
+					{/* Bottom actions section */}
+					<div className='border-t border-[color:var(--border-color)] pt-4 mt-auto'>
+						{isOpen ? (
+							<div className='space-y-2'>
+								<button
+									onClick={toggleTheme}
+									className='flex items-center w-full py-2 px-3 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
+								>
+									{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+									<span className='ml-3'>
+										{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+									</span>
+								</button>
 
-							<button
-								onClick={() => setShowHelpPopup(!showHelpPopup)}
-								className='flex items-center w-full py-3 px-3 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors relative'
-							>
-								<HelpCircle size={20} />
-								<span className='ml-3'>Help & Support</span>
-							</button>
+								<button
+									onClick={handleLogout}
+									className='flex items-center w-full py-2 px-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'
+								>
+									<LogOut size={20} />
+									<span className='ml-3'>Log Out</span>
+								</button>
+							</div>
+						) : (
+							<div className='flex flex-col items-center space-y-6'>
+								<button
+									onClick={toggleTheme}
+									className='p-2 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
+									title={
+										theme === 'dark'
+											? 'Switch to Light Mode'
+											: 'Switch to Dark Mode'
+									}
+								>
+									{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+								</button>
 
-							<button
-								onClick={handleLogout}
-								className='flex items-center w-full py-3 px-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'
-							>
-								<LogOut size={20} />
-								<span className='ml-3'>Log Out</span>
-							</button>
-						</div>
-					) : (
-						<div className='p-4 flex flex-col items-center space-y-6'>
-							<button
-								onClick={toggleTheme}
-								className='p-2 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
-								title={
-									theme === 'dark'
-										? 'Switch to Light Mode'
-										: 'Switch to Dark Mode'
-								}
-							>
-								{theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-							</button>
-
-							<button
-								onClick={() => setShowHelpPopup(!showHelpPopup)}
-								className='p-2 rounded-lg text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-tertiary)] hover:text-[color:var(--text-primary)] transition-colors'
-								title='Help & Support'
-							>
-								<HelpCircle size={20} />
-							</button>
-
-							<button
-								onClick={handleLogout}
-								className='p-2 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'
-								title='Log Out'
-							>
-								<LogOut size={20} />
-							</button>
-						</div>
-					)}
+								<button
+									onClick={handleLogout}
+									className='p-2 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'
+									title='Log Out'
+								>
+									<LogOut size={20} />
+								</button>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
-
-			{/* Help popup */}
-			{showHelpPopup && (
-				<div
-					ref={helpRef}
-					className='fixed bottom-24 left-24 z-50 w-64 bg-[color:var(--bg-tertiary)] rounded-lg shadow-xl overflow-hidden border border-[color:var(--border-color)]'
-				>
-					<div className='p-3 border-b border-[color:var(--border-color)] bg-blue-600/20'>
-						<h3 className='font-medium text-[color:var(--text-primary)] flex items-center gap-2'>
-							<HelpCircle size={16} />
-							<span>Help & Resources</span>
-						</h3>
-					</div>
-
-					<div className='p-3'>
-						<div className='space-y-1'>
-							{quickHelpLinks.map((link, index) => (
-								<Link
-									key={index}
-									href={link.href}
-									className='block p-2 text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-primary)] hover:text-[color:var(--text-primary)] rounded transition-colors'
-								>
-									{link.title}
-								</Link>
-							))}
-						</div>
-
-						<div className='mt-3 pt-3 border-t border-[color:var(--border-color)]'>
-							<button
-								onClick={() => router.push('/admin/help')}
-								className='w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors text-sm font-medium'
-							>
-								View Help Center
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
 
 			{/* Notifications button */}
 			<div className='fixed top-5 right-5 z-40'>
@@ -371,7 +304,7 @@ const Sidebar = () => {
 					onClick={() => setShowNotifications(!showNotifications)}
 				>
 					<Bell size={20} />
-					{unreadCount > 0 && (
+					{browserNotificationsEnabled && unreadCount > 0 && (
 						<span className='absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full'>
 							{unreadCount}
 						</span>
@@ -417,7 +350,7 @@ const Sidebar = () => {
 												{notification.message}
 											</p>
 											<p className='text-xs text-[color:var(--text-secondary)] mt-1'>
-												Just now
+												{formatTimestamp(notification.timestamp)}
 											</p>
 										</div>
 										<button
@@ -435,11 +368,17 @@ const Sidebar = () => {
 							)}
 						</div>
 
-						<div className='p-2 border-t border-[color:var(--border-color)] text-center'>
-							<button className='text-xs text-blue-400 hover:text-blue-300'>
-								View all
-							</button>
-						</div>
+						{notifications.length > 0 && (
+							<div className='p-2 border-t border-[color:var(--border-color)] text-center'>
+								<Link
+									href='/admin/orders'
+									className='text-xs text-blue-400 hover:text-blue-300'
+									onClick={() => setShowNotifications(false)}
+								>
+									View all
+								</Link>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

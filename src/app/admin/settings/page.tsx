@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { SecuritySettings } from './_components/SecuritySettings'
+import { useNotifications } from '@/context/NotificationContext'
 
 interface SettingsSection {
 	id: string
@@ -50,6 +51,8 @@ export default function SettingsPage() {
 	const { user } = useAuth()
 	const router = useRouter()
   	const { theme, setTheme } = useTheme()
+	const { browserNotificationsEnabled, setBrowserNotificationsEnabled } =
+		useNotifications()
 
 	// Settings states
 	const [activeSection, setActiveSection] = useState('account')
@@ -221,6 +224,10 @@ export default function SettingsPage() {
 	 const handleSaveSettings = async () => {
 			setIsSaving(true)
 			try {
+				// Save browser notification setting to localStorage through our context
+				// This will automatically update the notification display in the sidebar
+
+				// Save email and telegram notification settings to API
 				const response = await fetch('/api/admin/settings', {
 					method: 'POST',
 					headers: {
@@ -236,6 +243,21 @@ export default function SettingsPage() {
 				})
 
 				if (response.ok) {
+					// Request permission for browser notifications if they're enabled
+					if (browserNotificationsEnabled && 'Notification' in window) {
+						if (
+							Notification.permission !== 'granted' &&
+							Notification.permission !== 'denied'
+						) {
+							const permission = await Notification.requestPermission()
+							if (permission !== 'granted') {
+								toast.warning(
+									'Browser notifications require permission to work properly.'
+								)
+							}
+						}
+					}
+
 					toast.success('Settings saved successfully')
 				} else {
 					toast.error('Failed to save settings')
@@ -408,8 +430,6 @@ export default function SettingsPage() {
 										/>
 									</div>
 								</div>
-
-								
 							</div>
 						)}
 
@@ -508,9 +528,11 @@ export default function SettingsPage() {
 											<label className='relative inline-flex items-center cursor-pointer'>
 												<input
 													type='checkbox'
-													checked={browserNotifications}
+													checked={browserNotificationsEnabled}
 													onChange={() =>
-														setBrowserNotifications(!browserNotifications)
+														setBrowserNotificationsEnabled(
+															!browserNotificationsEnabled
+														)
 													}
 													className='sr-only peer'
 												/>
@@ -579,6 +601,79 @@ export default function SettingsPage() {
 										</div>
 									</div>
 								</div>
+
+								{/* Browser notification permission section */}
+								{browserNotificationsEnabled && (
+									<div className='pt-4 border-t border-gray-700'>
+										<h3 className='text-lg font-medium text-white mb-4'>
+											Browser Notification Permissions
+										</h3>
+
+										<div className='p-4 bg-[#2a2f35] rounded-lg'>
+											<div className='flex items-start gap-3'>
+												<div className='p-2 bg-blue-600/20 rounded-full flex-shrink-0 mt-1'>
+													<Bell size={18} className='text-blue-400' />
+												</div>
+												<div>
+													<p className='font-medium text-white mb-2'>
+														Allow browser notifications
+													</p>
+													<p className='text-sm text-gray-400 mb-4'>
+														To receive real-time notifications in your browser,
+														you need to grant permission.
+													</p>
+
+													<button
+														onClick={() => {
+															if (!('Notification' in window)) {
+																toast.error(
+																	'Your browser does not support notifications'
+																)
+															} else if (
+																Notification.permission === 'granted'
+															) {
+																toast.success(
+																	'Notification permission already granted'
+																)
+															} else if (Notification.permission !== 'denied') {
+																Notification.requestPermission().then(
+																	permission => {
+																		if (permission === 'granted') {
+																			toast.success(
+																				'Notification permission granted!'
+																			)
+																			// Show a test notification
+																			new Notification(
+																				'Notifications enabled!',
+																				{
+																					body: 'You will now receive browser notifications',
+																					icon: '/favicon.ico',
+																				}
+																			)
+																		} else {
+																			toast.error(
+																				'Notification permission denied'
+																			)
+																			setBrowserNotificationsEnabled(false)
+																		}
+																	}
+																)
+															} else {
+																toast.error(
+																	'Notification permission was denied. Please update your browser settings.'
+																)
+															}
+														}}
+														className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2'
+													>
+														<Bell size={16} />
+														<span>Request Permission</span>
+													</button>
+												</div>
+											</div>
+										</div>
+									</div>
+								)}
 							</div>
 						)}
 
@@ -785,9 +880,7 @@ export default function SettingsPage() {
 						)}
 
 						{/* Security Settings */}
-						{activeSection === 'security' && 
-						<SecuritySettings />
-						}
+						{activeSection === 'security' && <SecuritySettings />}
 
 						{/* Integrations Settings */}
 						{activeSection === 'integrations' && (
