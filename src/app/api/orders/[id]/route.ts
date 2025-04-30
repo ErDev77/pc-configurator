@@ -1,4 +1,4 @@
-// src/app/api/orders/[id]/route.ts
+// src/app/api/orders/[id]/route.ts - Fixed version
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
@@ -8,7 +8,11 @@ export async function GET(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const id = params.id
+		// Use await with params to properly resolve the Promise
+		const resolvedParams = await params
+		const id = resolvedParams.id
+
+		console.log('API: Fetching order with ID:', id)
 
 		if (!id) {
 			return NextResponse.json(
@@ -58,13 +62,16 @@ export async function GET(
 	}
 }
 
-// PATCH to update an order (e.g., change status)
+// PATCH to update an order (expanded to support more fields)
 export async function PATCH(
 	request: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const id = params.id
+		// Use await with params to properly resolve the Promise
+		const resolvedParams = await params
+		const id = resolvedParams.id
+
 		const body = await request.json()
 
 		if (!id) {
@@ -74,41 +81,78 @@ export async function PATCH(
 			)
 		}
 
-		// Only allowing status updates for now
-		// You can expand this to update other fields if needed
-		if (!body.status) {
-			return NextResponse.json(
-				{ error: 'Status is required for updates' },
-				{ status: 400 }
-			)
+		// Validate status if provided
+		if (body.status) {
+			const validStatuses = [
+				'pending',
+				'processing',
+				'shipped',
+				'delivered',
+				'cancelled',
+			]
+			if (!validStatuses.includes(body.status.toLowerCase())) {
+				return NextResponse.json(
+					{
+						error:
+							'Invalid status. Must be one of: ' + validStatuses.join(', '),
+					},
+					{ status: 400 }
+				)
+			}
 		}
 
-		// Validate status
-		const validStatuses = [
-			'pending',
-			'processing',
-			'shipped',
-			'delivered',
-			'cancelled',
+		// Build dynamic SET clause and values array for the query
+		let setClause = []
+		let values = []
+		let paramIndex = 1
+
+		// List of fields that can be updated
+		const updatableFields = [
+			'status',
+			'customer_first_name',
+			'customer_last_name',
+			'customer_email',
+			'customer_phone',
+			'shipping_address',
+			'shipping_city',
+			'shipping_state',
+			'shipping_zip',
+			'shipping_country',
+			'payment_method',
 		]
-		if (!validStatuses.includes(body.status.toLowerCase())) {
+
+		// Add each provided field to the SET clause
+		for (const field of updatableFields) {
+			if (body[field] !== undefined) {
+				setClause.push(`${field} = $${paramIndex}`)
+				values.push(body[field])
+				paramIndex++
+			}
+		}
+
+		// Always add updated_at
+		setClause.push(`updated_at = NOW()`)
+
+		// If nothing to update, return an error
+		if (setClause.length === 0) {
 			return NextResponse.json(
-				{
-					error: 'Invalid status. Must be one of: ' + validStatuses.join(', '),
-				},
+				{ error: 'No valid fields to update' },
 				{ status: 400 }
 			)
 		}
 
-		// Update the order
-		const result = await pool.query(
-			`UPDATE orders 
-       SET status = $1, 
-           updated_at = NOW() 
-       WHERE id = $2 
-       RETURNING *`,
-			[body.status.toLowerCase(), id]
-		)
+		// Add the ID to the values array
+		values.push(id)
+
+		// Construct and execute the query
+		const query = `
+      UPDATE orders 
+      SET ${setClause.join(', ')} 
+      WHERE id = $${paramIndex} 
+      RETURNING *
+    `
+
+		const result = await pool.query(query, values)
 
 		if (result.rows.length === 0) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 })
@@ -134,7 +178,9 @@ export async function DELETE(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const id = params.id
+		// Use await with params to properly resolve the Promise
+		const resolvedParams = await params
+		const id = resolvedParams.id
 
 		if (!id) {
 			return NextResponse.json(

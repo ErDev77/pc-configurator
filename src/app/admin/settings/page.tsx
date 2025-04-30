@@ -197,7 +197,6 @@ export default function SettingsPage() {
 		},
 	]
 	useEffect(() => {
-		// Fetch current settings from API
 		const fetchSettings = async () => {
 			try {
 				const response = await fetch('/api/admin/settings')
@@ -249,31 +248,7 @@ export default function SettingsPage() {
 			}
 		}
 
-	const handlePasswordChange = () => {
-		if (accountSettings.newPassword !== accountSettings.confirmPassword) {
-			toast.error('New passwords do not match')
-			return
-		}
-
-		if (!accountSettings.currentPassword) {
-			toast.error('Current password is required')
-			return
-		}
-
-		setSaving(true)
-
-		// Simulate API call
-		setTimeout(() => {
-			toast.success('Password changed successfully!')
-			setAccountSettings({
-				...accountSettings,
-				currentPassword: '',
-				newPassword: '',
-				confirmPassword: '',
-			})
-			setSaving(false)
-		}, 1500)
-	}
+	
 
 	const handleBackupNow = () => {
 		toast.info('Backup started. This may take a few minutes.')
@@ -434,75 +409,7 @@ export default function SettingsPage() {
 									</div>
 								</div>
 
-								<div className='pt-4 border-t border-gray-700'>
-									<h3 className='text-lg font-medium text-white mb-4'>
-										Change Password
-									</h3>
-
-									<div className='space-y-4'>
-										<div>
-											<label className='block text-sm font-medium text-gray-300 mb-2'>
-												Current Password
-											</label>
-											<input
-												type='password'
-												value={accountSettings.currentPassword}
-												onChange={e =>
-													setAccountSettings({
-														...accountSettings,
-														currentPassword: e.target.value,
-													})
-												}
-												className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-											/>
-										</div>
-
-										<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-											<div>
-												<label className='block text-sm font-medium text-gray-300 mb-2'>
-													New Password
-												</label>
-												<input
-													type='password'
-													value={accountSettings.newPassword}
-													onChange={e =>
-														setAccountSettings({
-															...accountSettings,
-															newPassword: e.target.value,
-														})
-													}
-													className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-												/>
-											</div>
-
-											<div>
-												<label className='block text-sm font-medium text-gray-300 mb-2'>
-													Confirm New Password
-												</label>
-												<input
-													type='password'
-													value={accountSettings.confirmPassword}
-													onChange={e =>
-														setAccountSettings({
-															...accountSettings,
-															confirmPassword: e.target.value,
-														})
-													}
-													className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
-												/>
-											</div>
-										</div>
-
-										<div>
-											<button
-												onClick={handlePasswordChange}
-												className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors'
-											>
-												Update Password
-											</button>
-										</div>
-									</div>
-								</div>
+								
 							</div>
 						)}
 

@@ -1,5 +1,6 @@
-// src/app/api/notifications/telegram/route.ts
+// src/app/api/checkout/notifications/telegram/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import pool from '@/lib/db'
 
 export async function POST(request: NextRequest) {
 	try {
@@ -11,6 +12,24 @@ export async function POST(request: NextRequest) {
 				{ success: false, error: 'Message is required' },
 				{ status: 400 }
 			)
+		}
+
+		// Check if telegram notifications are enabled in global settings
+		const settingsResult = await pool.query(
+			`SELECT value->>'telegram' as telegram_enabled 
+       FROM settings 
+       WHERE key = 'notifications'`
+		)
+
+		if (settingsResult.rows.length > 0) {
+			const telegramEnabled = settingsResult.rows[0].telegram_enabled === 'true'
+			if (!telegramEnabled) {
+				console.log('Telegram notifications are disabled in admin settings')
+				return NextResponse.json({
+					success: true,
+					message: 'Telegram notifications are disabled',
+				})
+			}
 		}
 
 		const botToken = process.env.TELEGRAM_BOT_TOKEN
@@ -46,6 +65,7 @@ export async function POST(request: NextRequest) {
 			throw new Error(data.description || 'Failed to send Telegram message')
 		}
 
+		console.log('Telegram notification sent successfully')
 		return NextResponse.json({ success: true })
 	} catch (error) {
 		console.error('Telegram sending error:', error)

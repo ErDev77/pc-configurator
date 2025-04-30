@@ -1,6 +1,7 @@
 // src/app/api/checkout/process-order/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
+import nodemailer from 'nodemailer'
 
 // Define types for better code structure
 interface OrderItem {
@@ -55,6 +56,23 @@ interface OrderData {
 	orderedAt: string
 }
 
+// Helper function to ensure price values are properly formatted
+function formatPrice(price: any): number {
+	if (typeof price === 'object' && price !== null) {
+		// If it's an object, try to extract the value
+		return price.value || price.price || 0
+	}
+
+	if (typeof price === 'string') {
+		// If it's a string, try to parse it
+		const parsed = parseFloat(price)
+		return isNaN(parsed) ? 0 : parsed
+	}
+
+	// If it's already a number, just return it
+	return typeof price === 'number' ? price : 0
+}
+
 export async function POST(request: NextRequest) {
 	try {
 		const orderData: OrderData = await request.json()
@@ -72,20 +90,54 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
+		// Ensure price values are numbers
+		if (orderData.totals) {
+			orderData.totals.subtotal = formatPrice(orderData.totals.subtotal)
+			orderData.totals.shipping = formatPrice(orderData.totals.shipping)
+			orderData.totals.tax = formatPrice(orderData.totals.tax)
+			orderData.totals.total = formatPrice(orderData.totals.total)
+		}
+
+		// Ensure price values are numbers in items
+		if (orderData.items) {
+			orderData.items = orderData.items.map(item => ({
+				...item,
+				price: formatPrice(item.price),
+				totalPrice: formatPrice(item.totalPrice),
+			}))
+		}
+
 		// 1. Store the order in the database
 		const order = await createOrder(orderData)
 
-		// 2. Send notifications based on preferences
+		// 2. Send notifications based on preferences and admin settings
 		const notificationResults = { email: false, telegram: false }
 
-		// // Only send notifications if requested by the user
-		// if (orderData.notifications.email) {
-		// 	notificationResults.email = await sendEmailNotification(orderData)
-		// }
+		// Check admin notification settings
+		const settingsResult = await pool.query(
+			`SELECT value FROM settings WHERE key = 'notifications'`
+		)
 
-		// if (orderData.notifications.telegram) {
-		// 	notificationResults.telegram = await sendTelegramNotification(orderData)
-		// }
+		let adminNotificationSettings = {
+			email: true,
+			telegram: true,
+		}
+
+		if (settingsResult.rows.length > 0) {
+			adminNotificationSettings = settingsResult.rows[0].value
+		}
+
+		// Only send notifications if both user and admin settings allow it
+		if (orderData.notifications.email && adminNotificationSettings.email) {
+			notificationResults.email = await sendEmailNotification(orderData)
+		}
+
+		if (
+			orderData.notifications.telegram &&
+			adminNotificationSettings.telegram
+		) {
+			notificationResults.telegram = await sendTelegramNotification(orderData)
+		}
 
 		// 3. Return success response with order details
 		return NextResponse.json({
@@ -124,11 +176,11 @@ async function createOrder(orderData: OrderData) {
     shipping_city,
     shipping_state,
     shipping_zip,
-    shipping_country
-  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    shipping_country,
+    items
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
   RETURNING id
 `
-
 
 	const orderValues = [
 		orderData.orderNumber,
@@ -148,137 +200,227 @@ async function createOrder(orderData: OrderData) {
 		orderData.shipping.state,
 		orderData.shipping.zipCode,
 		orderData.shipping.country,
+		JSON.stringify(orderData.items), // Store items as JSON directly in the orders table
 	]
-
 
 	const orderResult = await pool.query(orderQuery, orderValues)
 	const orderId = orderResult.rows[0].id
 
-	// Store order items
-	for (const item of orderData.items) {
-		await pool.query(
-			`INSERT INTO order_items (
-        order_id, 
-        product_id, 
-        quantity, 
-        price, 
-        total_price
-      ) VALUES ($1, $2, $3, $4, $5)`,
-			[
-				orderId,
-				item.id,
-				item.quantity,
-				item.price,
-				item.totalPrice * item.quantity,
-			]
-		)
-	}
-
+	// No need to insert into order_items table anymore
 	return { id: orderId }
 }
 
-// Send email notification
-// async function sendEmailNotification(orderData: OrderData) {
-// 	try {
-// 		const itemsList = orderData.items
-// 			.map(
-// 				(item: OrderItem) =>
-// 					`${item.name} x ${item.quantity} - $${(
-// 						item.totalPrice * item.quantity
-// 					).toFixed(2)}`
-// 			)
-// 			.join('\n')
+// Create formatted HTML for order details - used in both email and telegram
+function createOrderDetailsHtml(orderData: OrderData): string {
+	// Create a list of items with their details
+	const itemsList = orderData.items
+		.map(
+			(item: OrderItem) =>
+				`${item.name} x ${item.quantity} - $${formatPrice(
+					item.price * item.quantity
+				).toFixed(2)}`
+		)
+		.join('\n')
 
-// 		const emailContent = `
-//       <h1>New Order Notification</h1>
-//       <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
-//       <p><strong>Customer:</strong> ${orderData.customer.firstName} ${
-// 			orderData.customer.lastName
-// 		}</p>
-//       <p><strong>Email:</strong> ${orderData.customer.email}</p>
-//       <p><strong>Phone:</strong> ${orderData.customer.phone}</p>
-//       <h2>Order Details</h2>
-//       <p><strong>Items:</strong></p>
-//       <pre>${itemsList}</pre>
-//       <p><strong>Subtotal:</strong> $${orderData.totals.subtotal.toFixed(2)}</p>
-//       <p><strong>Shipping:</strong> $${orderData.totals.shipping.toFixed(2)}</p>
-//       <p><strong>Tax:</strong> $${orderData.totals.tax.toFixed(2)}</p>
-//       <p><strong>Total:</strong> $${orderData.totals.total.toFixed(2)}</p>
-//       <h2>Shipping Address</h2>
-//       <p>${orderData.shipping.address}</p>
-//       <p>${orderData.shipping.city}, ${orderData.shipping.state} ${
-// 			orderData.shipping.zipCode
-// 		}</p>
-//       <p>${orderData.shipping.country}</p>
-//       <p>Payment Method: ${
-// 				orderData.payment.method === 'credit-card' ? 'Credit Card' : 'PayPal'
-// 			}</p>
-//     `
+	// Create full HTML content
+	return `
+    <h1>New Order Notification</h1>
+    <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
+    <p><strong>Customer:</strong> ${orderData.customer.firstName} ${
+		orderData.customer.lastName
+	}</p>
+    <p><strong>Email:</strong> ${orderData.customer.email}</p>
+    <p><strong>Phone:</strong> ${orderData.customer.phone}</p>
+    <h2>Order Details</h2>
+    <p><strong>Items:</strong></p>
+    <pre>${itemsList}</pre>
+    <p><strong>Subtotal:</strong> $${formatPrice(
+			orderData.totals.subtotal
+		).toFixed(2)}</p>
+    <p><strong>Shipping:</strong> $${formatPrice(
+			orderData.totals.shipping
+		).toFixed(2)}</p>
+    <p><strong>Tax:</strong> $${formatPrice(orderData.totals.tax).toFixed(
+			2
+		)}</p>
+    <p><strong>Total:</strong> $${formatPrice(orderData.totals.total).toFixed(
+			2
+		)}</p>
+    <h2>Shipping Address</h2>
+    <p>${orderData.shipping.address}</p>
+    <p>${orderData.shipping.city}, ${orderData.shipping.state} ${
+		orderData.shipping.zipCode
+	}</p>
+    <p>${orderData.shipping.country}</p>
+    <p>Payment Method: ${
+			orderData.payment.method === 'credit-card' ? 'Credit Card' : 'PayPal'
+		}</p>
+  `
+}
 
-// 		// Fetch email settings from database or environment variables
-// 		const { emailEnabled, emailRecipient } = await getNotificationSettings()
+// Create plain text version of order details for Telegram
+function createOrderDetailsText(orderData: OrderData): string {
+	// Create a list of items with their details
+	const itemsList = orderData.items
+		.map(
+			(item: OrderItem) =>
+				`- ${item.name} x ${item.quantity} - $${formatPrice(
+					item.price * item.quantity
+				).toFixed(2)}`
+		)
+		.join('\n')
 
-// 		if (!emailEnabled) {
-// 			console.log('Email notifications are disabled in settings')
-// 			return false
-// 		}
+	// Create full text content
+	return `
+🛒 NEW ORDER #${orderData.orderNumber}
 
-// 		// Send email only if enabled in admin settings
-// 		const response = await fetch('/api/notifications/email', {
-// 			method: 'POST',
-// 			headers: {
-// 				'Content-Type': 'application/json',
-// 			},
-// 			body: JSON.stringify({
-// 				to: emailRecipient || process.env.EMAIL_TO,
-// 				subject: `New Order #${orderData.orderNumber}`,
-// 				html: emailContent,
-// 			}),
-// 		})
+👤 Customer: ${orderData.customer.firstName} ${orderData.customer.lastName}
+📧 Email: ${orderData.customer.email}
+📱 Phone: ${orderData.customer.phone}
 
-// 		return response.ok
-// 	} catch (error) {
-// 		console.error('Error sending email notification:', error)
-// 		return false
-// 	}
-// }
+📦 Order Details:
+${itemsList}
 
-// // Send Telegram notification
-// async function sendTelegramNotification(orderData: OrderData) {
-// 	try {
-// 		// Fetch telegram settings from database or environment variables
-// 		const { telegramEnabled } = await getNotificationSettings()
+💰 Subtotal: $${formatPrice(orderData.totals.subtotal).toFixed(2)}
+🚚 Shipping: $${formatPrice(orderData.totals.shipping).toFixed(2)}
+💲 Tax: $${formatPrice(orderData.totals.tax).toFixed(2)}
+💵 Total: $${formatPrice(orderData.totals.total).toFixed(2)}
 
-// 		if (!telegramEnabled) {
-// 			console.log('Telegram notifications are disabled in settings')
-// 			return false
-// 		}
+📍 Shipping Address:
+${orderData.shipping.address}
+${orderData.shipping.city}, ${orderData.shipping.state} ${
+		orderData.shipping.zipCode
+	}
+${orderData.shipping.country}
 
-// 		const message = `
-//       🛒 NEW ORDER #${orderData.orderNumber}
+💳 Payment Method: ${
+		orderData.payment.method === 'credit-card' ? 'Credit Card' : 'PayPal'
+	}
 
-//       Customer: ${orderData.customer.firstName} ${orderData.customer.lastName}
-//       Email: ${orderData.customer.email}
-//       Phone: ${orderData.customer.phone}
-//       Total: $${orderData.totals.total.toFixed(2)}
-//       Items: ${orderData.items.length}
+View details in admin panel: /admin/orders/${orderData.orderNumber}
+  `
+}
 
-//       View details in admin panel: /admin/orders/${orderData.orderNumber}
-//     `
+// Send email notification - direct implementation instead of using fetch
+async function sendEmailNotification(orderData: OrderData) {
+	try {
+		// Check if email notifications are enabled in global settings
+		const settingsResult = await pool.query(
+			`SELECT value->>'email' as email_enabled 
+       FROM settings 
+       WHERE key = 'notifications'`
+		)
 
-// 		// Send telegram notification only if enabled in admin settings
-// 		const response = await fetch('/api/notifications/telegram', {
-// 			method: 'POST',
-// 			headers: {
-// 				'Content-Type': 'application/json',
-// 			},
-// 			body: JSON.stringify({ message }),
-// 		})
+		if (settingsResult.rows.length > 0) {
+			const emailEnabled = settingsResult.rows[0].email_enabled === 'true'
+			if (!emailEnabled) {
+				console.log('Email notifications are disabled in admin settings')
+				return false
+			}
+		}
 
-// 		return response.ok
-// 	} catch (error) {
-// 		console.error('Error sending telegram notification:', error)
-// 		return false
-// 	}
-// }
+		// Get admin email (or use from .env)
+		const adminResult = await pool.query(
+			'SELECT email FROM admins ORDER BY id ASC LIMIT 1'
+		)
 
+		const to =
+			adminResult.rows.length > 0
+				? adminResult.rows[0].email
+				: process.env.EMAIL_TO
+
+		if (!to) {
+			console.error('No recipient email address found')
+			return false
+		}
+
+		// Configure email transport
+		const transporter = nodemailer.createTransport({
+			host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+			port: parseInt(process.env.EMAIL_PORT || '587'),
+			secure: process.env.EMAIL_SECURE === 'true',
+			auth: {
+				user: process.env.EMAIL_USER,
+				pass: process.env.EMAIL_PASSWORD,
+			},
+		})
+
+		// Create the email content
+		const emailContent = createOrderDetailsHtml(orderData)
+
+		// Send the email
+		const result = await transporter.sendMail({
+			from: process.env.EMAIL_FROM || 'yourstore@example.com',
+			to,
+			subject: `New Order #${orderData.orderNumber}`,
+			html: emailContent,
+		})
+
+		console.log(`Email notification sent for order ${orderData.orderNumber}`)
+		return true
+	} catch (error) {
+		console.error('Email sending error:', error)
+		return false
+	}
+}
+
+// Send Telegram notification - direct implementation instead of using fetch
+async function sendTelegramNotification(orderData: OrderData) {
+	try {
+		// Check if telegram notifications are enabled in global settings
+		const settingsResult = await pool.query(
+			`SELECT value->>'telegram' as telegram_enabled 
+       FROM settings 
+       WHERE key = 'notifications'`
+		)
+
+		if (settingsResult.rows.length > 0) {
+			const telegramEnabled = settingsResult.rows[0].telegram_enabled === 'true'
+			if (!telegramEnabled) {
+				console.log('Telegram notifications are disabled in admin settings')
+				return false
+			}
+		}
+
+		const botToken = process.env.TELEGRAM_BOT_TOKEN
+		const chatId = process.env.TELEGRAM_CHAT_ID
+
+		if (!botToken || !chatId) {
+			console.warn('Telegram bot token or chat ID not configured')
+			// Return false since Telegram is not properly configured
+			return false
+		}
+
+		// Create detailed message similar to email
+		const message = createOrderDetailsText(orderData)
+
+		// Send telegram notification using absolute URL
+		const response = await fetch(
+			`https://api.telegram.org/bot${botToken}/sendMessage`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					chat_id: chatId,
+					text: message,
+					parse_mode: 'HTML',
+				}),
+			}
+		)
+
+		const data = await response.json()
+
+		if (!data.ok) {
+			console.error('Telegram API error:', data.description)
+			return false
+		}
+
+		console.log('Telegram notification sent successfully')
+		return true
+	} catch (error) {
+		console.error('Telegram sending error:', error)
+		return false
+	}
+}

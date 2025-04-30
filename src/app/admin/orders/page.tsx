@@ -20,41 +20,42 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Sidebar from '../_components/Sidebar'
 import { useAuth } from '@/context/AuthContext'
+import Link from 'next/link'
 
 interface OrderItem {
-  name: string;
-  quantity: number;
-  price: number;
-  totalPrice: number;
+	name: string
+	quantity: number
+	price: number
+	totalPrice: number
 }
 
 interface Order {
-  id: number;
-  generated_order_number: string;
-  status: string;
-  created_at: string;
-  configuration_id: number;
-  customer_first_name: string;
-  customer_last_name: string;
-  customer_email: string;
-  customer_phone: string;
-  shipping_address: string;
-  shipping_city: string;
-  shipping_state: string;
-  shipping_zip: string;
-  shipping_country: string;
-  payment_method: string;
-  subtotal: number;
-  shipping_cost: number;
-  tax: number;
-  total: number;
-  items: OrderItem[];
-  // For backward compatibility with your UI code
-  customer_name?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  total_amount?: number;
+	id: number
+	generated_order_number: string
+	status: string
+	created_at: string
+	configuration_id: number
+	customer_first_name: string
+	customer_last_name: string
+	customer_email: string
+	customer_phone: string
+	shipping_address: string
+	shipping_city: string
+	shipping_state: string
+	shipping_zip: string
+	shipping_country: string
+	payment_method: string
+	subtotal: number
+	shipping_cost: number
+	tax: number
+	total: number
+	items: OrderItem[] | string // Items can be an array or a JSON string
+	// For backward compatibility with your UI code
+	customer_name?: string
+	email?: string
+	phone?: string
+	address?: string
+	total_amount?: number
 }
 
 interface Favorite {
@@ -104,21 +105,51 @@ const OrdersPage = () => {
 		try {
 			setLoading(true)
 			setIsRefreshing(true)
+
 			const response = await fetch('/api/orders')
 			if (!response.ok) {
 				throw new Error('Failed to fetch orders')
 			}
+
 			const data = await response.json()
 
-			// Process the data to add backward compatibility fields
-			const processedData = data.map((order: Order) => ({
-				...order,
-				customer_name: `${order.customer_first_name} ${order.customer_last_name}`,
-				email: order.customer_email,
-				phone: order.customer_phone,
-				address: `${order.shipping_address}, ${order.shipping_city}, ${order.shipping_state} ${order.shipping_zip}`,
-				total_amount: order.total,
-			}))
+			// Process the data to add backward compatibility fields and fix price values
+			const processedData = data.map((order: Order) => {
+				// Parse items if they're a string
+				let parsedItems = order.items
+				if (typeof order.items === 'string') {
+					try {
+						parsedItems = JSON.parse(order.items)
+
+						// Ensure prices in items are numbers
+						if (Array.isArray(parsedItems)) {
+							parsedItems = parsedItems.map(item => ({
+								...item,
+								price: ensureNumberPrice(item.price),
+								totalPrice: ensureNumberPrice(item.totalPrice),
+							}))
+						}
+					} catch (e) {
+						console.error('Error parsing order items:', e)
+						parsedItems = []
+					}
+				}
+
+				// Ensure all price fields are numbers
+				return {
+					...order,
+					items: parsedItems,
+					subtotal: ensureNumberPrice(order.subtotal),
+					shipping_cost: ensureNumberPrice(order.shipping_cost),
+					tax: ensureNumberPrice(order.tax),
+					total: ensureNumberPrice(order.total),
+					customer_name: `${order.customer_first_name} ${order.customer_last_name}`,
+					email: order.customer_email,
+					phone: order.customer_phone,
+					address: `${order.shipping_address}, ${order.shipping_city}, ${order.shipping_state} ${order.shipping_zip}`,
+					total_amount: ensureNumberPrice(order.total),
+				}
+			})
 
 			setOrders(processedData)
 		} catch (error) {
@@ -129,6 +160,26 @@ const OrdersPage = () => {
 			setIsRefreshing(false)
 		}
 	}
+
+	function ensureNumberPrice(price: any): number {
+		if (typeof price === 'object' && price !== null) {
+			// If it's an object, try to extract the value
+			return price.value || price.price || 0
+		}
+
+		if (typeof price === 'string') {
+			// If it's a string, try to parse it
+			const parsed = parseFloat(price)
+			return isNaN(parsed) ? 0 : parsed
+		}
+
+		// If it's already a number, just return it
+		return typeof price === 'number' ? price : 0
+	}
+
+	// Updated version of the formatCurrency function
+	// Removed duplicate declaration of formatCurrency
+
 
 	const handleUpdateStatus = async (orderId: number, newStatus: string) => {
 		try {
@@ -518,12 +569,78 @@ const OrdersPage = () => {
 	}
 
 	// Function to format currency
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat('ru-RU', {
+	const formatCurrency = (amount: any) => {
+		const numberAmount = ensureNumberPrice(amount)
+		return new Intl.NumberFormat('en-EN', {
 			style: 'currency',
-			currency: 'RUB',
+			currency: 'USD',
 			maximumFractionDigits: 0,
-		}).format(amount)
+		}).format(numberAmount)
+	}
+
+	const renderOrderItems = (items: any) => {
+		// Handle items based on their type
+		if (Array.isArray(items)) {
+			return items.map((item, index) => (
+				<tr key={index} className='hover:bg-gray-850'>
+					<td className='px-4 py-3 text-sm text-gray-200'>{item.name}</td>
+					<td className='px-4 py-3 text-sm text-gray-300 text-right'>
+						{formatCurrency(item.price)}
+					</td>
+					<td className='px-4 py-3 text-sm text-gray-300 text-right'>
+						{item.quantity}
+					</td>
+					<td className='px-4 py-3 text-sm font-medium text-gray-200 text-right'>
+						{formatCurrency(
+							ensureNumberPrice(item.price) * ensureNumberPrice(item.quantity)
+						)}
+					</td>
+				</tr>
+			))
+		} else if (typeof items === 'string') {
+			try {
+				const parsedItems = JSON.parse(items)
+				return parsedItems.map((item: any, index: number) => (
+					<tr key={index} className='hover:bg-gray-850'>
+						<td className='px-4 py-3 text-sm text-gray-200'>{item.name}</td>
+						<td className='px-4 py-3 text-sm text-gray-300 text-right'>
+							{formatCurrency(item.price)}
+						</td>
+						<td className='px-4 py-3 text-sm text-gray-300 text-right'>
+							{item.quantity}
+						</td>
+						<td className='px-4 py-3 text-sm font-medium text-gray-200 text-right'>
+							{formatCurrency(
+								ensureNumberPrice(item.price) * ensureNumberPrice(item.quantity)
+							)}
+						</td>
+					</tr>
+				))
+			} catch (e) {
+				console.error('Error parsing order items:', e)
+				return (
+					<tr>
+						<td
+							colSpan={4}
+							className='px-4 py-3 text-sm text-gray-400 text-center'
+						>
+							Error parsing order items
+						</td>
+					</tr>
+				)
+			}
+		} else {
+			return (
+				<tr>
+					<td
+						colSpan={4}
+						className='px-4 py-3 text-sm text-gray-400 text-center'
+					>
+						No items found for this order
+					</td>
+				</tr>
+			)
+		}
 	}
 
 	if (loading) {
@@ -822,13 +939,13 @@ const OrdersPage = () => {
 													>
 														<Eye size={18} />
 													</button>
-													<button
-														onClick={() => handleEditOrder(order)}
+													<Link
+														href={`/admin/edit-order/${order.generated_order_number}`}
 														className='text-amber-500 hover:text-amber-400'
 														title='Edit Order'
 													>
 														<Edit size={18} />
-													</button>
+													</Link>
 													<button
 														onClick={() => handleConfirmDelete(order.id)}
 														className='text-red-500 hover:text-red-400'
@@ -1125,22 +1242,8 @@ const OrdersPage = () => {
 											</tr>
 										</thead>
 										<tbody className='divide-y divide-gray-800'>
-											{viewOrder.items.map((item, index) => (
-												<tr key={index} className='hover:bg-gray-850'>
-													<td className='px-4 py-3 text-sm text-gray-200'>
-														{item.name}
-													</td>
-													<td className='px-4 py-3 text-sm text-gray-300 text-right'>
-														{formatCurrency(item.price)}
-													</td>
-													<td className='px-4 py-3 text-sm text-gray-300 text-right'>
-														{item.quantity}
-													</td>
-													<td className='px-4 py-3 text-sm font-medium text-gray-200 text-right'>
-														{formatCurrency(item.price * item.quantity)}
-													</td>
-												</tr>
-											))}
+											{renderOrderItems(viewOrder.items)}
+											{/* Add more rows as needed */}
 
 											{/* Total row */}
 											<tr className='bg-gray-850'>
@@ -1268,23 +1371,19 @@ const OrdersPage = () => {
 								>
 									Close
 								</button>
-								<button
-									onClick={() => {
-										setViewModalOpen(false)
-										handleEditOrder(viewOrder)
-									}}
+								<Link
+									href={`/admin/edit-order/${viewOrder.generated_order_number}`}
 									className='px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700'
 								>
 									Edit Order
-								</button>
+								</Link>
 							</div>
 						</div>
 					</div>
 				</div>
 			)}
 
-			{/* Edit Order Modal */}
-			{editModalOpen && editOrder && (
+			{/* {editModalOpen && editOrder && (
 				<div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4'>
 					<div className='bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto'>
 						<div className='sticky top-0 bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center'>
@@ -1422,7 +1521,7 @@ const OrdersPage = () => {
 						</div>
 					</div>
 				</div>
-			)}
+			)} */}
 
 			{/* Delete Confirmation Modal */}
 			{deleteModalOpen && (

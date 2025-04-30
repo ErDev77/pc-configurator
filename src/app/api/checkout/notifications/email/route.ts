@@ -1,3 +1,4 @@
+// src/app/api/checkout/notifications/email/route.ts
 import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import pool from '@/lib/db'
@@ -6,6 +7,7 @@ import pool from '@/lib/db'
 interface CartItem {
 	name: string
 	quantity: number
+	price: number
 	totalPrice: number
 }
 
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
 		const body = await request.json()
 		const { subject, orderData } = body
 
-		// Проверяем, включены ли email-уведомления в глобальных настройках
+		// Check if email notifications are enabled in global settings
 		const settingsResult = await pool.query(
 			`SELECT value->>'email' as email_enabled 
        FROM settings 
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
 		if (settingsResult.rows.length > 0) {
 			const emailEnabled = settingsResult.rows[0].email_enabled === 'true'
 			if (!emailEnabled) {
+				console.log('Email notifications are disabled in admin settings')
 				return NextResponse.json({
 					success: false,
 					message: 'Email notifications are disabled',
@@ -59,7 +62,7 @@ export async function POST(request: Request) {
 			}
 		}
 
-		// Получаем email администратора (или берём из .env)
+		// Get admin email (or use from .env)
 		const adminResult = await pool.query(
 			'SELECT email FROM admins ORDER BY id ASC LIMIT 1'
 		)
@@ -73,6 +76,7 @@ export async function POST(request: Request) {
 			throw new Error('No recipient email address found')
 		}
 
+		// Configure email transport
 		const transporter = nodemailer.createTransport({
 			host: process.env.EMAIL_HOST || 'smtp.gmail.com',
 			port: parseInt(process.env.EMAIL_PORT || '587'),
@@ -83,11 +87,12 @@ export async function POST(request: Request) {
 			},
 		})
 
+		// Create the email content
 		const itemsList = orderData.items
 			.map(
 				(item: CartItem) =>
 					`${item.name} x ${item.quantity} - $${(
-						item.totalPrice * item.quantity
+						item.price * item.quantity
 					).toFixed(2)}`
 			)
 			.join('\n')
@@ -118,6 +123,7 @@ export async function POST(request: Request) {
 			}</p>
     `
 
+		// Send the email
 		await transporter.sendMail({
 			from: process.env.EMAIL_FROM || 'yourstore@example.com',
 			to,
@@ -125,6 +131,7 @@ export async function POST(request: Request) {
 			html: emailContent,
 		})
 
+		console.log(`Email notification sent for order ${orderData.orderNumber}`)
 		return NextResponse.json({ success: true })
 	} catch (error) {
 		console.error('Email sending error:', error)
