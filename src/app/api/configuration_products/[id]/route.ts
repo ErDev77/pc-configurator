@@ -1,3 +1,4 @@
+// src/app/api/configuration_products/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
@@ -6,7 +7,9 @@ export async function GET(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-
+		// Fix: Await the params object before accessing its properties
+		const resolvedParams = await params
+		const id = resolvedParams.id
 
 		// Get the configuration products
 		const configProducts = await pool.query(
@@ -14,7 +17,7 @@ export async function GET(
        FROM configuration_products cp
        JOIN products p ON cp.product_id = p.id
        WHERE cp.configuration_id = $1`,
-			[params.id]
+			[id]
 		)
 
 		if (!configProducts || configProducts.rows.length === 0) {

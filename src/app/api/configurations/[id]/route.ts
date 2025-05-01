@@ -79,59 +79,66 @@ export async function DELETE(
 	}
 }
 
-// Обновление конфигурации
 export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+	req: NextRequest,
+	{ params }: { params: { id: string } }
 ) {
-  const { id } = await params
-  console.log('API: Updating configuration ID:', id)
+	const { id } = params
+	console.log('API: Updating configuration ID:', id)
 
-  try {
-    // Получаем тело запроса (новые данные конфигурации)
-    const body = await req.json()
+	try {
+		const body = await req.json()
+		const { name, description, price, image_url, hidden, products } = body
 
-    // Проверка на обязательные параметры
-    const { name, description, price, image_url, hidden, isfavorite } = body
-    if (!name || !description || !price || !image_url) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
+		if (!name || !description || !price || !image_url) {
+			return NextResponse.json(
+				{ error: 'Missing required fields' },
+				{ status: 400 }
+			)
+		}
 
-    // Создаем объект для обновления только тех полей, которые были переданы в запросе
-    const updateFields: any = {
-      name,
-      description,
-      price,
-      image_url,
-      hidden: hidden !== undefined ? hidden : null, // Если поле hidden не передано, ставим null
-      isfavorite: isfavorite !== undefined ? isfavorite : null, // Если поле isfavorite не передано, ставим null
-    }
-
-    // Обновляем конфигурацию в базе данных
-    const updateConfigResult = await pool.query(
-      `
+		// Обновляем конфигурацию
+		const updateConfigResult = await pool.query(
+			`
       UPDATE configurations
-      SET name = $1, description = $2, price = $3, image_url = $4, hidden = $5,
-      WHERE id = $7
+      SET name = $1, description = $2, price = $3, image_url = $4, hidden = $5
+      WHERE id = $6
       RETURNING *
       `,
-      [updateFields.name, updateFields.description, updateFields.price, updateFields.image_url, updateFields.hidden, updateFields.isfavorite, id]
-    )
+			[name, description, price, image_url, hidden ?? null, id]
+		)
 
-    if (updateConfigResult.rows.length === 0) {
-      console.log('API: Configuration not found for update')
-      return NextResponse.json(
-        { error: 'Configuration not found' },
-        { status: 404 }
-      )
-    }
+		if (updateConfigResult.rows.length === 0) {
+			console.log('API: Configuration not found for update')
+			return NextResponse.json(
+				{ error: 'Configuration not found' },
+				{ status: 404 }
+			)
+		}
 
-    const updatedConfiguration = updateConfigResult.rows[0]
-    console.log('API: Configuration updated:', updatedConfiguration)
+		const updatedConfiguration = updateConfigResult.rows[0]
+		console.log('API: Configuration updated:', updatedConfiguration)
 
-    return NextResponse.json(updatedConfiguration)
-  } catch (error) {
-    console.error('API Error updating configuration:', error)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
-  }
+		// Если переданы продукты — добавим их в связующую таблицу
+		if (Array.isArray(products) && products.length > 0) {
+			const insertPromises = products.map(product =>
+				pool.query(
+					`
+          INSERT INTO configuration_products (configuration_id, product_id, quantity)
+          VALUES ($1, $2, $3)
+          ON CONFLICT DO NOTHING
+          `,
+					[id, product.id, product.quantity ?? 1]
+				)
+			)
+
+			await Promise.all(insertPromises)
+			console.log('API: Products added to configuration')
+		}
+
+		return NextResponse.json(updatedConfiguration)
+	} catch (error) {
+		console.error('API Error updating configuration:', error)
+		return NextResponse.json({ error: 'Server error' }, { status: 500 })
+	}
 }

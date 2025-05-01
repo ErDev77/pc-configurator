@@ -247,7 +247,7 @@ export default function AddConfigurationPage() {
       }
 
       toast.success('Конфигурация успешно создана!')
-      router.push('/admin/config-list')
+      router.push('/admin/configurations')
     } catch (error) {
       console.error('Ошибка при добавлении конфигурации:', error)
       toast.error(

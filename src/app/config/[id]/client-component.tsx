@@ -10,6 +10,7 @@ import { toast } from 'react-toastify'
 import { fetchCompatibilityMap } from '@/services/compatibilityService'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import LoadingOverlay from '@/components/LoadingOverlay'
 
 interface Component {
 	id: number
@@ -154,8 +155,11 @@ export default function ClientConfiguration({
 				console.log('Config data:', configData)
 
 				// Fetch configuration products specifically
+				// In your fetchConfigurationDetails function:
+
+				// Fetch configuration products specifically
 				const configProductsResponse = await fetch(
-					`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations_products/${selectedConfigId}`,
+					`${process.env.NEXT_PUBLIC_SITE_URL}/api/configuration_products/${selectedConfigId}`,
 					{ cache: 'no-store' }
 				)
 
@@ -205,30 +209,52 @@ export default function ClientConfiguration({
 
 				setCategories(formattedCategories)
 
-				// Get compatibility data
-				const compatibility = await fetchCompatibilityMap()
-				setCompatibilityMap(compatibility)
-
-				// Process configuration products from the dedicated endpoint
-				const defaultComponentsMap: { [key: number]: Component | null } = {}
-				const selectedComponentsMap: { [key: number]: Component | null } = {}
+				// Process configuration products
+				const defaultComponentsMap: { [key: string]: Component | null } = {}
+				const selectedComponentsMap: { [key: string]: Component | null } = {}
 
 				if (configProductsData && Array.isArray(configProductsData.products)) {
-					configProductsData.products.forEach((productData: any) => {
-						// Find the full component data from all components
-						const product = components.find(
-							(comp: Component) => comp.id === productData.product_id
-						)
+					console.log(
+						'Processing config products:',
+						configProductsData.products
+					)
 
-						if (product && product.category_id) {
-							defaultComponentsMap[product.category_id] = product
-							selectedComponentsMap[product.category_id] = product
+					// Important: The products array from configProductsData.products contains
+					// the complete product information already, not just IDs
+					configProductsData.products.forEach((productData: any) => {
+						console.log('Processing product data:', productData)
+
+						// Use the product data directly from the config products response
+						if (productData.category_id) {
+							const categoryIdKey = productData.category_id.toString()
+
+							// Create a Component object from the product data
+							const component: Component = {
+								id: productData.id,
+								name: productData.name,
+								price: productData.price,
+								brand: productData.brand,
+								image_url: productData.image_url,
+								specs_en: productData.specs_en || [],
+								specs_ru: productData.specs_ru || [],
+								specs_am: productData.specs_am || [],
+								category_id: parseInt(productData.category_id),
+								discount: productData.discount || 0,
+								hidden: productData.hidden || false,
+							}
+
+							console.log(
+								`Adding product ${component.name} to category ${categoryIdKey}`
+							)
+
+							defaultComponentsMap[categoryIdKey] = component
+							selectedComponentsMap[categoryIdKey] = component
 						}
 					})
 				}
 
-				console.log('Default components:', defaultComponentsMap)
-				console.log('Selected components:', selectedComponentsMap)
+				console.log('Final defaultComponentsMap:', defaultComponentsMap)
+				console.log('Final selectedComponentsMap:', selectedComponentsMap)
 
 				setDefaultComponents(defaultComponentsMap)
 				setSelectedComponents(selectedComponentsMap)
@@ -555,9 +581,9 @@ export default function ClientConfiguration({
 
 	const getPopupClass = (index: number) => {
 		if (index % 2 === 0) {
-			return 'absolute left-[100%] top-0 w-64 p-3 bg-black shadow-lg rounded-md border text-white opacity-0 scale-95 transition-all duration-300 peer-hover:opacity-100 peer-hover:scale-100 z-50 pointer-events-none'
+			return 'absolute left-[100%] top-0 w-64 p-3 bg-black shadow-lg rounded-md  text-white opacity-0 scale-95 transition-all duration-300 peer-hover:opacity-100 peer-hover:scale-100 z-50 pointer-events-none'
 		} else {
-			return 'absolute right-[100%] top-0 w-64 p-3 bg-black shadow-lg rounded-md border text-white opacity-0 scale-95 transition-all duration-300 peer-hover:opacity-100 peer-hover:scale-100 z-50 pointer-events-none'
+			return 'absolute right-[100%] top-0 w-64 p-3 bg-black shadow-lg rounded-md  text-white opacity-0 scale-95 transition-all duration-300 peer-hover:opacity-100 peer-hover:scale-100 z-50 pointer-events-none'
 		}
 	}
 
@@ -574,12 +600,13 @@ export default function ClientConfiguration({
 		conf => conf.id === selectedConfigId
 	)
 
+
 	return (
 		<div className='min-h-screen bg-[#222227]'>
 			<Header />
 			<div className='flex p-4 w-[1391px] mx-32 gap-8'>
 				{isLoading ? (
-					<div>Loading...</div>
+					<LoadingOverlay />
 				) : (
 					<>
 						<div className='fixed right-8 top-24 z-50 w-80 space-y-4 rounded-2xl'>
@@ -646,7 +673,7 @@ export default function ClientConfiguration({
 									<h1 className='text-4xl font-bold mb-2 text-white uppercase'>
 										{selectedConfiguration?.name || configuration.name}
 									</h1>
-									<p className='text-xl text-white mb-6'>
+									<p className='text-base font-light text-white mb-6'>
 										{selectedConfiguration?.description ||
 											configuration.description}
 									</p>
@@ -741,31 +768,33 @@ export default function ClientConfiguration({
 									))}
 							</div>
 
-							<p className='text-sm font-medium leading-7 text-gray-400 text-center'>
-								Customize your {selectedConfiguration?.name || 'PC'} with
-								components and aesthetic options. System appearance may differ
-								based on configuration.
+							<p className='text-sm font-normal leading-7 text-gray-400 text-center'>
+								Customize your new{' '}
+								{selectedConfiguration?.name || 'PC'} with component and
+								aesthetic options and build the ultimate gaming PC. System
+								appearance may differ based on configuration.
 							</p>
 
-							<div className='flex flex-col p-4 w-[600px] mx-auto gap-2 mt-8'>
-								<h2 className='text-xl text-white font-semibold'>
+							<div className='flex flex-col w-[600px] mx-auto gap-2 mt-6'>
+								<h2 className='text-lg text-white font-semibold'>
 									Your Configuration
 								</h2>
-								<div className='grid grid-cols-2 gap-4'>
+								<div className='grid grid-cols-2'>
 									{Object.entries(selectedComponents).map(
 										([categoryId, component]) => {
 											if (!component) return null
 
+											// Try to find the category, but don't require it
+											const categoryIdNum = parseInt(categoryId)
 											const category = categories.find(
-												cat => cat.id === Number(categoryId)
+												cat => cat.id === categoryIdNum
 											)
 
-											if (!category) return null
-
+											// Even if category isn't found, render the component
 											return (
 												<div
 													key={categoryId}
-													className='flex items-center bg-[#2A2A33] p-4 rounded-lg cursor-pointer hover:bg-[#303A50] transition-colors'
+													className='flex items-center p-2 rounded-lg cursor-pointer'
 													onClick={() => handleConfigComponentClick(categoryId)}
 												>
 													<svg
@@ -783,7 +812,9 @@ export default function ClientConfiguration({
 															{component.name}
 														</p>
 														<p className='text-sm text-gray-400'>
-															{getLocalizedCategoryName(category)}
+															{category
+																? getLocalizedCategoryName(category)
+																: `Category ${categoryId}`}
 														</p>
 													</div>
 												</div>

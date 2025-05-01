@@ -40,7 +40,7 @@ export default function EditConfigurationPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [customPrice, setCustomPrice] = useState<number | ''>('')
-  const [isHidden, setIsHidden] = useState(false)
+  const [isHiddenConfig, setIsHiddenConfig] = useState(false)
   const [activeStep, setActiveStep] = useState(1)
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
   const router = useRouter()
@@ -71,7 +71,7 @@ export default function EditConfigurationPage() {
             setDescription(configData.description || '')
             setImageUrl(configData.image_url || null)
             setOriginalImageUrl(configData.image_url || null)
-            setIsHidden(configData.hidden || false)
+            setIsHiddenConfig(configData.hidden || false)
             setCustomPrice(configData.price || '')
 
             // Map the selected products to the format we need
@@ -275,16 +275,19 @@ export default function EditConfigurationPage() {
 
       // Prepare data
       const configPayload = {
-        id: id,
-        name: configName,
-        description,
-        image_url: finalImageUrl,
-        price: typeof customPrice === 'number' && customPrice > 0 ? customPrice : calculatedTotalPrice,
-        products: Object.values(selectedProducts)
-          .flat()
-          .map(p => ({ id: p.product_id, quantity: p.quantity })),
-        hidden: isHidden,
-      }
+				id: id,
+				name: configName,
+				description,
+				image_url: finalImageUrl,
+				price:
+					typeof customPrice === 'number' && customPrice > 0
+						? customPrice
+						: calculatedTotalPrice,
+				products: Object.values(selectedProducts)
+					.flat()
+					.map(p => ({ id: p.product_id, quantity: p.quantity })),
+				hidden: isHiddenConfig,
+			}
 
       console.log('Sending updated config data to API:', configPayload)
 
@@ -340,121 +343,143 @@ export default function EditConfigurationPage() {
   )
 
   const renderStep1 = () => (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-        <h2 className="text-xl text-blue-300 font-bold mb-4">Основная информация</h2>
-        
-        <div className="space-y-4">
-          <div className="flex flex-col">
-            <label className="text-gray-300 mb-1 font-medium">Название конфигурации*</label>
-            <input
-              type="text"
-              placeholder="Введите название"
-              className="p-3 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none"
-              value={configName}
-              onChange={e => setConfigName(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex flex-col">
-            <label className="text-gray-300 mb-1 font-medium">Описание</label>
-            <textarea
-              placeholder="Введите описание конфигурации"
-              className="p-3 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none min-h-32"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="hidden"
-              checked={isHidden}
-              onChange={() => setIsHidden(!isHidden)}
-              className="w-5 h-5 rounded bg-gray-800 border-gray-700 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="hidden" className="text-gray-300 cursor-pointer flex items-center gap-2">
-              {isHidden ? <EyeOff size={18} /> : <Eye size={18} />}
-              {isHidden ? 'Скрыть конфигурацию' : 'Показывать конфигурацию'}
-            </label>
-            <div className="group relative ml-1">
-              <Info size={16} className="text-gray-400 cursor-help" />
-              <div className="absolute bottom-full mb-2 left-0 bg-gray-900 p-2 rounded text-xs w-48 hidden group-hover:block shadow-lg text-gray-300 border border-gray-700">
-                Скрытые конфигурации не отображаются в каталоге, но доступны по прямой ссылке
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-        <h2 className="text-xl text-blue-300 font-bold mb-4">Изображение конфигурации*</h2>
-        
-        <div
-          {...getRootProps({
-            className: `dropzone border-2 ${
-              isDragActive ? 'border-blue-500 bg-blue-900/20' : 'border-gray-600'
-            } border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-gray-800/70 transition-all`
-          })}
-        >
-          <input {...getInputProps()} />
-          
-          {imageUrl ? (
-            <div className="flex flex-col items-center">
-              <div className="relative group">
-                <Image
-                  src={imageUrl}
-                  alt="Превью"
-                  width={200}
-                  height={200}
-                  className="rounded-lg shadow-lg object-cover"
-                />
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFile(null);
-                    setImageUrl(originalImageUrl);
-                  }}
-                  className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <p className="text-gray-400 mt-3">Нажмите или перетащите, чтобы заменить</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center">
-              <Upload className="text-blue-500 mb-2" size={40} />
-              <p className="text-gray-300">Перетащите изображение или нажмите для выбора</p>
-              <p className="text-gray-500 text-sm mt-2">JPG, PNG, WEBP (макс. 5MB)</p>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex justify-between mt-6">
-        <button
-          onClick={cancelEdit}
-          className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all"
-        >
-          Отменить
-        </button>
-        
-        <button
-          onClick={() => setActiveStep(2)}
-          disabled={!configName || !imageUrl}
-          className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
-            ${!configName || !imageUrl 
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-        >
-          Далее
-          <ChevronDown className="transform rotate-270" size={18} />
-        </button>
-      </div>
-    </div>
-  )
+		<div className='space-y-6 animate-fadeIn'>
+			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+				<h2 className='text-xl text-blue-300 font-bold mb-4'>
+					Основная информация
+				</h2>
+
+				<div className='space-y-4'>
+					<div className='flex flex-col'>
+						<label className='text-gray-300 mb-1 font-medium'>
+							Название конфигурации*
+						</label>
+						<input
+							type='text'
+							placeholder='Введите название'
+							className='p-3 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none'
+							value={configName}
+							onChange={e => setConfigName(e.target.value)}
+						/>
+					</div>
+
+					<div className='flex flex-col'>
+						<label className='text-gray-300 mb-1 font-medium'>Описание</label>
+						<textarea
+							placeholder='Введите описание конфигурации'
+							className='p-3 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none min-h-32'
+							value={description}
+							onChange={e => setDescription(e.target.value)}
+						/>
+					</div>
+
+					<div className='flex items-center gap-2'>
+						<input
+							type='checkbox'
+							id='hidden'
+							checked={isHiddenConfig}
+							onChange={() => setIsHiddenConfig(!isHiddenConfig)}
+							className='w-5 h-5 rounded bg-gray-800 border-gray-700 text-blue-600 focus:ring-blue-500'
+						/>
+						<label
+							htmlFor='hidden'
+							className='text-gray-300 cursor-pointer flex items-center gap-2'
+						>
+							{isHiddenConfig ? <EyeOff size={18} /> : <Eye size={18} />}
+							{isHiddenConfig
+								? 'Скрыть конфигурацию'
+								: 'Показывать конфигурацию'}
+						</label>
+						<div className='group relative ml-1'>
+							<Info size={16} className='text-gray-400 cursor-help' />
+							<div className='absolute bottom-full mb-2 left-0 bg-gray-900 p-2 rounded text-xs w-48 hidden group-hover:block shadow-lg text-gray-300 border border-gray-700'>
+								Скрытые конфигурации не отображаются в каталоге, но доступны по
+								прямой ссылке
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+				<h2 className='text-xl text-blue-300 font-bold mb-4'>
+					Изображение конфигурации*
+				</h2>
+
+				<div
+					{...getRootProps({
+						className: `dropzone border-2 ${
+							isDragActive
+								? 'border-blue-500 bg-blue-900/20'
+								: 'border-gray-600'
+						} border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-gray-800/70 transition-all`,
+					})}
+				>
+					<input {...getInputProps()} />
+
+					{imageUrl ? (
+						<div className='flex flex-col items-center'>
+							<div className='relative group'>
+								<Image
+									src={imageUrl}
+									alt='Превью'
+									width={200}
+									height={200}
+									className='rounded-lg shadow-lg object-cover'
+								/>
+								<button
+									onClick={e => {
+										e.stopPropagation()
+										setFile(null)
+										setImageUrl(originalImageUrl)
+									}}
+									className='absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity'
+								>
+									<X size={16} />
+								</button>
+							</div>
+							<p className='text-gray-400 mt-3'>
+								Нажмите или перетащите, чтобы заменить
+							</p>
+						</div>
+					) : (
+						<div className='flex flex-col items-center'>
+							<Upload className='text-blue-500 mb-2' size={40} />
+							<p className='text-gray-300'>
+								Перетащите изображение или нажмите для выбора
+							</p>
+							<p className='text-gray-500 text-sm mt-2'>
+								JPG, PNG, WEBP (макс. 5MB)
+							</p>
+						</div>
+					)}
+				</div>
+			</div>
+
+			<div className='flex justify-between mt-6'>
+				<button
+					onClick={cancelEdit}
+					className='px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all'
+				>
+					Отменить
+				</button>
+
+				<button
+					onClick={() => setActiveStep(2)}
+					disabled={!configName || !imageUrl}
+					className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
+            ${
+							!configName || !imageUrl
+								? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+								: 'bg-blue-600 hover:bg-blue-700 text-white'
+						}`}
+				>
+					Далее
+					<ChevronDown className='transform rotate-270' size={18} />
+				</button>
+			</div>
+		</div>
+	)
 
   const renderStep2 = () => (
     <div className="space-y-6 animate-fadeIn">
@@ -531,59 +556,92 @@ export default function EditConfigurationPage() {
               if (!items || items.length === 0) return null
 
               return (
-                <div key={category.id} className="bg-gray-800/50 p-4 rounded-lg border-l-2 border-blue-600">
-                  <h3 className="text-gray-300 font-semibold mb-3">{category.name}</h3>
-                  <ul className="space-y-2">
-                    {items.map(item => {
-                      const product = components.find(p => p.id === item.product_id)
-                      if (!product) return null
-                      return (
-                        <li
-                          key={item.product_id}
-                          className="flex justify-between items-center bg-gray-700 p-3 rounded border border-gray-600"
-                        >
-                          <div className="flex-1">
-                            <p className="text-white">{product.name}</p>
-                            <p className="text-gray-400 text-sm">${product.price} за единицу</p>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center bg-gray-800 rounded-md">
-                              <button
-                                onClick={() => handleQuantityChange(category.id, item.product_id, item.quantity - 1)}
-                                className="p-1 text-gray-400 hover:text-white"
-                                disabled={item.quantity <= 1}
-                              >
-                                <MinusCircle size={18} className={item.quantity <= 1 ? 'opacity-50' : ''} />
-                              </button>
-                              
-                              <span className="px-3 text-white">{item.quantity}</span>
-                              
-                              <button
-                                onClick={() => handleQuantityChange(category.id, item.product_id, item.quantity + 1)}
-                                className="p-1 text-gray-400 hover:text-white"
-                              >
-                                <PlusCircle size={18} />
-                              </button>
-                            </div>
-                            
-                            <span className="text-white font-medium min-w-24 text-right">
-                              ${product.price * item.quantity}
-                            </span>
-                            
-                            <button
-                              onClick={() => handleRemoveProduct(category.id, item.product_id)}
-                              className="p-1 text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )
+								<div
+									key={category.id}
+									className='bg-gray-800/50 p-4 rounded-lg border-l-2 border-blue-600'
+								>
+									<h3 className='text-gray-300 font-semibold mb-3'>
+										{category.name}
+									</h3>
+									<ul className='space-y-2'>
+										{items.map((item, index) => {
+											const product = components.find(
+												p => p.id === item.product_id
+											)
+											if (!product) return null
+											return (
+												<li
+													key={`${category.id}-${item.product_id}-${index}`} // Используем индекс для уникальности
+													className='flex justify-between items-center bg-gray-700 p-3 rounded border border-gray-600'
+												>
+													<div className='flex-1'>
+														<p className='text-white'>{product.name}</p>
+														<p className='text-gray-400 text-sm'>
+															${product.price} за единицу
+														</p>
+													</div>
+
+													<div className='flex items-center gap-3'>
+														<div className='flex items-center bg-gray-800 rounded-md'>
+															<button
+																onClick={() =>
+																	handleQuantityChange(
+																		category.id,
+																		item.product_id,
+																		item.quantity - 1
+																	)
+																}
+																className='p-1 text-gray-400 hover:text-white'
+																disabled={item.quantity <= 1}
+															>
+																<MinusCircle
+																	size={18}
+																	className={
+																		item.quantity <= 1 ? 'opacity-50' : ''
+																	}
+																/>
+															</button>
+
+															<span className='px-3 text-white'>
+																{item.quantity}
+															</span>
+
+															<button
+																onClick={() =>
+																	handleQuantityChange(
+																		category.id,
+																		item.product_id,
+																		item.quantity + 1
+																	)
+																}
+																className='p-1 text-gray-400 hover:text-white'
+															>
+																<PlusCircle size={18} />
+															</button>
+														</div>
+
+														<span className='text-white font-medium min-w-24 text-right'>
+															${product.price * item.quantity}
+														</span>
+
+														<button
+															onClick={() =>
+																handleRemoveProduct(
+																	category.id,
+																	item.product_id
+																)
+															}
+															className='p-1 text-red-400 hover:text-red-300'
+														>
+															<Trash2 size={18} />
+														</button>
+													</div>
+												</li>
+											)
+										})}
+									</ul>
+								</div>
+							)
             })}
           </div>
         </div>
@@ -614,132 +672,146 @@ export default function EditConfigurationPage() {
   )
 
   const renderStep3 = () => (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-        <h2 className="text-xl text-blue-300 font-bold mb-4">Обзор и цена</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-              <Info size={18} className="text-blue-400" />
-              Информация о конфигурации
-            </h3>
-            
-            <div className="space-y-3">
-              <div>
-                <p className="text-gray-400">Название:</p>
-                <p className="text-white font-medium">{configName}</p>
-              </div>
-              
-              {description && (
-                <div>
-                  <p className="text-gray-400">Описание:</p>
-                  <p className="text-white">{description}</p>
-                </div>
-              )}
-              
-              <div>
-                <p className="text-gray-400">Статус:</p>
-                <p className="flex items-center gap-2">
-                  {isHidden ? (
-                    <>
-                      <EyeOff size={16} className="text-orange-400" />
-                      <span className="text-orange-400">Скрытая конфигурация</span>
-                    </>
-                  ) : (
-                    <>
-                      <Eye size={16} className="text-green-400" />
-                      <span className="text-green-400">Публичная конфигурация</span>
-                    </>
-                  )}
-                </p>
-              </div>
-              
-              {imageUrl && (
-                <div className="mt-4">
-                  <p className="text-gray-400 mb-2">Изображение:</p>
-                  <Image
-                    src={imageUrl}
-                    alt="Превью"
-                    width={150}
-                    height={150}
-                    className="rounded-lg border border-gray-700 object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-              <Info size={18} className="text-blue-400" />
-              Ценообразование
-            </h3>
-            
-            <div className="space-y-3">
-              <div className="bg-blue-900/20 border border-blue-600/30 p-3 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Себестоимость:</span>
-                  <span className="text-white font-bold">${calculatedTotalPrice}</span>
-                </div>
-              </div>
-              
-              <div className="mt-4">
-                <label className="text-gray-300 mb-2 block">Установите цену продажи:</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl text-white">$</span>
-                  <input 
-                    type="number"
-                    value={customPrice === '' ? '' : customPrice}
-                    onChange={(e) => {
-                      const value = e.target.value === '' ? '' : Number(e.target.value)
-                      setCustomPrice(value)
-                    }}
-                    placeholder={calculatedTotalPrice.toString()}
-                    className="p-3 bg-gray-800 text-white rounded w-full border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none"
-                  />
-                </div>
-                <p className="text-gray-400 text-sm mt-2">
-                  Оставьте пустым для использования себестоимости
-                </p>
-              </div>
-              
-              <div className="bg-gradient-to-r from-green-900/30 to-green-800/20 border border-green-600/30 p-3 rounded-lg mt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-300">Итоговая цена:</span>
-                  <span className="text-green-300 font-bold text-xl">
-                    ${typeof customPrice === 'number' && customPrice > 0 ? customPrice : calculatedTotalPrice}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex justify-between mt-6">
-        <button
-          onClick={() => setActiveStep(2)}
-          className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all flex items-center gap-2"
-        >
-          <ChevronUp className="transform rotate-270" size={18} />
-          Назад
-        </button>
-        
-        <button
-          onClick={handleUpdateConfig}
-          disabled={isUploading}
-		  className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
-			${isUploading 
-			  ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-			  : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-		>
-		  {isUploading ? 'Загрузка...' : 'Сохранить конфигурацию'}
-		  <Save size={18} />
-		</button>
-	  </div>
+		<div className='space-y-6 animate-fadeIn'>
+			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+				<h2 className='text-xl text-blue-300 font-bold mb-4'>Обзор и цена</h2>
+
+				<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					<div className='bg-gray-800/50 p-4 rounded-lg border border-gray-700'>
+						<h3 className='text-white font-semibold mb-3 flex items-center gap-2'>
+							<Info size={18} className='text-blue-400' />
+							Информация о конфигурации
+						</h3>
+
+						<div className='space-y-3'>
+							<div>
+								<p className='text-gray-400'>Название:</p>
+								<p className='text-white font-medium'>{configName}</p>
+							</div>
+
+							{description && (
+								<div>
+									<p className='text-gray-400'>Описание:</p>
+									<p className='text-white'>{description}</p>
+								</div>
+							)}
+
+							<div>
+								<p className='text-gray-400'>Статус:</p>
+								<p className='flex items-center gap-2'>
+									{isHiddenConfig ? (
+										<>
+											<EyeOff size={16} className='text-orange-400' />
+											<span className='text-orange-400'>
+												Скрытая конфигурация
+											</span>
+										</>
+									) : (
+										<>
+											<Eye size={16} className='text-green-400' />
+											<span className='text-green-400'>
+												Публичная конфигурация
+											</span>
+										</>
+									)}
+								</p>
+							</div>
+
+							{imageUrl && (
+								<div className='mt-4'>
+									<p className='text-gray-400 mb-2'>Изображение:</p>
+									<Image
+										src={imageUrl}
+										alt='Превью'
+										width={150}
+										height={150}
+										className='rounded-lg border border-gray-700 object-cover'
+									/>
+								</div>
+							)}
+						</div>
+					</div>
+
+					<div className='bg-gray-800/50 p-4 rounded-lg border border-gray-700'>
+						<h3 className='text-white font-semibold mb-3 flex items-center gap-2'>
+							<Info size={18} className='text-blue-400' />
+							Ценообразование
+						</h3>
+
+						<div className='space-y-3'>
+							<div className='bg-blue-900/20 border border-blue-600/30 p-3 rounded-lg'>
+								<div className='flex justify-between items-center'>
+									<span className='text-gray-300'>Себестоимость:</span>
+									<span className='text-white font-bold'>
+										${calculatedTotalPrice}
+									</span>
+								</div>
+							</div>
+
+							<div className='mt-4'>
+								<label className='text-gray-300 mb-2 block'>
+									Установите цену продажи:
+								</label>
+								<div className='flex items-center gap-2'>
+									<span className='text-xl text-white'>$</span>
+									<input
+										type='number'
+										value={customPrice === '' ? '' : customPrice}
+										onChange={e => {
+											const value =
+												e.target.value === '' ? '' : Number(e.target.value)
+											setCustomPrice(value)
+										}}
+										placeholder={calculatedTotalPrice.toString()}
+										className='p-3 bg-gray-800 text-white rounded w-full border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none'
+									/>
+								</div>
+								<p className='text-gray-400 text-sm mt-2'>
+									Оставьте пустым для использования себестоимости
+								</p>
+							</div>
+
+							<div className='bg-gradient-to-r from-green-900/30 to-green-800/20 border border-green-600/30 p-3 rounded-lg mt-4'>
+								<div className='flex justify-between items-center'>
+									<span className='text-gray-300'>Итоговая цена:</span>
+									<span className='text-green-300 font-bold text-xl'>
+										$
+										{typeof customPrice === 'number' && customPrice > 0
+											? customPrice
+											: calculatedTotalPrice}
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
-  )
+
+			<div className='flex justify-between mt-6'>
+				<button
+					onClick={() => setActiveStep(2)}
+					className='px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all flex items-center gap-2'
+				>
+					<ChevronUp className='transform rotate-270' size={18} />
+					Назад
+				</button>
+
+				<button
+					onClick={handleUpdateConfig}
+					disabled={isUploading}
+					className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
+			${
+				isUploading
+					? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+					: 'bg-blue-600 hover:bg-blue-700 text-white'
+			}`}
+				>
+					{isUploading ? 'Загрузка...' : 'Сохранить конфигурацию'}
+					<Save size={18} />
+				</button>
+			</div>
+		</div>
+	)
   if (isLoading) {
 		return (
 			<div className='flex min-h-screen bg-[#171C1F]'>

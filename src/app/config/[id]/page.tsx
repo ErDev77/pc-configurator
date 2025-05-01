@@ -1,5 +1,5 @@
 import type { PageProps } from './$types'
-import ClientConfiguration from './client-component' // importing your ClientConfiguration component
+import ClientConfiguration from './client-component'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -35,7 +35,27 @@ export default async function Page(props: PageProps) {
 		return notFound()
 	}
 
-	return <ClientConfiguration configuration={configuration} />
+	// Fix: Correctly fetch configuration products with proper endpoint path
+	const productsRes = await fetch(
+		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configuration_products/${id}`,
+		{
+			cache: 'no-store',
+		}
+	)
+
+	let products = []
+	if (productsRes.ok) {
+		const productsData = await productsRes.json()
+		products = productsData.products || []
+	} else {
+		console.error(
+			'Error fetching configuration products:',
+			productsRes.statusText
+		)
+	}
+
+	// Pass both configuration and products to the client component
+	return <ClientConfiguration configuration={{ ...configuration, products }} />
 }
 
 export async function generateMetadata({
