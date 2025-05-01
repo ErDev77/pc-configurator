@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useParams } from 'next/navigation'
 import AddCompatibility from '../_components/AddCompatibility'
 import CompatibilitiesList from '../_components/CompatibilitiesList'
+import SpecificationsTab from '../../_components/SpecificationsTab'
 import {
 	Trash,
 	ChevronDown,
@@ -23,8 +23,11 @@ import {
 	EyeOff,
 	CheckCircle,
 	History,
+	Globe,
+	Layout,
 } from 'lucide-react'
 import Sidebar from '../../_components/Sidebar'
+import DefaultSpecsTab from '../../_components/DefaultSpecsTab'
 
 interface Component {
 	name: string
@@ -33,6 +36,9 @@ interface Component {
 	image_url: string
 	hidden: boolean
 	category_id: number
+	specs_en?: string[]
+	specs_ru?: string[]
+	specs_am?: string[]
 }
 
 interface HistoryItem {
@@ -47,6 +53,8 @@ export default function EditComponentPage() {
 	const [categories, setCategories] = useState<{ id: number; name: string }[]>(
 		[]
 	)
+	const [useDefaultSpecs, setUseDefaultSpecs] = useState<boolean>(true)
+	
 	const [componentData, setComponentData] = useState<Component>({
 		name: '',
 		price: 0,
@@ -54,6 +62,9 @@ export default function EditComponentPage() {
 		image_url: '',
 		hidden: false,
 		category_id: 1,
+		specs_en: [],
+		specs_ru: [],
+		specs_am: [],
 	})
 	const [originalData, setOriginalData] = useState<Component | null>(null)
 	const [file, setFile] = useState<File | null>(null)
@@ -62,12 +73,14 @@ export default function EditComponentPage() {
 	const [isUploading, setIsUploading] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [showCompatibility, setShowCompatibility] = useState(true)
+	const [activeTab, setActiveTab] = useState<'general' | 'specs'>('general')
 	const [changeHistory, setChangeHistory] = useState<HistoryItem[]>([
 		{ date: '24 Apr 2025', action: 'Продукт создан' },
 		{ date: '25 Apr 2025', action: 'Изменена цена' },
 	])
 	const [showHistory, setShowHistory] = useState(false)
 	const router = useRouter()
+	const [selectedCategory, setSelectedCategory] = useState<number>(1)
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -76,8 +89,16 @@ export default function EditComponentPage() {
 				const data = await res.json()
 
 				if (data.product) {
-					setComponentData(data.product)
-					setOriginalData(data.product)
+					// Set default empty arrays for specs if they're missing
+					const productWithSpecs = {
+						...data.product,
+						specs_en: data.product.specs_en || [],
+						specs_ru: data.product.specs_ru || [],
+						specs_am: data.product.specs_am || [],
+					}
+
+					setComponentData(productWithSpecs)
+					setOriginalData(productWithSpecs)
 					setPreviewImageUrl(data.product.image_url)
 				} else {
 					toast.error('Компонент не найден')
@@ -123,6 +144,19 @@ export default function EditComponentPage() {
 			}))
 		}
 	}
+
+	const handleSpecsChange = useCallback(
+		(field: keyof Component, value: string[]) => {
+			// Check if the value actually changed before updating state
+			if (JSON.stringify(componentData[field]) !== JSON.stringify(value)) {
+				setComponentData(prev => ({
+					...prev,
+					[field]: value,
+				}))
+			}
+		},
+		[componentData]
+	)
 
 	const handleDrop = (acceptedFiles: File[]) => {
 		if (acceptedFiles.length === 0) return
@@ -234,6 +268,9 @@ export default function EditComponentPage() {
 				price: Number(componentData.price),
 				image_url: imageUrl,
 				category_id: Number(componentData.category_id),
+				specs_en: componentData.specs_en || [],
+				specs_ru: componentData.specs_ru || [],
+				specs_am: componentData.specs_am || [],
 			}
 
 			console.log('Sending data to API:', updatedData)
@@ -381,183 +418,270 @@ export default function EditComponentPage() {
 					</div>
 				)}
 
+				{/* Tabs */}
+				<div className='flex mb-6 border-b border-gray-700'>
+					<button
+						onClick={() => setActiveTab('general')}
+						className={`px-5 py-3 rounded-t-lg flex items-center ${
+							activeTab === 'general'
+								? 'bg-[#202529] text-white border-b-2 border-blue-500'
+								: 'text-gray-400 hover:bg-[#1A1D21] hover:text-white'
+						}`}
+					>
+						<Layout className='h-5 w-5 mr-2' />
+						<span>Общая информация</span>
+					</button>
+					<button
+						onClick={() => setActiveTab('specs')}
+						className={`px-5 py-3 rounded-t-lg flex items-center ${
+							activeTab === 'specs'
+								? 'bg-[#202529] text-white border-b-2 border-blue-500'
+								: 'text-gray-400 hover:bg-[#1A1D21] hover:text-white'
+						}`}
+					>
+						<Globe className='h-5 w-5 mr-2' />
+						<span>Спецификации</span>
+					</button>
+				</div>
+
 				<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 					{/* Left column - Product Form */}
-					<div className='bg-[#202529] p-8 rounded-2xl shadow-2xl border border-gray-700'>
-						<h2 className='text-xl text-white mb-6 font-bold flex items-center'>
-							<Tag className='h-5 w-5 mr-2 text-blue-400' />
-							Информация о продукте
-						</h2>
+					<div>
+						{activeTab === 'general' && (
+							<div className='bg-[#202529] p-8 rounded-2xl shadow-2xl border border-gray-700'>
+								<h2 className='text-xl text-white mb-6 font-bold flex items-center'>
+									<Tag className='h-5 w-5 mr-2 text-blue-400' />
+									Информация о продукте
+								</h2>
 
-						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-							{/* Left column - Form Fields */}
-							<div>
-								<div className='mb-6'>
-									<label className='text-white text-sm font-medium flex mb-2'>
-										<Tag className='h-4 w-4 mr-2 text-blue-400' />
-										Категория:
-									</label>
-									<select
-										name='category_id'
-										value={componentData.category_id}
-										onChange={handleChange}
-										className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
-									>
-										{categories.map(category => (
-											<option key={category.id} value={category.id}>
-												{category.name}
-											</option>
-										))}
-									</select>
-								</div>
-
-								<div className='mb-6'>
-									<label className='text-white text-sm font-medium flex mb-2'>
-										<Tag className='h-4 w-4 mr-2 text-blue-400' />
-										Название продукта:
-									</label>
-									<input
-										type='text'
-										name='name'
-										value={componentData.name}
-										onChange={handleChange}
-										placeholder='Введите название продукта'
-										className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
-									/>
-								</div>
-
-								<div className='mb-6'>
-									<label className='text-white text-sm font-medium flex mb-2'>
-										<DollarSign className='h-4 w-4 mr-2 text-blue-400' />
-										Цена:
-									</label>
-									<input
-										type='number'
-										name='price'
-										value={componentData.price}
-										onChange={handleChange}
-										placeholder='Цена продукта'
-										className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
-									/>
-								</div>
-
-								<div className='mb-6'>
-									<label className='text-white text-sm font-medium flex mb-2'>
-										<Briefcase className='h-4 w-4 mr-2 text-blue-400' />
-										Бренд:
-									</label>
-									<input
-										type='text'
-										name='brand'
-										value={componentData.brand}
-										onChange={handleChange}
-										placeholder='Введите бренд продукта'
-										className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
-									/>
-								</div>
-
-								<div className='mb-6'>
-									<label className='flex items-center space-x-2 cursor-pointer'>
-										<input
-											type='checkbox'
-											name='hidden'
-											checked={componentData.hidden}
-											onChange={handleChange}
-											className='form-checkbox h-5 w-5 text-blue-500 rounded border-gray-500 focus:ring-blue-500'
-										/>
-										<span className='text-white text-sm flex items-center'>
-											<EyeOff className='h-4 w-4 mr-2 text-blue-400' />
-											Скрыть товар
-										</span>
-									</label>
-								</div>
-							</div>
-
-							{/* Right column - Image Upload */}
-							<div>
-								<label className='text-white text-sm font-medium flex mb-2'>
-									<ImageIcon className='h-4 w-4 mr-2 text-blue-400' />
-									Изображение продукта:
-								</label>
-								<div
-									{...getRootProps()}
-									className={`mt-2 p-6 border-2 border-dashed rounded-xl cursor-pointer flex flex-col items-center justify-center transition-all ${
-										isDragActive
-											? 'border-blue-500 bg-blue-500 bg-opacity-10'
-											: 'border-gray-600 hover:border-blue-400 hover:bg-blue-500 hover:bg-opacity-5'
-									}`}
-								>
-									<input {...getInputProps()} />
-									{previewImageUrl ? (
-										<div className='relative w-full'>
-											<img
-												src={previewImageUrl}
-												alt='Предпросмотр'
-												className='object-contain max-h-48 mx-auto rounded-lg'
-											/>
-											<button
-												type='button'
-												onClick={e => {
-													e.stopPropagation()
-													setFile(null)
-													setPreviewImageUrl(componentData.image_url)
-												}}
-												className='absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors'
-												title='Удалить'
+								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+									{/* Left column - Form Fields */}
+									<div>
+										<div className='mb-6'>
+											<label className='text-white text-sm font-medium flex mb-2'>
+												<Tag className='h-4 w-4 mr-2 text-blue-400' />
+												Категория:
+											</label>
+											<select
+												name='category_id'
+												value={componentData.category_id}
+												onChange={handleChange}
+												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
 											>
-												<Trash size={16} />
-											</button>
+												{categories.map(category => (
+													<option key={category.id} value={category.id}>
+														{category.name}
+													</option>
+												))}
+											</select>
 										</div>
-									) : (
-										<div className='text-center'>
-											<ImageIcon className='mx-auto h-12 w-12 text-gray-400' />
-											<p className='mt-2 text-sm text-gray-300'>
-												Перетащите изображение сюда или кликните для выбора
-											</p>
-											<p className='mt-1 text-xs text-gray-400'>
-												PNG, JPG, WEBP до 5MB
-											</p>
-										</div>
-									)}
-								</div>
 
-								<div className='mt-4 bg-[#2C3136] p-4 rounded-lg border border-gray-700'>
-									<h4 className='text-white text-sm font-medium mb-2'>
-										Предпросмотр компонента:
-									</h4>
-									<div className='bg-[#1A1D21] p-4 rounded-lg flex items-center'>
-										<div className='w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0'>
-											{componentData.image_url && (
-												<img
-													src={previewImageUrl || componentData.image_url}
-													alt='Превью'
-													className='w-full h-full object-cover'
+										<div className='mb-6'>
+											<label className='text-white text-sm font-medium flex mb-2'>
+												<Tag className='h-4 w-4 mr-2 text-blue-400' />
+												Название продукта:
+											</label>
+											<input
+												type='text'
+												name='name'
+												value={componentData.name}
+												onChange={handleChange}
+												placeholder='Введите название продукта'
+												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
+											/>
+										</div>
+
+										<div className='mb-6'>
+											<label className='text-white text-sm font-medium flex mb-2'>
+												<DollarSign className='h-4 w-4 mr-2 text-blue-400' />
+												Цена:
+											</label>
+											<input
+												type='number'
+												name='price'
+												value={componentData.price}
+												onChange={handleChange}
+												placeholder='Цена продукта'
+												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
+											/>
+										</div>
+
+										<div className='mb-6'>
+											<label className='text-white text-sm font-medium flex mb-2'>
+												<Briefcase className='h-4 w-4 mr-2 text-blue-400' />
+												Бренд:
+											</label>
+											<input
+												type='text'
+												name='brand'
+												value={componentData.brand}
+												onChange={handleChange}
+												placeholder='Введите бренд продукта'
+												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
+											/>
+										</div>
+
+										<div className='mb-6'>
+											<label className='flex items-center space-x-2 cursor-pointer'>
+												<input
+													type='checkbox'
+													name='hidden'
+													checked={componentData.hidden}
+													onChange={handleChange}
+													className='form-checkbox h-5 w-5 text-blue-500 rounded border-gray-500 focus:ring-blue-500'
 												/>
+												<span className='text-white text-sm flex items-center'>
+													<EyeOff className='h-4 w-4 mr-2 text-blue-400' />
+													Скрыть товар
+												</span>
+											</label>
+										</div>
+									</div>
+
+									{/* Right column - Image Upload */}
+									<div>
+										<label className='text-white text-sm font-medium flex mb-2'>
+											<ImageIcon className='h-4 w-4 mr-2 text-blue-400' />
+											Изображение продукта:
+										</label>
+										<div
+											{...getRootProps()}
+											className={`mt-2 p-6 border-2 border-dashed rounded-xl cursor-pointer flex flex-col items-center justify-center transition-all ${
+												isDragActive
+													? 'border-blue-500 bg-blue-500 bg-opacity-10'
+													: 'border-gray-600 hover:border-blue-400 hover:bg-blue-500 hover:bg-opacity-5'
+											}`}
+										>
+											<input {...getInputProps()} />
+											{previewImageUrl ? (
+												<div className='relative w-full'>
+													<img
+														src={previewImageUrl}
+														alt='Предпросмотр'
+														className='object-contain max-h-48 mx-auto rounded-lg'
+													/>
+													<button
+														type='button'
+														onClick={e => {
+															e.stopPropagation()
+															setFile(null)
+															setPreviewImageUrl(componentData.image_url)
+														}}
+														className='absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors'
+														title='Удалить'
+													>
+														<Trash size={16} />
+													</button>
+												</div>
+											) : (
+												<div className='text-center'>
+													<ImageIcon className='mx-auto h-12 w-12 text-gray-400' />
+													<p className='mt-2 text-sm text-gray-300'>
+														Перетащите изображение сюда или кликните для выбора
+													</p>
+													<p className='mt-1 text-xs text-gray-400'>
+														PNG, JPG, WEBP до 5MB
+													</p>
+												</div>
 											)}
 										</div>
-										<div className='ml-4'>
-											<h3 className='text-white font-medium'>
-												{componentData.name || 'Название продукта'}
-											</h3>
-											<div className='flex items-center mt-1'>
-												<span className='text-gray-400 text-xs mr-2'>
-													{componentData.brand || 'Бренд'}
-												</span>
-												<span className='text-blue-400 font-bold'>
-													{componentData.price} ₽
-												</span>
+
+										<div className='mt-4 bg-[#2C3136] p-4 rounded-lg border border-gray-700'>
+											<h4 className='text-white text-sm font-medium mb-2'>
+												Предпросмотр компонента:
+											</h4>
+											<div className='bg-[#1A1D21] p-4 rounded-lg flex items-center'>
+												<div className='w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0'>
+													{componentData.image_url && (
+														<img
+															src={previewImageUrl || componentData.image_url}
+															alt='Превью'
+															className='w-full h-full object-cover'
+														/>
+													)}
+												</div>
+												<div className='ml-4'>
+													<h3 className='text-white font-medium'>
+														{componentData.name || 'Название продукта'}
+													</h3>
+													<div className='flex items-center mt-1'>
+														<span className='text-gray-400 text-xs mr-2'>
+															{componentData.brand || 'Бренд'}
+														</span>
+														<span className='text-blue-400 font-bold'>
+															{componentData.price} ₽
+														</span>
+													</div>
+													{componentData.hidden && (
+														<span className='text-yellow-500 text-xs flex items-center mt-1'>
+															<EyeOff className='h-3 w-3 mr-1' />
+															Скрыт
+														</span>
+													)}
+												</div>
 											</div>
-											{componentData.hidden && (
-												<span className='text-yellow-500 text-xs flex items-center mt-1'>
-													<EyeOff className='h-3 w-3 mr-1' />
-													Скрыт
-												</span>
-											)}
 										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						)}
+
+						{activeTab === 'specs' && (
+							<div>
+								<div className='bg-[#202529] p-4 rounded-lg mb-4 border border-gray-700'>
+									<div className='flex items-center justify-between mb-2'>
+										<h3 className='text-white font-medium'>
+											Формат спецификаций
+										</h3>
+										<div className='flex items-center'>
+											<label className='mr-2 text-gray-400 text-sm cursor-pointer'>
+												<input
+													type='radio'
+													checked={useDefaultSpecs}
+													onChange={() => setUseDefaultSpecs(true)}
+													className='mr-1'
+												/>
+												Шаблонные параметры
+											</label>
+											<label className='text-gray-400 text-sm cursor-pointer'>
+												<input
+													type='radio'
+													checked={!useDefaultSpecs}
+													onChange={() => setUseDefaultSpecs(false)}
+													className='mr-1'
+												/>
+												Свободный ввод
+											</label>
+										</div>
+									</div>
+									<p className='text-gray-400 text-sm'>
+										Выберите шаблонные параметры для категории или свободный
+										ввод для создания собственных спецификаций.
+									</p>
+								</div>
+
+								{useDefaultSpecs ? (
+									<DefaultSpecsTab
+										categoryId={selectedCategory}
+										specs_en={componentData.specs_en || []}
+										specs_ru={componentData.specs_ru || []}
+										specs_am={componentData.specs_am || []}
+										onChange={(field, value) =>
+											handleSpecsChange(field as keyof Component, value)
+										}
+									/>
+								) : (
+									<SpecificationsTab
+										specs_en={componentData.specs_en || []}
+										specs_ru={componentData.specs_ru || []}
+										specs_am={componentData.specs_am || []}
+										onChange={(field, value) =>
+											handleSpecsChange(field as keyof Component, value)
+										}
+									/>
+								)}
+							</div>
+						)}
 					</div>
 
 					{/* Right column - Compatibility Section */}

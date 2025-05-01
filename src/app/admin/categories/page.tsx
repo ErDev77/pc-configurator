@@ -11,12 +11,17 @@ import {
 	Check,
 	AlertCircle,
 	Loader2,
+	Globe,
 } from 'lucide-react'
 import Sidebar from '../_components/Sidebar'
+import CategoryLanguageForm from '../_components/CategoryLanguageFrom'
 
 interface Category {
 	id: string
 	name: string
+	name_en?: string
+	name_ru?: string
+	name_am?: string
 	productCount?: number
 	createdAt?: string
 }
@@ -37,6 +42,12 @@ const CategoryManagement = () => {
 		type: 'success' | 'error'
 		message: string
 	} | null>(null)
+	const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false)
+	const [languageEditCategoryId, setLanguageEditCategoryId] = useState<
+		string | null
+	>(null)
+	const [activeCategoryForLanguages, setActiveCategoryForLanguages] =
+		useState<Category | null>(null)
 
 	// Функция для загрузки категорий с API
 	const fetchCategories = async () => {
@@ -46,7 +57,7 @@ const CategoryManagement = () => {
 			const res = await fetch('/api/products')
 			const data = await res.json()
 			if (data.categories) {
-				// Simulate additional data for demo purposes
+				// Enhance with additional data
 				const enhancedCategories = data.categories.map((cat: Category) => ({
 					...cat,
 					productCount: Math.floor(Math.random() * 50),
@@ -77,9 +88,22 @@ const CategoryManagement = () => {
 	// Фильтрация категорий по поисковому запросу
 	useEffect(() => {
 		if (searchTerm) {
-			const filtered = categories.filter(category =>
-				category.name.toLowerCase().includes(searchTerm.toLowerCase())
-			)
+			const filtered = categories.filter(category => {
+				const nameMatch = category.name
+					.toLowerCase()
+					.includes(searchTerm.toLowerCase())
+				const nameEnMatch =
+					category.name_en?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					false
+				const nameRuMatch =
+					category.name_ru?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					false
+				const nameAmMatch =
+					category.name_am?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					false
+
+				return nameMatch || nameEnMatch || nameRuMatch || nameAmMatch
+			})
 			setFilteredCategories(filtered)
 		} else {
 			setFilteredCategories(categories)
@@ -110,13 +134,17 @@ const CategoryManagement = () => {
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ category_name: newCategory }),
+					body: JSON.stringify({
+						category_name: newCategory,
+						name_en: newCategory,
+					}),
 				})
 				const data = await res.json()
 				if (data.success) {
 					const newCat = {
-						id: Date.now().toString(),
+						id: data.category.id || Date.now().toString(),
 						name: newCategory,
+						name_en: newCategory,
 						productCount: 0,
 						createdAt: new Date().toISOString(),
 					}
@@ -153,6 +181,7 @@ const CategoryManagement = () => {
 					body: JSON.stringify({
 						id: editCategoryId,
 						name: editCategoryName,
+						name_en: editCategoryName,
 					}),
 				})
 				const data = await res.json()
@@ -160,7 +189,11 @@ const CategoryManagement = () => {
 					setCategories(
 						categories.map(category =>
 							category.id === editCategoryId
-								? { ...category, name: editCategoryName }
+								? {
+										...category,
+										name: editCategoryName,
+										name_en: editCategoryName,
+								  }
 								: category
 						)
 					)
@@ -180,6 +213,63 @@ const CategoryManagement = () => {
 			} finally {
 				setIsLoading(false)
 			}
+		}
+	}
+
+	// Функция для сохранения переводов категории
+	const handleSaveLanguages = async (
+		categoryId: number,
+		names: Record<string, string>
+	) => {
+		try {
+			setIsLoading(true)
+			const res = await fetch('/api/products', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					id: categoryId,
+					name: names.name_en, // Update primary name to match English name
+					name_en: names.name_en,
+					name_ru: names.name_ru,
+					name_am: names.name_am,
+				}),
+			})
+			const data = await res.json()
+
+			if (data.success) {
+				// Update the categories in state
+				setCategories(
+					categories.map(category =>
+						category.id === categoryId.toString()
+							? {
+									...category,
+									name: names.name_en,
+									name_en: names.name_en,
+									name_ru: names.name_ru,
+									name_am: names.name_am,
+							  }
+							: category
+					)
+				)
+
+				setLanguageEditCategoryId(null)
+				setActiveCategoryForLanguages(null)
+				setIsLanguageModalOpen(false)
+				showNotification('success', 'Переводы категории успешно обновлены')
+			} else {
+				showNotification('error', 'Ошибка при обновлении переводов')
+				console.error('Ошибка при обновлении переводов:', data.error)
+			}
+		} catch (error) {
+			showNotification('error', 'Ошибка при обновлении переводов категории')
+			console.error(
+				'Ошибка при отправке запроса на обновление переводов:',
+				error
+			)
+		} finally {
+			setIsLoading(false)
 		}
 	}
 
@@ -211,6 +301,13 @@ const CategoryManagement = () => {
 		}
 	}
 
+	// Открыть модальное окно с языковыми настройками
+	const handleOpenLanguageModal = (category: Category) => {
+		setActiveCategoryForLanguages(category)
+		setLanguageEditCategoryId(category.id)
+		setIsLanguageModalOpen(true)
+	}
+
 	// Показ уведомления
 	const showNotification = (type: 'success' | 'error', message: string) => {
 		setNotification({ type, message })
@@ -228,7 +325,7 @@ const CategoryManagement = () => {
 		}).format(date)
 	}
 
-	if (isLoading) {
+	if (isLoading && categories.length === 0) {
 		return (
 			<div className='flex min-h-screen bg-[#171C1F]'>
 				<div className='flex-1 p-8 ml-16'>
@@ -241,7 +338,7 @@ const CategoryManagement = () => {
 	}
 
 	return (
-		<div className='min-h-screen  bg-[#14181B] p-6'>
+		<div className='min-h-screen bg-[#14181B] p-6'>
 			<Sidebar />
 			<div className='max-w-7xl mx-auto bg-[#202529] rounded-lg shadow-md p-6'>
 				<div className='flex flex-col md:flex-row md:items-center justify-between mb-8'>
@@ -354,6 +451,31 @@ const CategoryManagement = () => {
 									<h3 className='text-xl font-semibold text-gray-800 dark:text-white'>
 										{category.name}
 									</h3>
+									{/* Display translations if available */}
+									{(category.name_en ||
+										category.name_ru ||
+										category.name_am) && (
+										<div className='mt-2 text-sm text-gray-600 dark:text-gray-400'>
+											{category.name_en && (
+												<div className='flex items-center'>
+													<span className='inline-block mr-2'>🇺🇸</span>
+													<span>{category.name_en}</span>
+												</div>
+											)}
+											{category.name_ru && (
+												<div className='flex items-center'>
+													<span className='inline-block mr-2'>🇷🇺</span>
+													<span>{category.name_ru}</span>
+												</div>
+											)}
+											{category.name_am && (
+												<div className='flex items-center'>
+													<span className='inline-block mr-2'>🇦🇲</span>
+													<span>{category.name_am}</span>
+												</div>
+											)}
+										</div>
+									)}
 									<div className='mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400'>
 										<span className='bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-2 py-0.5 rounded-full text-xs font-medium'>
 											{category.productCount} товаров
@@ -362,17 +484,26 @@ const CategoryManagement = () => {
 										<span>Создано: {formatDate(category.createdAt)}</span>
 									</div>
 								</div>
-								<div className='p-4 flex justify-between'>
-									<button
-										onClick={() => {
-											setEditCategoryId(category.id)
-											setEditCategoryName(category.name)
-										}}
-										className='flex items-center space-x-1 py-2 px-3 bg-amber-500 text-white rounded hover:bg-amber-600 transition'
-									>
-										<Pencil className='h-4 w-4' />
-										<span>Изменить</span>
-									</button>
+								<div className='p-4 flex flex-wrap gap-2 justify-between'>
+									<div className='flex gap-2'>
+										<button
+											onClick={() => {
+												setEditCategoryId(category.id)
+												setEditCategoryName(category.name)
+											}}
+											className='flex items-center space-x-1 py-2 px-3 bg-amber-500 text-white rounded hover:bg-amber-600 transition'
+										>
+											<Pencil className='h-4 w-4' />
+											<span>Изменить</span>
+										</button>
+										<button
+											onClick={() => handleOpenLanguageModal(category)}
+											className='flex items-center space-x-1 py-2 px-3 bg-purple-500 text-white rounded hover:bg-purple-600 transition'
+										>
+											<Globe className='h-4 w-4' />
+											<span>Языки</span>
+										</button>
+									</div>
 									{confirmDelete === category.id ? (
 										<div className='flex space-x-2'>
 											<button
@@ -431,6 +562,10 @@ const CategoryManagement = () => {
 								placeholder='Введите название категории'
 								autoFocus
 							/>
+							<p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+								После создания категории вы сможете добавить переводы на другие
+								языки.
+							</p>
 						</div>
 						<div className='flex justify-end space-x-3'>
 							<button
@@ -495,6 +630,9 @@ const CategoryManagement = () => {
 								placeholder='Введите новое название категории'
 								autoFocus
 							/>
+							<p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+								Используйте кнопку "Языки" для управления переводами.
+							</p>
 						</div>
 						<div className='flex justify-end space-x-3'>
 							<button
@@ -530,6 +668,26 @@ const CategoryManagement = () => {
 						</div>
 					</div>
 				</div>
+			)}
+
+			{/* Модальное окно для языковых настроек */}
+			{isLanguageModalOpen && activeCategoryForLanguages && (
+				<CategoryLanguageForm
+					categoryId={parseInt(activeCategoryForLanguages.id)}
+					initialNames={{
+						name: activeCategoryForLanguages.name,
+						name_en:
+							activeCategoryForLanguages.name_en ||
+							activeCategoryForLanguages.name,
+						name_ru: activeCategoryForLanguages.name_ru || '',
+						name_am: activeCategoryForLanguages.name_am || '',
+					}}
+					onSave={handleSaveLanguages}
+					onCancel={() => {
+						setIsLanguageModalOpen(false)
+						setActiveCategoryForLanguages(null)
+					}}
+				/>
 			)}
 		</div>
 	)

@@ -43,7 +43,17 @@ export async function PATCH(
 
 		const body = await req.json()
 
-		const { name, price, brand, image_url, hidden, category_id } = body
+		const {
+			name,
+			price,
+			brand,
+			image_url,
+			hidden,
+			category_id,
+			specs_en,
+			specs_ru,
+			specs_am,
+		} = body
 
 		if (!name || !price || !brand || !image_url || !category_id) {
 			return NextResponse.json(
@@ -54,9 +64,28 @@ export async function PATCH(
 
 		await pool.query(
 			`UPDATE products 
-       SET name = $1, price = $2, brand = $3, image_url = $4, hidden = $5, category_id = $6
-       WHERE id = $7`,
-			[name, price, brand, image_url, hidden ?? false, category_id, id]
+       SET name = $1, 
+           price = $2, 
+           brand = $3, 
+           image_url = $4, 
+           hidden = $5, 
+           category_id = $6,
+           specs_en = $7,
+           specs_ru = $8,
+           specs_am = $9
+       WHERE id = $10`,
+			[
+				name,
+				price,
+				brand,
+				image_url,
+				hidden ?? false,
+				category_id,
+				JSON.stringify(specs_en || []),
+				JSON.stringify(specs_ru || []),
+				JSON.stringify(specs_am || []),
+				id,
+			]
 		)
 
 		return NextResponse.json(

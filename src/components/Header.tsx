@@ -14,7 +14,8 @@ import {
 } from 'lucide-react'
 // import { useLanguage } from '@/context/LanguageContext'
 import CartIcon from './CartIcon'
-
+import { LanguageSwitcher } from './LanguageSwitcher'
+import { useLanguage } from '@/context/LanguageContext'
 function Header() {
 	const socialIcons = [
 		{ Icon: Facebook },
@@ -25,7 +26,15 @@ function Header() {
 	]
 	// const { language, setLanguage } = useLanguage()
 	const [isLoading, setIsLoading] = useState(false)
+	const { language, setLanguage } = useLanguage()
 
+	const handleChangeLanguage = (lang: 'en' | 'ru' | 'am') => {
+		setIsLoading(true)
+		setTimeout(() => {
+			setLanguage(lang)
+			setIsLoading(false)
+		}, 500)
+	}
 	// const handleChangeLanguage = (lang: 'en' | 'ru' | 'am') => {
 	// 	setIsLoading(true)
 	// 	setTimeout(() => {
@@ -61,11 +70,11 @@ function Header() {
 							/>
 						))}
 
-						{/* <LanguageSwitcher
+						<LanguageSwitcher
 							currentLanguage={language}
 							onChange={handleChangeLanguage}
 							isLoading={isLoading}
-						/> */}
+						/>
 					</div>
 				</div>
 			</div>

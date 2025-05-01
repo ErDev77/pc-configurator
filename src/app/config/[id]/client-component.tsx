@@ -1,12 +1,9 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-// import LoadingOverlay from '@/app/admin/components/LoadingOverlay'
 import React from 'react'
-// import Header from '@/app/_components/Header'
-// import Footer from '@/app/_components/Footer'
 import { useRouter } from 'next/navigation'
-// import { useLanguage } from '@/context/LanguageContext'
+import { useLanguage } from '@/context/LanguageContext'
 import { useAppDispatch } from '@/redux/hooks/hook'
 import { addToCart } from '@/redux/slices/cartSlice'
 import { toast } from 'react-toastify'
@@ -20,9 +17,9 @@ interface Component {
 	price: number
 	brand: string
 	image_url?: string
-	specs_en: Array<string>
-	specs_ru: Array<string>
-	specs_am: Array<string>
+	specs_en: string[]
+	specs_ru: string[]
+	specs_am: string[]
 	category_id: number
 	discount?: number
 	hidden?: boolean
@@ -31,6 +28,9 @@ interface Component {
 interface Category {
 	id: number
 	name: string
+	name_en?: string
+	name_ru?: string
+	name_am?: string
 	components: Component[]
 }
 
@@ -76,7 +76,7 @@ export default function ClientConfiguration({
 	>([])
 	const [notificationCounter, setNotificationCounter] = useState(0)
 	const [configCustomized, setConfigCustomized] = useState(false)
-	// const { language, setLanguage } = useLanguage()
+	const { language, setLanguage } = useLanguage()
 	const router = useRouter()
 
 	useEffect(() => {
@@ -153,6 +153,23 @@ export default function ClientConfiguration({
 				const configData = await configResponse.json()
 				console.log('Config data:', configData)
 
+				// Fetch configuration products specifically
+				const configProductsResponse = await fetch(
+					`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations_products/${selectedConfigId}`,
+					{ cache: 'no-store' }
+				)
+
+				if (!configProductsResponse.ok) {
+					console.error(
+						'Error fetching configuration products:',
+						configProductsResponse.statusText
+					)
+					return
+				}
+
+				const configProductsData = await configProductsResponse.json()
+				console.log('Config products data:', configProductsData)
+
 				// Fetch all products and categories
 				const productsResponse = await fetch(
 					`${process.env.NEXT_PUBLIC_SITE_URL}/api/products`,
@@ -168,9 +185,18 @@ export default function ClientConfiguration({
 
 				// Format categories with their components
 				const formattedCategories = categories.map(
-					(category: { id: number; name: string }) => ({
+					(category: {
+						id: number
+						name: string
+						name_en?: string
+						name_ru?: string
+						name_am?: string
+					}) => ({
 						id: category.id,
 						name: category.name,
+						name_en: category.name_en || category.name,
+						name_ru: category.name_ru || '',
+						name_am: category.name_am || '',
 						components: components.filter(
 							(product: Component) => product.category_id === category.id
 						),
@@ -183,19 +209,23 @@ export default function ClientConfiguration({
 				const compatibility = await fetchCompatibilityMap()
 				setCompatibilityMap(compatibility)
 
-				// Process configuration products
+				// Process configuration products from the dedicated endpoint
 				const defaultComponentsMap: { [key: number]: Component | null } = {}
 				const selectedComponentsMap: { [key: number]: Component | null } = {}
 
-				if (configData.products && Array.isArray(configData.products)) {
-					configData.products.forEach((product: Component) => {
+				if (configProductsData && Array.isArray(configProductsData.products)) {
+					configProductsData.products.forEach((productData: any) => {
+						// Find the full component data from all components
+						const product = components.find(
+							(comp: Component) => comp.id === productData.product_id
+						)
+
 						if (product && product.category_id) {
 							defaultComponentsMap[product.category_id] = product
 							selectedComponentsMap[product.category_id] = product
 						}
 					})
 				}
-
 
 				console.log('Default components:', defaultComponentsMap)
 				console.log('Selected components:', selectedComponentsMap)
@@ -241,21 +271,41 @@ export default function ClientConfiguration({
 		return true
 	}
 
-	function formatSpecs(
-		specs: Record<string, string | number | boolean> | string[]
-	): string {
-		if (!specs || typeof specs !== 'object') return 'No data available'
-		if (Array.isArray(specs)) {
-			return specs.join(' | ')
+	function formatSpecs(specs: string[] | undefined): string {
+		if (!specs || !Array.isArray(specs) || specs.length === 0) {
+			return 'No specifications available'
 		}
-		return Object.entries(specs)
-			.map(([key, value]) => {
-				const formattedKey = key
-					.replace(/_/g, ' ')
-					.replace(/\b\w/g, c => c.toUpperCase())
-				return `${formattedKey}: ${value}`
-			})
-			.join(' | ')
+		return specs.join(' | ')
+	}
+
+	// Function to get the appropriate specs based on the current language
+	function getLocalizedSpecs(component: Component): string[] {
+		switch (language) {
+			case 'ru':
+				return component.specs_ru && component.specs_ru.length > 0
+					? component.specs_ru
+					: component.specs_en || []
+			case 'am':
+				return component.specs_am && component.specs_am.length > 0
+					? component.specs_am
+					: component.specs_en || []
+			case 'en':
+			default:
+				return component.specs_en || []
+		}
+	}
+
+	// Function to get the appropriate category name based on the current language
+	function getLocalizedCategoryName(category: Category): string {
+		switch (language) {
+			case 'ru':
+				return category.name_ru || category.name_en || category.name
+			case 'am':
+				return category.name_am || category.name_en || category.name
+			case 'en':
+			default:
+				return category.name_en || category.name
+		}
 	}
 
 	const handleAddToCart = () => {
@@ -269,7 +319,13 @@ export default function ClientConfiguration({
 				return {
 					id: component!.id,
 					categoryId: parseInt(categoryId),
-					categoryName: category?.name || 'Unknown Category',
+					categoryName: getLocalizedCategoryName(
+						category || {
+							id: parseInt(categoryId),
+							name: 'Unknown',
+							components: [],
+						}
+					),
 					name: component!.name,
 					price: component!.price,
 					image_url: component!.image_url,
@@ -285,14 +341,15 @@ export default function ClientConfiguration({
 		const cartItem = {
 			id: selectedConfigId,
 			name: selectedConfig?.name || 'Custom Configuration',
-			image_url: selectedConfig?.image_url || selectedComponents['1']?.image_url, // Case image or fallback
+			image_url:
+				selectedConfig?.image_url || selectedComponents['1']?.image_url, // Case image or fallback
 			price: totalPrice,
 			configId: selectedConfigId,
 			configName: selectedConfig?.name || 'Custom Configuration',
 			imageUrl: selectedConfig?.image_url || selectedComponents['1']?.image_url,
 			totalPrice,
 			components: componentsForCart,
-			quantity: 1
+			quantity: 1,
 		}
 
 		// Dispatch to Redux store
@@ -517,12 +574,8 @@ export default function ClientConfiguration({
 		conf => conf.id === selectedConfigId
 	)
 
-	// if (!configuration) {
-	// 	return <LoadingOverlay />
-	// }
-
 	return (
-		<>
+		<div className='min-h-screen bg-[#222227]'>
 			<Header />
 			<div className='flex p-4 w-[1391px] mx-32 gap-8'>
 				{isLoading ? (
@@ -602,7 +655,11 @@ export default function ClientConfiguration({
 
 							<div className=''>
 								{categories
-									.filter(category => category.name === 'Case')
+									.filter(
+										category =>
+											getLocalizedCategoryName(category).toLowerCase() ===
+											'case'
+									)
 									.map(category => (
 										<div
 											className='mt-8 mb-6 flex justify-center cursor-pointer'
@@ -615,7 +672,7 @@ export default function ClientConfiguration({
 													src={
 														selectedComponents[category.id]!.image_url as string
 													}
-													alt={category.name}
+													alt={getLocalizedCategoryName(category)}
 													width={600}
 													height={400}
 													layout='responsive'
@@ -643,7 +700,11 @@ export default function ClientConfiguration({
 									))}
 
 								{categories
-									.filter(category => category.name === 'Case')
+									.filter(
+										category =>
+											getLocalizedCategoryName(category).toLowerCase() ===
+											'case'
+									)
 									.map(category => (
 										<div
 											className='mt-8 ml-60 mb-6 flex justify-center rounded-lg border-2 border-white w-[60px] h-[60px] cursor-pointer'
@@ -656,7 +717,7 @@ export default function ClientConfiguration({
 													src={
 														selectedComponents[category.id]!.image_url as string
 													}
-													alt={category.name}
+													alt={getLocalizedCategoryName(category)}
 													width={60}
 													height={60}
 													layout='intrinsic'
@@ -690,39 +751,45 @@ export default function ClientConfiguration({
 								<h2 className='text-xl text-white font-semibold'>
 									Your Configuration
 								</h2>
-								<div className='grid grid-cols-2 -ml-4'>
-									{Object.keys(selectedComponents).map(categoryId => {
-										const selectedComponent = selectedComponents[categoryId]
-										const categoryName =
-											categories.find(cat => cat.id === Number(categoryId))
-												?.name || 'Unknown Category'
-										return selectedComponent ? (
-											<div
-												key={categoryId}
-												className='flex items-center bg-[#222227] p-4 rounded-lg cursor-pointer'
-												onClick={() => handleConfigComponentClick(categoryId)}
-											>
-												<svg
-													stroke='currentColor'
-													fill='currentColor'
-													strokeWidth='0'
-													viewBox='0 0 512 512'
-													className='text-blue-500 w-5 h-5 mr-4'
-													xmlns='http://www.w3.org/2000/svg'
+								<div className='grid grid-cols-2 gap-4'>
+									{Object.entries(selectedComponents).map(
+										([categoryId, component]) => {
+											if (!component) return null
+
+											const category = categories.find(
+												cat => cat.id === Number(categoryId)
+											)
+
+											if (!category) return null
+
+											return (
+												<div
+													key={categoryId}
+													className='flex items-center bg-[#2A2A33] p-4 rounded-lg cursor-pointer hover:bg-[#303A50] transition-colors'
+													onClick={() => handleConfigComponentClick(categoryId)}
 												>
-													<path d='M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 48c110.532 0 200 89.451 200 200 0 110.532-89.451 200-200 200-110.532 0-200-89.451-200-200 0-110.532 89.451-200 200-200m140.204 130.267l-22.536-22.718c-4.667-4.705-12.265-4.736-16.97-.068L215.346 303.697l-59.792-60.277c-4.667-4.705-12.265-4.736-16.97-.069l-22.719 22.536c-4.705 4.667-4.736 12.265-.068 16.971l90.781 91.516c4.667 4.705 12.265 4.736 16.97.068l172.589-171.204c4.704-4.668 4.734-12.266.067-16.971z'></path>
-												</svg>
-												<div>
-													<p className='text-white text-base font-medium'>
-														{selectedComponent.name}
-													</p>
-													<p className='text-sm text-gray-400'>
-														{categoryName}
-													</p>
+													<svg
+														stroke='currentColor'
+														fill='currentColor'
+														strokeWidth='0'
+														viewBox='0 0 512 512'
+														className='text-blue-500 w-5 h-5 mr-4'
+														xmlns='http://www.w3.org/2000/svg'
+													>
+														<path d='M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 48c110.532 0 200 89.451 200 200 0 110.532-89.451 200-200 200-110.532 0-200-89.451-200-200 0-110.532 89.451-200 200-200m140.204 130.267l-22.536-22.718c-4.667-4.705-12.265-4.736-16.97-.068L215.346 303.697l-59.792-60.277c-4.667-4.705-12.265-4.736-16.97-.069l-22.719 22.536c-4.705 4.667-4.736 12.265-.068 16.971l90.781 91.516c4.667 4.705 12.265 4.736 16.97.068l172.589-171.204c4.704-4.668 4.734-12.266.067-16.971z'></path>
+													</svg>
+													<div>
+														<p className='text-white text-base font-medium'>
+															{component.name}
+														</p>
+														<p className='text-sm text-gray-400'>
+															{getLocalizedCategoryName(category)}
+														</p>
+													</div>
 												</div>
-											</div>
-										) : null
-									})}
+											)
+										}
+									)}
 								</div>
 
 								{configCustomized && (
@@ -779,7 +846,7 @@ export default function ClientConfiguration({
 															selectedComponents[category.id]!
 																.image_url as string
 														}
-														alt={category.name}
+														alt={getLocalizedCategoryName(category)}
 														width={60}
 														height={60}
 														layout='intrinsic'
@@ -790,7 +857,7 @@ export default function ClientConfiguration({
 											</div>
 
 											<span className='text-xl font-medium text-white'>
-												{category.name}
+												{getLocalizedCategoryName(category)}
 											</span>
 										</div>
 										<svg
@@ -863,27 +930,27 @@ export default function ClientConfiguration({
 																			{component.name}
 																		</h3>
 
-																		{/* <div className='relative w-fit'>
-																		<p className='text-sm font-medium text-gray-500 overflow-hidden max-h-[3em] line-clamp-2 cursor-pointer peer'>
-																			{formatSpecs(
-																				language === 'ru'
-																					? component.specs_ru
-																					: language === 'am'
-																					? component.specs_am
-																					: component.specs_en
-																			)}
-																		</p>
+																		<div className='relative w-fit'>
+																			<p className='text-sm font-medium text-gray-500 overflow-hidden max-h-[3em] line-clamp-2 cursor-pointer peer'>
+																				{formatSpecs(
+																					language === 'ru'
+																						? component.specs_ru
+																						: language === 'am'
+																						? component.specs_am
+																						: component.specs_en
+																				)}
+																			</p>
 
-																		<div className={getPopupClass(index)}>
-																			{formatSpecs(
-																				language === 'ru'
-																					? component.specs_ru
-																					: language === 'am'
-																					? component.specs_am
-																					: component.specs_en
-																			)}
+																			<div className={getPopupClass(index)}>
+																				{formatSpecs(
+																					language === 'ru'
+																						? component.specs_ru
+																						: language === 'am'
+																						? component.specs_am
+																						: component.specs_en
+																				)}
+																			</div>
 																		</div>
-																	</div> */}
 
 																		{!isDisabled && !isSelected && (
 																			<div className='text-white text-[12px] mt-3'>
@@ -929,6 +996,6 @@ export default function ClientConfiguration({
 				)}
 			</div>
 			<Footer />
-		</>
+		</div>
 	)
 }
