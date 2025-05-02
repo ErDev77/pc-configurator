@@ -11,6 +11,9 @@ import { Trash2, Info, PlusCircle, MinusCircle, ChevronDown, ChevronUp, Upload, 
 interface Category {
   id: number
   name: string
+  name_en: string
+  name_ru: string
+  name_am: string
 }
 
 interface Product {
@@ -29,252 +32,311 @@ interface SelectedProduct {
 export default function EditConfigurationPage() {
 	const { id } = useParams<{ id: string }>()
 
-  const [categories, setCategories] = useState<Category[]>([])
-  const [components, setComponents] = useState<Product[]>([])
-  const [configName, setConfigName] = useState('')
-  const [description, setDescription] = useState('')
-  const [selectedProducts, setSelectedProducts] = useState<Record<number, SelectedProduct[]>>({})
-  const [expandedCategories, setExpandedCategories] = useState<number[]>([])
-  const [file, setFile] = useState<File | null>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [customPrice, setCustomPrice] = useState<number | ''>('')
-  const [isHiddenConfig, setIsHiddenConfig] = useState(false)
-  const [activeStep, setActiveStep] = useState(1)
-  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
-  const router = useRouter()
+	const [categories, setCategories] = useState<Category[]>([])
+	const [components, setComponents] = useState<Product[]>([])
+	const [configName, setConfigName] = useState('')
+	const [description, setDescription] = useState('')
+	const [selectedProducts, setSelectedProducts] = useState<
+		Record<number, SelectedProduct[]>
+	>({})
+	const [expandedCategories, setExpandedCategories] = useState<number[]>([])
+	const [file, setFile] = useState<File | null>(null)
+	const [imageUrl, setImageUrl] = useState<string | null>(null)
+	const [isUploading, setIsUploading] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
+	const [customPrice, setCustomPrice] = useState<number | ''>('')
+	const [isHiddenConfig, setIsHiddenConfig] = useState(false)
+	const [activeStep, setActiveStep] = useState(1)
+	const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
+	const router = useRouter()
 
-  // Fetch configuration data and product categories
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch categories and products
-        const productsRes = await fetch('/api/products')
-        const productsData = await productsRes.json()
+	// Fetch configuration data and product categories
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				// Fetch categories and products
+				 const productsRes = await fetch('/api/products?page=1&pageSize=100') // Increase pageSize to get all products
+				const productsData = await productsRes.json()
 
-        if (productsRes.ok) {
-          setCategories(productsData.categories)
-          setComponents(productsData.components)
-        } else {
-          throw new Error(productsData.error || 'Не удалось получить данные с сервера')
-        }
+				if (productsRes.ok) {
+					// Format categories properly
+					 const formattedCategories = productsData.categories.map(
+							(category: any) => ({
+								id: category.id,
+								name: category.name,
+								name_en: category.name_en || category.name,
+								name_ru:
+									category.name_ru === '[null]' ? '' : category.name_ru || '',
+								name_am:
+									category.name_am === '[null]' ? '' : category.name_am || '',
+							})
+						)
+					setCategories(formattedCategories)
+					setComponents(productsData.components)
+					console.log(
+						'Total components fetched:',
+						productsData.components.length
+					)
+					console.log('Categories:', formattedCategories)
+					console.log('Components by category:')
+					formattedCategories.forEach((category: Category) => {
+						const count = productsData.components.filter(
+							(p: Product) => p.category_id === category.id
+						).length
+						console.log(`${category.name}: ${count} components`)
+					})
+				} else {
+					throw new Error(
+						productsData.error || 'Не удалось получить данные с сервера'
+					)
+				}
 
-        // Fetch specific configuration data
-        if (id) {
-          const configRes = await fetch(`/api/configurations/${id}`)
-          const configData = await configRes.json()
+				// Fetch specific configuration data
+				if (id) {
+					const configRes = await fetch(`/api/configurations/${id}`)
+					const configData = await configRes.json()
 
-          if (configRes.ok && configData) {
-            // Populate form with existing data
-            setConfigName(configData.name || '')
-            setDescription(configData.description || '')
-            setImageUrl(configData.image_url || null)
-            setOriginalImageUrl(configData.image_url || null)
-            setIsHiddenConfig(configData.hidden || false)
-            setCustomPrice(configData.price || '')
+					if (configRes.ok && configData) {
+						// Populate form with existing data
+						setConfigName(configData.name || '')
+						setDescription(configData.description || '')
+						setImageUrl(configData.image_url || null)
+						setOriginalImageUrl(configData.image_url || null)
+						setIsHiddenConfig(configData.hidden || false)
+						setCustomPrice(configData.price || '')
 
-            // Map the selected products to the format we need
-            if (configData.products && Array.isArray(configData.products)) {
-              const productsByCategoryId: Record<number, SelectedProduct[]> = {}
-              
-              configData.products.forEach((item: { id: number; quantity?: number }) => {
-                const product = productsData.components.find((p: Product) => p.id === item.id)
-                if (product) {
-                  const categoryId = product.category_id
-                  if (!productsByCategoryId[categoryId]) {
-                    productsByCategoryId[categoryId] = []
-                  }
-                  productsByCategoryId[categoryId].push({
-                    product_id: item.id,
-                    quantity: item.quantity || 1
-                  })
-                }
-              })
-              
-              setSelectedProducts(productsByCategoryId)
-              
-              // Expand categories that have selected products
-              setExpandedCategories(Object.keys(productsByCategoryId).map(Number))
-            }
-          } else {
-            toast.error('Не удалось загрузить конфигурацию')
-            router.push('/admin/configurations')
-          }
-        } else {
-          toast.error('ID конфигурации отсутствует')
-          router.push('/admin/configurations')
-        }
+						// Map the selected products to the format we need
+						if (configData.products && Array.isArray(configData.products)) {
+							const productsByCategoryId: Record<number, SelectedProduct[]> = {}
 
-        setIsLoading(false)
-      } catch (error) {
-        toast.error(
-          (error instanceof Error ? error.message : 'Неизвестная ошибка') ||
-          'Ошибка при получении данных с сервера'
-        )
-        setIsLoading(false)
-        router.push('/admin/config-list')
-      }
-    }
-    fetchData()
-  }, [id, router])
+							configData.products.forEach(
+								(item: { id: number; quantity?: number }) => {
+									const product = productsData.components.find(
+										(p: Product) => p.id === item.id
+									)
+									if (product) {
+										const categoryId = product.category_id
+										if (!productsByCategoryId[categoryId]) {
+											productsByCategoryId[categoryId] = []
+										}
+										// Check if this product is already in the category array
+										const existingProduct = productsByCategoryId[
+											categoryId
+										].find(p => p.product_id === item.id)
+										if (!existingProduct) {
+											productsByCategoryId[categoryId].push({
+												product_id: item.id,
+												quantity: item.quantity || 1,
+											})
+										}
+									}
+								}
+							)	
+							// In edit-config/[id]/page.tsx and add-config/page.tsx, after fetching products
+							console.log('All products:', productsData.components)
+							console.log(
+								'Products with category_id:',
+								productsData.components.filter((p: Product) => p.category_id)
+							)
+							console.log(
+								'Products without category_id:',
+								productsData.components.filter((p: Product) => !p.category_id)
+							)
 
-  const handleToggleCategory = (categoryId: number) => {
-    setExpandedCategories(prev =>
-      prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
-    )
-  }
+							setSelectedProducts(productsByCategoryId)
 
-  const handleSelectProduct = (categoryId: number, product: Product) => {
-    setSelectedProducts(prev => {
-      const current = prev[categoryId] || []
-      if (current.find(p => p.product_id === product.id)) return prev
+							// Expand categories that have selected products
+							setExpandedCategories(
+								Object.keys(productsByCategoryId).map(Number)
+							)
+						}
+					} else {
+						toast.error('Не удалось загрузить конфигурацию')
+						router.push('/admin/configurations')
+					}
+				} else {
+					toast.error('ID конфигурации отсутствует')
+					router.push('/admin/configurations')
+				}
 
-      return {
-        ...prev,
-        [categoryId]: [...current, { product_id: product.id, quantity: 1 }],
-      }
-    })
-  }
+				setIsLoading(false)
+			} catch (error) {
+				toast.error(
+					(error instanceof Error ? error.message : 'Неизвестная ошибка') ||
+						'Ошибка при получении данных с сервера'
+				)
+				setIsLoading(false)
+				router.push('/admin/configurations')
+			}
+		}
+		fetchData()
+	}, [id, router])
 
-  const calculatedTotalPrice = Object.entries(selectedProducts).reduce(
-    (total, [_, items]) => {
-      for (const item of items) {
-        const product = components.find(p => p.id === item.product_id)
-        if (product) {
-          total += (product.price || 0) * (item.quantity || 1)
-        }
-      }
-      return total
-    },
-    0
-  )
+	
 
-  const handleRemoveProduct = (categoryId: number, productId: number) => {
-    setSelectedProducts(prev => {
-      const current = prev[categoryId] || []
-      const updated = current.filter(p => p.product_id !== productId)
-      
-      if (updated.length === 0) {
-        const { [categoryId]: _, ...rest } = prev
-        return rest
-      }
-      
-      return {
-        ...prev,
-        [categoryId]: updated
-      }
-    })
-  }
+	const handleToggleCategory = (categoryId: number) => {
+		setExpandedCategories(prev =>
+			prev.includes(categoryId)
+				? prev.filter(id => id !== categoryId)
+				: [...prev, categoryId]
+		)
+	}
 
-  const handleQuantityChange = (categoryId: number, productId: number, quantity: number) => {
-    if (quantity < 1) return
-    
-    setSelectedProducts(prev => {
-      const current = prev[categoryId] || []
-      return {
-        ...prev,
-        [categoryId]: current.map(p =>
-          p.product_id === productId ? { ...p, quantity } : p
-        ),
-      }
-    })
-  }
+	const handleSelectProduct = (categoryId: number, product: Product) => {
+		setSelectedProducts(prev => {
+			const current = prev[categoryId] || []
+			if (current.find(p => p.product_id === product.id)) return prev
 
-  const handleDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0]
-    setFile(file)
-    setImageUrl(URL.createObjectURL(file))
-  }
+			return {
+				...prev,
+				[categoryId]: [...current, { product_id: product.id, quantity: 1 }],
+			}
+		})
+	}
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop: handleDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp']
-    },
-    maxFiles: 1
-  })
+	const calculatedTotalPrice = Object.entries(selectedProducts).reduce(
+		(total, [_, items]) => {
+			for (const item of items) {
+				const product = components.find(p => p.id === item.product_id)
+				if (product) {
+					total += (product.price || 0) * (item.quantity || 1)
+				}
+			}
+			return total
+		},
+		0
+	)
 
-  const uploadConfigImage = async (): Promise<string | null> => {
-    if (file) {
-      setIsUploading(true)
-      try {
-        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+	const handleRemoveProduct = (categoryId: number, productId: number) => {
+		setSelectedProducts(prev => {
+			const current = prev[categoryId] || []
+			const updated = current.filter(p => p.product_id !== productId)
 
-        if (!cloudName || !uploadPreset) {
-          throw new Error('Cloudinary configuration missing')
-        }
+			if (updated.length === 0) {
+				const { [categoryId]: _, ...rest } = prev
+				return rest
+			}
 
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('upload_preset', uploadPreset)
-        formData.append('folder', 'configurations')
+			return {
+				...prev,
+				[categoryId]: updated,
+			}
+		})
+	}
 
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        )
+	const handleQuantityChange = (
+		categoryId: number,
+		productId: number,
+		quantity: number
+	) => {
+		if (quantity < 1) return
 
-        if (!res.ok) {
-          const errorData = await res.json()
-          console.error('Ошибка загрузки:', errorData)
-          throw new Error(
-            `Ошибка при загрузке изображения. Статус: ${res.status}`
-          )
-        }
+		setSelectedProducts(prev => {
+			const current = prev[categoryId] || []
+			return {
+				...prev,
+				[categoryId]: current.map(p =>
+					p.product_id === productId ? { ...p, quantity } : p
+				),
+			}
+		})
+	}
 
-        const data = await res.json()
-        if (!data.secure_url) {
-          throw new Error('Не удалось получить ссылку на изображение')
-        }
+	const handleDrop = (acceptedFiles: File[]) => {
+		const file = acceptedFiles[0]
+		setFile(file)
+		setImageUrl(URL.createObjectURL(file))
+	}
 
-        setIsUploading(false)
-        return data.secure_url
-      } catch (error) {
-        console.error('Ошибка загрузки изображения:', error)
-        setIsUploading(false)
-        toast.error('Ошибка загрузки изображения!')
-        return null
-      }
-    }
-    // If no new file is uploaded, return the original image URL
-    return originalImageUrl
-  }
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		onDrop: handleDrop,
+		accept: {
+			'image/*': ['.jpeg', '.jpg', '.png', '.webp'],
+		},
+		maxFiles: 1,
+	})
 
-  const handleUpdateConfig = async () => {
-    try {
-      // Validation
-      if (!configName) {
-        toast.error('Пожалуйста, введите название конфигурации')
-        return
-      }
+	const uploadConfigImage = async (): Promise<string | null> => {
+		if (file) {
+			setIsUploading(true)
+			try {
+				const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+				const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 
-      if (Object.keys(selectedProducts).length === 0) {
-        toast.error('Добавьте хотя бы один компонент в конфигурацию')
-        return
-      }
+				if (!cloudName || !uploadPreset) {
+					throw new Error('Cloudinary configuration missing')
+				}
 
-      if (!imageUrl && !file) {
-        toast.error('Пожалуйста, загрузите изображение конфигурации')
-        return
-      }
+				const formData = new FormData()
+				formData.append('file', file)
+				formData.append('upload_preset', uploadPreset)
+				formData.append('folder', 'configurations')
 
-      // Upload new image if changed
-      let finalImageUrl = originalImageUrl
-      if (file) {
-        finalImageUrl = await uploadConfigImage()
-        if (!finalImageUrl) {
-          toast.error('Не удалось загрузить изображение')
-          return
-        }
-      }
+				const res = await fetch(
+					`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+					{
+						method: 'POST',
+						body: formData,
+					}
+				)
 
-      // Prepare data
-      const configPayload = {
+				if (!res.ok) {
+					const errorData = await res.json()
+					console.error('Ошибка загрузки:', errorData)
+					throw new Error(
+						`Ошибка при загрузке изображения. Статус: ${res.status}`
+					)
+				}
+
+				const data = await res.json()
+				if (!data.secure_url) {
+					throw new Error('Не удалось получить ссылку на изображение')
+				}
+
+				setIsUploading(false)
+				return data.secure_url
+			} catch (error) {
+				console.error('Ошибка загрузки изображения:', error)
+				setIsUploading(false)
+				toast.error('Ошибка загрузки изображения!')
+				return null
+			}
+		}
+		// If no new file is uploaded, return the original image URL
+		return originalImageUrl
+	}
+
+
+	const handleUpdateConfig = async () => {
+		try {
+			// Validation
+			if (!configName) {
+				toast.error('Пожалуйста, введите название конфигурации')
+				return
+			}
+
+			if (Object.keys(selectedProducts).length === 0) {
+				toast.error('Добавьте хотя бы один компонент в конфигурацию')
+				return
+			}
+
+			if (!imageUrl && !file) {
+				toast.error('Пожалуйста, загрузите изображение конфигурации')
+				return
+			}
+
+			// Upload new image if changed
+			let finalImageUrl = originalImageUrl
+			if (file) {
+				finalImageUrl = await uploadConfigImage()
+				if (!finalImageUrl) {
+					toast.error('Не удалось загрузить изображение')
+					return
+				}
+			}
+
+			// Prepare data
+			const configPayload = {
 				id: id,
 				name: configName,
 				description,
@@ -289,60 +351,68 @@ export default function EditConfigurationPage() {
 				hidden: isHiddenConfig,
 			}
 
-      console.log('Sending updated config data to API:', configPayload)
+			console.log('Sending updated config data to API:', configPayload)
 
-      const response = await fetch(`/api/configurations/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(configPayload),
-      })
+			const response = await fetch(`/api/configurations/${id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(configPayload),
+			})
 
-      const responseData = await response.json()
+			const responseData = await response.json()
 
-      if (!response.ok) {
-        throw new Error(responseData.error || 'Ошибка обновления конфигурации')
-      }
+			if (!response.ok) {
+				throw new Error(responseData.error || 'Ошибка обновления конфигурации')
+			}
 
-      toast.success('Конфигурация успешно обновлена!')
-      router.push('/admin/configurations')
-    } catch (error) {
-      console.error('Ошибка при обновлении конфигурации:', error)
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Ошибка при обновлении конфигурации!'
-      )
-    }
-  }
+			toast.success('Конфигурация успешно обновлена!')
+			router.push('/admin/configurations')
+		} catch (error) {
+			console.error('Ошибка при обновлении конфигурации:', error)
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Ошибка при обновлении конфигурации!'
+			)
+		}
+	}
 
-  const cancelEdit = () => {
-    router.push('/admin/configurations')
-  }
+	const cancelEdit = () => {
+		router.push('/admin/configurations')
+	}
 
-  const renderStepIndicator = () => (
-    <div className="flex justify-center mb-8">
-      <div className="flex items-center gap-2">
-        {[1, 2, 3].map((step) => (
-          <div key={step} className="flex items-center">
-            <button
-              onClick={() => setActiveStep(step)}
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all
-                ${activeStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'}`}
-            >
-              {step}
-            </button>
-            {step < 3 && (
-              <div className={`w-8 h-1 ${activeStep > step ? 'bg-blue-600' : 'bg-gray-700'}`} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+	const renderStepIndicator = () => (
+		<div className='flex justify-center mb-8'>
+			<div className='flex items-center gap-2'>
+				{[1, 2, 3].map(step => (
+					<div key={step} className='flex items-center'>
+						<button
+							onClick={() => setActiveStep(step)}
+							className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all
+                ${
+									activeStep >= step
+										? 'bg-blue-600 text-white'
+										: 'bg-gray-700 text-gray-400'
+								}`}
+						>
+							{step}
+						</button>
+						{step < 3 && (
+							<div
+								className={`w-8 h-1 ${
+									activeStep > step ? 'bg-blue-600' : 'bg-gray-700'
+								}`}
+							/>
+						)}
+					</div>
+				))}
+			</div>
+		</div>
+	)
 
-  const renderStep1 = () => (
+	const renderStep1 = () => (
 		<div className='space-y-6 animate-fadeIn'>
 			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
 				<h2 className='text-xl text-blue-300 font-bold mb-4'>
@@ -481,87 +551,100 @@ export default function EditConfigurationPage() {
 		</div>
 	)
 
-  const renderStep2 = () => (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-        <h2 className="text-xl text-blue-300 font-bold mb-4">Выбор компонентов</h2>
-        
-        {categories.map(category => (
-          <div key={category.id} className="mb-4">
-            <button
-              onClick={() => handleToggleCategory(category.id)}
-              className="w-full text-left p-3 bg-gray-800 text-white font-bold rounded flex justify-between items-center hover:bg-gray-700 transition-all border border-gray-700"
-            >
-              <span>{category.name}</span>
-              <span>
-                {expandedCategories.includes(category.id) ? (
-                  <ChevronUp size={20} className="text-blue-400" />
-                ) : (
-                  <ChevronDown size={20} className="text-blue-400" />
-                )}
-              </span>
-            </button>
+	const renderStep2 = () => (
+		<div className='space-y-6 animate-fadeIn'>
+			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+				<h2 className='text-xl text-blue-300 font-bold mb-4'>
+					Выбор компонентов
+				</h2>
 
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                expandedCategories.includes(category.id)
-                  ? 'max-h-[500px] opacity-100'
-                  : 'max-h-0 opacity-0'
-              }`}
-            >
-              {expandedCategories.includes(category.id) && (
-                <div className="pl-4 mt-2 bg-gray-800/50 rounded p-3 border-l-2 border-blue-600">
-                  <h4 className="text-gray-300 mb-2 font-semibold flex items-center gap-2">
-                    <PlusCircle size={16} className="text-blue-400" />
-                    Доступные компоненты:
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                    {Array.isArray(components) && components
-                      .filter(p => p.category_id === category.id)
-                      .map(product => {
-                        const isSelected = selectedProducts[category.id]?.some(
-                          p => p.product_id === product.id
-                        )
-                        return (
-                          <button
-                            key={product.id}
-                            disabled={isSelected}
-                            onClick={() => handleSelectProduct(category.id, product)}
-                            className={`text-left p-3 rounded flex justify-between items-center ${
-                              isSelected
-                                ? 'bg-blue-900/30 text-gray-400 cursor-not-allowed border border-blue-600/30'
-                                : 'bg-gray-700 text-white hover:bg-gray-600 border border-gray-600'
-                            }`}
-                          >
-                            <span>{product.name}</span>
-                            <span className="text-gray-400">${product.price}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {Object.keys(selectedProducts).length > 0 && (
-        <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-          <h2 className="text-xl text-blue-300 font-bold mb-4">Выбранные компоненты</h2>
-          
-          <div className="space-y-4">
-            {categories.map(category => {
-              const items = selectedProducts[category.id]
-              if (!items || items.length === 0) return null
+				{categories.map(category => (
+					<div key={category.id} className='mb-4'>
+						<button
+							onClick={() => handleToggleCategory(category.id)}
+							className='w-full text-left p-3 bg-gray-800 text-white font-bold rounded flex justify-between items-center hover:bg-gray-700 transition-all border border-gray-700'
+						>
+							<span>{category.name_en || category.name}</span>
+							<span>
+								{expandedCategories.includes(category.id) ? (
+									<ChevronUp size={20} className='text-blue-400' />
+								) : (
+									<ChevronDown size={20} className='text-blue-400' />
+								)}
+							</span>
+						</button>
 
-              return (
+						<div
+							className={`overflow-hidden transition-all duration-300 ease-in-out ${
+								expandedCategories.includes(category.id)
+									? 'max-h-[500px] opacity-100'
+									: 'max-h-0 opacity-0'
+							}`}
+						>
+							{expandedCategories.includes(category.id) && (
+								<div className='pl-4 mt-2 bg-gray-800/50 rounded p-3 border-l-2 border-blue-600'>
+									<h4 className='text-gray-300 mb-2 font-semibold flex items-center gap-2'>
+										<PlusCircle size={16} className='text-blue-400' />
+										Доступные компоненты:
+									</h4>
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar'>
+										{Array.isArray(components) &&
+											components
+												.filter(p => p.category_id === category.id)
+												.filter(
+													(product, index, self) =>
+														index === self.findIndex(p => p.id === product.id) // Remove duplicates
+												)
+												.map(product => {
+													const isSelected = selectedProducts[
+														category.id
+													]?.some(p => p.product_id === product.id)
+													return (
+														<button
+															key={product.id}
+															disabled={isSelected}
+															onClick={() =>
+																handleSelectProduct(category.id, product)
+															}
+															className={`text-left p-3 rounded flex justify-between items-center ${
+																isSelected
+																	? 'bg-blue-900/30 text-gray-400 cursor-not-allowed border border-blue-600/30'
+																	: 'bg-gray-700 text-white hover:bg-gray-600 border border-gray-600'
+															}`}
+														>
+															<span>{product.name}</span>
+															<span className='text-gray-400'>
+																${product.price}
+															</span>
+														</button>
+													)
+												})}
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				))}
+			</div>
+
+			{Object.keys(selectedProducts).length > 0 && (
+				<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+					<h2 className='text-xl text-blue-300 font-bold mb-4'>
+						Выбранные компоненты
+					</h2>
+
+					<div className='space-y-4'>
+						{categories.map(category => {
+							const items = selectedProducts[category.id]
+							if (!items || items.length === 0) return null
+
+							return (
 								<div
 									key={category.id}
 									className='bg-gray-800/50 p-4 rounded-lg border-l-2 border-blue-600'
 								>
 									<h3 className='text-gray-300 font-semibold mb-3'>
-										{category.name}
+										{category.name_en || category.name}
 									</h3>
 									<ul className='space-y-2'>
 										{items.map((item, index) => {
@@ -642,36 +725,38 @@ export default function EditConfigurationPage() {
 									</ul>
 								</div>
 							)
-            })}
-          </div>
-        </div>
-      )}
-      
-      <div className="flex justify-between mt-6">
-        <button
-          onClick={() => setActiveStep(1)}
-          className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all flex items-center gap-2"
-        >
-          <ChevronUp className="transform rotate-270" size={18} />
-          Назад
-        </button>
-        
-        <button
-          onClick={() => setActiveStep(3)}
-          disabled={Object.keys(selectedProducts).length === 0}
-          className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
-            ${Object.keys(selectedProducts).length === 0
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-        >
-          Далее
-          <ChevronDown className="transform rotate-270" size={18} />
-        </button>
-      </div>
-    </div>
-  )
+						})}
+					</div>
+				</div>
+			)}
 
-  const renderStep3 = () => (
+			<div className='flex justify-between mt-6'>
+				<button
+					onClick={() => setActiveStep(1)}
+					className='px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all flex items-center gap-2'
+				>
+					<ChevronUp className='transform rotate-270' size={18} />
+					Назад
+				</button>
+
+				<button
+					onClick={() => setActiveStep(3)}
+					disabled={Object.keys(selectedProducts).length === 0}
+					className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
+            ${
+							Object.keys(selectedProducts).length === 0
+								? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+								: 'bg-blue-600 hover:bg-blue-700 text-white'
+						}`}
+				>
+					Далее
+					<ChevronDown className='transform rotate-270' size={18} />
+				</button>
+			</div>
+		</div>
+	)
+
+	const renderStep3 = () => (
 		<div className='space-y-6 animate-fadeIn'>
 			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
 				<h2 className='text-xl text-blue-300 font-bold mb-4'>Обзор и цена</h2>
@@ -812,7 +897,7 @@ export default function EditConfigurationPage() {
 			</div>
 		</div>
 	)
-  if (isLoading) {
+	if (isLoading) {
 		return (
 			<div className='flex min-h-screen bg-[#171C1F]'>
 				<div className='flex-1 p-8 ml-16'>
@@ -824,7 +909,7 @@ export default function EditConfigurationPage() {
 		)
 	}
 
-  return (
+	return (
 		<div className='flex min-h-screen bg-gray-900 text-white'>
 			<Sidebar />
 			<div className='flex-1 p-6'>

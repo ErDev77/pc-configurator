@@ -4,28 +4,39 @@ import pool from '@/lib/db'
 // Получение категорий и компонентов
 export async function GET(req: NextRequest) {
 	try {
-		// Parse page and pageSize from URL params
 		const url = new URL(req.url)
 		const page = parseInt(url.searchParams.get('page') || '1')
 		const pageSize = parseInt(url.searchParams.get('pageSize') || '10')
 
-		// Calculate offset
-		const offset = (page - 1) * pageSize
+		// Validate pageSize to prevent excessive loads
+		const validPageSize = Math.min(pageSize, 1000) // Maximum 1000 items per page
 
-		// Fetch total count for pagination metadata
+		const offset = (page - 1) * validPageSize
+
+		// Get total count
 		const totalCountResult = await pool.query('SELECT COUNT(*) FROM products')
 		const totalCount = parseInt(totalCountResult.rows[0].count)
 
-		const resCategories = await pool.query('SELECT * FROM category')
+		// Get categories with proper handling of null values
+		const resCategories = await pool.query(`
+      SELECT 
+        id,
+        name,
+        COALESCE(name_en, name) as name_en,
+        COALESCE(NULLIF(name_ru, '[null]'), '') as name_ru,
+        COALESCE(NULLIF(name_am, '[null]'), '') as name_am
+      FROM category
+      ORDER BY id
+    `)
 
-		// Use LIMIT and OFFSET for pagination
+		// Get products
 		const resComponents = await pool.query(
 			'SELECT * FROM products ORDER BY id LIMIT $1 OFFSET $2',
-			[pageSize, offset]
+			[validPageSize, offset]
 		)
 
 		console.log(
-			`Fetched page ${page} with ${resComponents.rows.length} components (offset: ${offset})`
+			`Returning ${resComponents.rows.length} products of ${totalCount} total`
 		)
 
 		return NextResponse.json({
@@ -33,9 +44,9 @@ export async function GET(req: NextRequest) {
 			components: resComponents.rows,
 			pagination: {
 				currentPage: page,
-				pageSize: pageSize,
+				pageSize: validPageSize,
 				totalCount: totalCount,
-				totalPages: Math.ceil(totalCount / pageSize),
+				totalPages: Math.ceil(totalCount / validPageSize),
 			},
 		})
 	} catch (error) {

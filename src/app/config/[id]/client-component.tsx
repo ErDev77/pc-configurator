@@ -155,9 +155,6 @@ export default function ClientConfiguration({
 				console.log('Config data:', configData)
 
 				// Fetch configuration products specifically
-				// In your fetchConfigurationDetails function:
-
-				// Fetch configuration products specifically
 				const configProductsResponse = await fetch(
 					`${process.env.NEXT_PUBLIC_SITE_URL}/api/configuration_products/${selectedConfigId}`,
 					{ cache: 'no-store' }
@@ -187,53 +184,40 @@ export default function ClientConfiguration({
 
 				const { categories, components } = await productsResponse.json()
 
-				// Format categories with their components
-				const formattedCategories = categories.map(
-					(category: {
-						id: number
-						name: string
-						name_en?: string
-						name_ru?: string
-						name_am?: string
-					}) => ({
+				// Create a map of all categories
+				const allCategories = new Map()
+
+				// Add categories from the API
+				categories.forEach((category: any) => {
+					allCategories.set(category.id, {
 						id: category.id,
 						name: category.name,
 						name_en: category.name_en || category.name,
-						name_ru: category.name_ru || '',
-						name_am: category.name_am || '',
-						components: components.filter(
-							(product: Component) => product.category_id === category.id
-						),
+						name_ru:
+							category.name_ru === '[null]' ? '' : category.name_ru || '',
+						name_am:
+							category.name_am === '[null]' ? '' : category.name_am || '',
+						components: [],
 					})
-				)
-
-				setCategories(formattedCategories)
+				})
 
 				// Process configuration products
 				const defaultComponentsMap: { [key: string]: Component | null } = {}
 				const selectedComponentsMap: { [key: string]: Component | null } = {}
 
 				if (configProductsData && Array.isArray(configProductsData.products)) {
-					console.log(
-						'Processing config products:',
-						configProductsData.products
-					)
-
-					// Important: The products array from configProductsData.products contains
-					// the complete product information already, not just IDs
 					configProductsData.products.forEach((productData: any) => {
-						console.log('Processing product data:', productData)
+						console.log('Processing product:', productData)
 
-						// Use the product data directly from the config products response
 						if (productData.category_id) {
 							const categoryIdKey = productData.category_id.toString()
 
-							// Create a Component object from the product data
+							// Create a Component object
 							const component: Component = {
 								id: productData.id,
 								name: productData.name,
 								price: productData.price,
-								brand: productData.brand,
+								brand: productData.brand || '',
 								image_url: productData.image_url,
 								specs_en: productData.specs_en || [],
 								specs_ru: productData.specs_ru || [],
@@ -243,18 +227,41 @@ export default function ClientConfiguration({
 								hidden: productData.hidden || false,
 							}
 
-							console.log(
-								`Adding product ${component.name} to category ${categoryIdKey}`
-							)
-
 							defaultComponentsMap[categoryIdKey] = component
 							selectedComponentsMap[categoryIdKey] = component
+
+							// Add missing category if it doesn't exist
+							if (!allCategories.has(productData.category_id)) {
+								allCategories.set(productData.category_id, {
+									id: productData.category_id,
+									name: `Category ${productData.category_id}`,
+									name_en: `Category ${productData.category_id}`,
+									name_ru: '',
+									name_am: '',
+									components: [],
+								})
+							}
+						} else {
+							console.warn('Product without category_id:', productData)
 						}
 					})
 				}
 
+				// Convert map to array and add components
+				const formattedCategories = Array.from(allCategories.values()).map(
+					category => ({
+						...category,
+						components: components.filter(
+							(product: Component) => product.category_id === category.id
+						),
+					})
+				)
+
+				setCategories(formattedCategories)
+
 				console.log('Final defaultComponentsMap:', defaultComponentsMap)
 				console.log('Final selectedComponentsMap:', selectedComponentsMap)
+				console.log('All categories:', formattedCategories)
 
 				setDefaultComponents(defaultComponentsMap)
 				setSelectedComponents(selectedComponentsMap)
@@ -321,16 +328,35 @@ export default function ClientConfiguration({
 		}
 	}
 
+	const getCategoryName = (category: Category): string => {
+		// Primary name (English)
+		if (category.name_en && category.name_en !== '[null]') {
+			return category.name_en
+		}
+		// Fallback to default name
+		if (category.name && category.name !== '[null]') {
+			return category.name
+		}
+		// Last resort
+		return 'Unknown Category'
+	}
+
 	// Function to get the appropriate category name based on the current language
-	function getLocalizedCategoryName(category: Category): string {
+	const getLocalizedCategoryName = (
+		category: Category,
+		language: 'en' | 'ru' | 'am' = 'en'
+	): string => {
 		switch (language) {
 			case 'ru':
-				return category.name_ru || category.name_en || category.name
+				return category.name_ru && category.name_ru !== '[null]'
+					? category.name_ru
+					: getCategoryName(category)
 			case 'am':
-				return category.name_am || category.name_en || category.name
-			case 'en':
+				return category.name_am && category.name_am !== '[null]'
+					? category.name_am
+					: getCategoryName(category)
 			default:
-				return category.name_en || category.name
+				return getCategoryName(category)
 		}
 	}
 
@@ -769,10 +795,9 @@ export default function ClientConfiguration({
 							</div>
 
 							<p className='text-sm font-normal leading-7 text-gray-400 text-center'>
-								Customize your new{' '}
-								{selectedConfiguration?.name || 'PC'} with component and
-								aesthetic options and build the ultimate gaming PC. System
-								appearance may differ based on configuration.
+								Customize your new {selectedConfiguration?.name || 'PC'} with
+								component and aesthetic options and build the ultimate gaming
+								PC. System appearance may differ based on configuration.
 							</p>
 
 							<div className='flex flex-col w-[600px] mx-auto gap-2 mt-6'>
@@ -784,13 +809,11 @@ export default function ClientConfiguration({
 										([categoryId, component]) => {
 											if (!component) return null
 
-											// Try to find the category, but don't require it
 											const categoryIdNum = parseInt(categoryId)
 											const category = categories.find(
 												cat => cat.id === categoryIdNum
 											)
 
-											// Even if category isn't found, render the component
 											return (
 												<div
 													key={categoryId}
@@ -813,7 +836,7 @@ export default function ClientConfiguration({
 														</p>
 														<p className='text-sm text-gray-400'>
 															{category
-																? getLocalizedCategoryName(category)
+																? getLocalizedCategoryName(category, language)
 																: `Category ${categoryId}`}
 														</p>
 													</div>

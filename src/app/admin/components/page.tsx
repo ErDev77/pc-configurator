@@ -40,6 +40,9 @@ interface Component {
 interface Category {
 	id: number
 	name: string
+	name_en: string
+	name_ru: string
+	name_am: string
 }
 
 export interface Favorite {
@@ -369,10 +372,12 @@ const ComponentsPage = () => {
 		new Set(components.map(component => component.brand))
 	)
 
-	// Get category name by ID
 	const getCategoryName = (categoryId: number) => {
 		const category = categories.find(cat => cat.id === categoryId)
-		return category ? category.name : 'Unknown Category'
+		if (!category) return 'Unknown Category'
+
+		// Handle all possible cases of category name
+		return category.name_en || category.name || 'Unknown Category'
 	}
 
 	// Format price
@@ -803,7 +808,7 @@ const ComponentsPage = () => {
 								<div className='p-4'>
 									<div className='flex items-center mb-1'>
 										<span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-200'>
-											{getCategoryName(component.category_id)}
+											Category: {getCategoryName(component.category_id)}
 										</span>
 									</div>
 									<h3 className='font-semibold text-lg mb-1 truncate'>
