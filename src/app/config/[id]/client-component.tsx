@@ -856,8 +856,11 @@ export default function ClientConfiguration({
 											if (!component) return null
 
 											const categoryIdNum = parseInt(categoryId)
+
 											const category = categories.find(
-												cat => cat.id === categoryIdNum
+												cat =>
+													cat.id === parseInt(categoryId) ||
+													cat.id.toString() === categoryIdNum.toString()
 											)
 
 											return (
