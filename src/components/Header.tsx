@@ -1,9 +1,10 @@
+'use client'
+
 import React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Search, ShoppingBag, User } from 'lucide-react'
 import Image from 'next/image'
-// import { LanguageSwitcher } from './LanguageSwitcher'
 import {
 	Facebook,
 	Instagram,
@@ -12,10 +13,10 @@ import {
 	Twitter,
 	Youtube,
 } from 'lucide-react'
-// import { useLanguage } from '@/context/LanguageContext'
 import CartIcon from './CartIcon'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useLanguage } from '@/context/LanguageContext'
+
 function Header() {
 	const socialIcons = [
 		{ Icon: Facebook },
@@ -24,9 +25,8 @@ function Header() {
 		{ Icon: Youtube },
 		{ Icon: TicketCheckIcon },
 	]
-	// const { language, setLanguage } = useLanguage()
 	const [isLoading, setIsLoading] = useState(false)
-	const { language, setLanguage } = useLanguage()
+	const { language, setLanguage, t } = useLanguage()
 
 	const handleChangeLanguage = (lang: 'en' | 'ru' | 'am') => {
 		setIsLoading(true)
@@ -35,13 +35,6 @@ function Header() {
 			setIsLoading(false)
 		}, 500)
 	}
-	// const handleChangeLanguage = (lang: 'en' | 'ru' | 'am') => {
-	// 	setIsLoading(true)
-	// 	setTimeout(() => {
-	// 		setLanguage(lang)
-	// 		setIsLoading(false)
-	// 	}, 500)
-	// }
 
 	return (
 		<>
@@ -49,16 +42,16 @@ function Header() {
 				<div className='flex items-center justify-between max-w-6xl mx-auto w-full'>
 					<div className='flex gap-3'>
 						<Link href='#' className='hover:text-gray-500'>
-							Support
+							{t('header.support')}
 						</Link>
 						<Link href='#' className='hover:text-gray-500'>
-							Knowledge Base / FAQ
+							{t('header.knowledgeBase')}
 						</Link>
 						<Link href='#' className='hover:text-gray-500'>
-							Financing
+							{t('header.financing')}
 						</Link>
 						<Link href='#' className='hover:text-gray-500'>
-							Reviews
+							{t('header.reviews')}
 						</Link>
 					</div>
 
@@ -96,31 +89,28 @@ function Header() {
 						</Link>
 						<div className='relative cursor-pointer'>
 							<CartIcon />
-							{/* <span className='absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 rounded-full'>
-								0
-							</span> */}
 						</div>
 					</div>
 				</div>
 
 				<nav className='w-full max-w-6xl mt-4 flex space-x-6 font-semibold'>
 					<Link href='#' className='hover:text-gray-400'>
-						Gaming Desktops
+						{t('nav.gamingDesktops')}
 					</Link>
 					<Link href='#' className='hover:text-gray-400'>
-						Quickship PCs
+						{t('nav.quickshipPCs')}
 					</Link>
 					<Link href='#' className='hover:text-gray-400'>
-						Gaming Laptops
+						{t('nav.gamingLaptops')}
 					</Link>
 					<Link href='#' className='hover:text-gray-400'>
-						Workstations
+						{t('nav.workstations')}
 					</Link>
 					<Link href='#' className='hover:text-gray-400'>
-						Accessories & Gift Cards
+						{t('nav.accessories')}
 					</Link>
 					<Link href='#' className='text-blue-400 hover:text-blue-300'>
-						Sales & Promotions
+						{t('nav.salesPromotions')}
 					</Link>
 				</nav>
 			</header>

@@ -77,7 +77,7 @@ export default function ClientConfiguration({
 	>([])
 	const [notificationCounter, setNotificationCounter] = useState(0)
 	const [configCustomized, setConfigCustomized] = useState(false)
-	const { language, setLanguage } = useLanguage()
+	const { language, setLanguage, t } = useLanguage()
 	const router = useRouter()
 
 	useEffect(() => {
@@ -166,13 +166,13 @@ export default function ClientConfiguration({
 
 					const configData = await configResponse.json()
 					console.log('Config data:', configData)
-
 					// Fetch all products and categories with pagination
 					const productsResponse = await fetch(
 						`${process.env.NEXT_PUBLIC_SITE_URL}/api/products?page=1&pageSize=1000`,
 						{ cache: 'no-store' }
 					)
 
+					
 					if (!productsResponse.ok) {
 						console.error(
 							'Error fetching products:',
@@ -229,6 +229,7 @@ export default function ClientConfiguration({
 									hidden: productData.hidden || false,
 								}
 
+
 								defaultComponentsMap[categoryIdKey] = component
 								selectedComponentsMap[categoryIdKey] = component
 
@@ -274,11 +275,6 @@ export default function ClientConfiguration({
 					formattedCategories.sort((a, b) => a.id - b.id)
 
 					setCategories(formattedCategories)
-
-					console.log('Final defaultComponentsMap:', defaultComponentsMap)
-					console.log('Final selectedComponentsMap:', selectedComponentsMap)
-					console.log('All categories with components:', formattedCategories)
-
 					setDefaultComponents(defaultComponentsMap)
 					setSelectedComponents(selectedComponentsMap)
 
@@ -321,28 +317,53 @@ export default function ClientConfiguration({
 	}
 
 	function formatSpecs(specs: string[] | undefined): string {
-		if (!specs || !Array.isArray(specs) || specs.length === 0) {
+		if (!specs || specs.length === 0) {
 			return 'No specifications available'
 		}
 		return specs.join(' | ')
 	}
 
-	// Function to get the appropriate specs based on the current language
 	function getLocalizedSpecs(component: Component): string[] {
+		let specs: any
+
 		switch (language) {
 			case 'ru':
-				return component.specs_ru && component.specs_ru.length > 0
-					? component.specs_ru
-					: component.specs_en || []
+				specs = component.specs_ru || component.specs_en || []
+				console.log('Selected Russian specs:', specs)
+				break
 			case 'am':
-				return component.specs_am && component.specs_am.length > 0
-					? component.specs_am
-					: component.specs_en || []
+				specs = component.specs_am || component.specs_en || []
+				console.log('Selected Armenian specs:', specs)
+				break
 			case 'en':
 			default:
-				return component.specs_en || []
+				specs = component.specs_en || []
+				console.log('Selected English specs:', specs)
+				break
 		}
+
+		if (Array.isArray(specs)) {
+			console.log('Specs is already an array:', specs)
+			return specs
+		}
+
+		if (typeof specs === 'string') {
+			console.log('Specs is a string, attempting to parse:', specs)
+			try {
+				const parsed = JSON.parse(specs)
+				console.log('Parsed specs:', parsed)
+				return Array.isArray(parsed) ? parsed : []
+			} catch (e) {
+				console.error('Failed to parse specs:', e)
+				return []
+			}
+		}
+
+		console.log('Specs is neither array nor string, returning empty array')
+		return []
 	}
+
+
 
 	const getCategoryName = (category: Category): string => {
 		// Primary name (English)
@@ -364,15 +385,24 @@ export default function ClientConfiguration({
 	): string => {
 		switch (language) {
 			case 'ru':
-				return category.name_ru && category.name_ru !== '[null]'
+				return category.name_ru &&
+					category.name_ru !== '[null]' &&
+					category.name_ru !== ''
 					? category.name_ru
 					: getCategoryName(category)
 			case 'am':
-				return category.name_am && category.name_am !== '[null]'
+				return category.name_am &&
+					category.name_am !== '[null]' &&
+					category.name_am !== ''
 					? category.name_am
 					: getCategoryName(category)
+			case 'en':
 			default:
-				return getCategoryName(category)
+				return category.name_en &&
+					category.name_en !== '[null]' &&
+					category.name_en !== ''
+					? category.name_en
+					: getCategoryName(category)
 		}
 	}
 
@@ -424,7 +454,7 @@ export default function ClientConfiguration({
 		dispatch(addToCart(cartItem))
 
 		// Show success message
-		toast.success('Configuration added to cart!')
+		toast.success(t('cart.addedToCart'))
 	}
 
 	const findIncompatibleComponents = (component: Component) => {
@@ -547,7 +577,7 @@ export default function ClientConfiguration({
 							${discountedPrice.toFixed(2)}
 						</span>
 						<span className='text-white font-inter text-xs font-normal leading-[17px] bg-[#FF9E40] rounded-full w-[65px] text-center'>
-							Save ${discount}
+							{t('config.save', { amount: discount.toString() })}
 						</span>
 					</div>
 				</>
@@ -577,7 +607,7 @@ export default function ClientConfiguration({
 						{Math.abs(priceDifferenceDiscounted).toFixed(2)}
 					</span>
 					<span className='text-white font-inter text-xs font-normal leading-[17px] bg-[#FF9E40] rounded-full w-[65px] text-center'>
-						Save ${discount}
+						{t('config.save', { amount: discount.toString() })}
 					</span>
 				</div>
 			</>
@@ -684,13 +714,13 @@ export default function ClientConfiguration({
 											return (
 												<>
 													<p className='text-sm font-medium text-white'>
-														{firstSentence}.
+														{t('notification.incompatible')}
 													</p>
-													{restMessage && (
+													{/* {restMessage && (
 														<p className='text-sm text-white mt-1'>
 															{restMessage}
 														</p>
-													)}
+													)} */}
 													<div className='mt-2'>
 														{notification.componentNames.map((name, index) => (
 															<p
@@ -724,11 +754,11 @@ export default function ClientConfiguration({
 
 							<div className=''>
 								{categories
-									.filter(
-										category =>
-											getLocalizedCategoryName(category).toLowerCase() ===
-											'case'
-									)
+									.filter(category => {
+										// Always check against the English name or default name
+										const englishName = category.name_en || category.name || ''
+										return englishName.toLowerCase() === 'case'
+									})
 									.map(category => (
 										<div
 											className='mt-8 mb-6 flex justify-center cursor-pointer'
@@ -741,7 +771,7 @@ export default function ClientConfiguration({
 													src={
 														selectedComponents[category.id]!.image_url as string
 													}
-													alt={getLocalizedCategoryName(category)}
+													alt={getLocalizedCategoryName(category, language)}
 													width={600}
 													height={400}
 													layout='responsive'
@@ -761,7 +791,7 @@ export default function ClientConfiguration({
         flex items-center justify-center'
 												>
 													<span className='text-gray-500'>
-														No image available
+														{t('config.noImageAvailable')}
 													</span>
 												</div>
 											)}
@@ -769,11 +799,11 @@ export default function ClientConfiguration({
 									))}
 
 								{categories
-									.filter(
-										category =>
-											getLocalizedCategoryName(category).toLowerCase() ===
-											'case'
-									)
+									.filter(category => {
+										// Always check against the English name or default name
+										const englishName = category.name_en || category.name || ''
+										return englishName.toLowerCase() === 'case'
+									})
 									.map(category => (
 										<div
 											className='mt-8 ml-60 mb-6 flex justify-center rounded-lg border-2 border-white w-[60px] h-[60px] cursor-pointer'
@@ -786,7 +816,7 @@ export default function ClientConfiguration({
 													src={
 														selectedComponents[category.id]!.image_url as string
 													}
-													alt={getLocalizedCategoryName(category)}
+													alt={getLocalizedCategoryName(category, language)}
 													width={60}
 													height={60}
 													layout='intrinsic'
@@ -811,14 +841,14 @@ export default function ClientConfiguration({
 							</div>
 
 							<p className='text-sm font-normal leading-7 text-gray-400 text-center'>
-								Customize your new {selectedConfiguration?.name || 'PC'} with
-								component and aesthetic options and build the ultimate gaming
-								PC. System appearance may differ based on configuration.
+								{t('config.customize', {
+									name: selectedConfiguration?.name || 'PC',
+								})}
 							</p>
 
 							<div className='flex flex-col w-[600px] mx-auto gap-2 mt-6'>
 								<h2 className='text-lg text-white font-semibold'>
-									Your Configuration
+									{t('config.yourConfiguration')}
 								</h2>
 								<div className='grid grid-cols-2'>
 									{Object.entries(selectedComponents).map(
@@ -867,7 +897,7 @@ export default function ClientConfiguration({
 										onClick={handleResetCustomization}
 										className='mt-4 py-2 px-4 bg-[#3a3a3f] text-white rounded hover:bg-[#4a4a4f] transition-colors'
 									>
-										Reset to Default Configuration
+										{t('config.resetToDefault')}
 									</button>
 								)}
 							</div>
@@ -877,14 +907,14 @@ export default function ClientConfiguration({
 							<div className='mt-6 p-4 text-4xl font-semibold text-white flex justify-evenly gap-16 items-center w-[600px]'>
 								<div className='text-white font-inter text-[10px] font-medium leading-[19.2px] inline-block py-[6px] px-[30px] pr-[20px] rounded-[15px] border-0 my-[28px] mb-[27px] relative flex items-center'>
 									<span className='w-2 h-2 bg-white rounded-full mr-2'></span>
-									Estimated to ship in 3-4 weeks
+									{t('config.estimatedShipping')}
 								</div>
 								${totalPrice}
 								<button
 									onClick={handleAddToCart}
 									className='bg-[#00b5ed] rounded-[25px] py-[15px] px-[30px] border-0 text-white font-inter text-[16px] font-medium leading-[15px] capitalize cursor-pointer'
 								>
-									Add To Cart
+									{t('config.addToCart')}
 								</button>
 							</div>
 
@@ -916,7 +946,7 @@ export default function ClientConfiguration({
 															selectedComponents[category.id]!
 																.image_url as string
 														}
-														alt={getLocalizedCategoryName(category)}
+														alt={getLocalizedCategoryName(category, language)}
 														width={60}
 														height={60}
 														layout='intrinsic'
@@ -927,7 +957,7 @@ export default function ClientConfiguration({
 											</div>
 
 											<span className='text-xl font-medium text-white'>
-												{getLocalizedCategoryName(category)}
+												{getLocalizedCategoryName(category, language)}
 											</span>
 										</div>
 										<svg
@@ -1003,21 +1033,13 @@ export default function ClientConfiguration({
 																		<div className='relative w-fit'>
 																			<p className='text-sm font-medium text-gray-500 overflow-hidden max-h-[3em] line-clamp-2 cursor-pointer peer'>
 																				{formatSpecs(
-																					language === 'ru'
-																						? component.specs_ru
-																						: language === 'am'
-																						? component.specs_am
-																						: component.specs_en
+																					getLocalizedSpecs(component)
 																				)}
 																			</p>
 
 																			<div className={getPopupClass(index)}>
 																				{formatSpecs(
-																					language === 'ru'
-																						? component.specs_ru
-																						: language === 'am'
-																						? component.specs_am
-																						: component.specs_en
+																					getLocalizedSpecs(component)
 																				)}
 																			</div>
 																		</div>
@@ -1034,20 +1056,21 @@ export default function ClientConfiguration({
 
 																		{isDisabled && !isSelected && (
 																			<h3 className='text-sm font-normal text-yellow-200'>
-																				Not compatible with your other
-																				components
+																				{t('config.notCompatible')}
 																			</h3>
 																		)}
 
 																		<div className='flex items-center gap-2'>
 																			{isSelected && (
 																				<h4 className='mt-3 text-white font-inter text-xs font-normal leading-[17px] bg-[#02B5ED] rounded-full w-[63px] text-center'>
-																					Selected
+																					{t('config.selected')}
 																				</h4>
 																			)}
 																			{isSelected && (
 																				<span className='mt-3 text-white font-inter text-xs font-normal leading-[17px] bg-[#FF9E40] rounded-full w-[75px] text-center'>
-																					Saving ${discount}
+																					{t('config.saving', {
+																						amount: discount.toString(),
+																					})}
 																				</span>
 																			)}
 																		</div>

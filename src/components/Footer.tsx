@@ -1,3 +1,5 @@
+'use client'
+
 import {
 	Facebook,
 	Instagram,
@@ -9,8 +11,11 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
+import { useLanguage } from '@/context/LanguageContext'
 
 function Footer() {
+	const { t } = useLanguage()
+
 	const socialIcons = [
 		{ Icon: Facebook, name: 'Facebook' },
 		{ Icon: Twitter, name: 'Twitter' },
@@ -25,7 +30,7 @@ function Footer() {
 			<div className='container mx-auto max-w-7xl'>
 				<div className='grid grid-cols-1 md:grid-cols-5 gap-6'>
 					<div className='md:col-span-1'>
-						<h4 className='font-bold mb-6 text-base'>Products</h4>
+						<h4 className='font-bold mb-6 text-base'>{t('footer.products')}</h4>
 						<ul className='space-y-3 text-sm font-medium text-[#A5A9B1]'>
 							<li>
 								<Link href='#' className='hover:text-white'>
@@ -60,11 +65,11 @@ function Footer() {
 						</ul>
 					</div>
 					<div className='md:col-span-1'>
-						<h4 className='font-bold mb-6 text-base'>Support</h4>
+						<h4 className='font-bold mb-6 text-base'>{t('footer.support')}</h4>
 						<ul className='space-y-3 text-sm font-medium text-[#A5A9B1]'>
 							<li>
 								<Link href='#' className='hover:text-white'>
-									Knowledge Base
+									{t('header.knowledgeBase')}
 								</Link>
 							</li>
 							<li>
@@ -80,11 +85,13 @@ function Footer() {
 						</ul>
 					</div>
 					<div className='md:col-span-1'>
-						<h4 className='font-bold mb-6 text-base'>Resources</h4>
+						<h4 className='font-bold mb-6 text-base'>
+							{t('footer.resources')}
+						</h4>
 						<ul className='space-y-3 text-sm font-medium text-[#A5A9B1]'>
 							<li>
 								<Link href='#' className='hover:text-white'>
-									Financing
+									{t('header.financing')}
 								</Link>
 							</li>
 							<li>
@@ -115,7 +122,7 @@ function Footer() {
 						</ul>
 					</div>
 					<div className='md:col-span-1'>
-						<h4 className='font-bold mb-6 text-base'>Follow Us</h4>
+						<h4 className='font-bold mb-6 text-base'>{t('footer.followUs')}</h4>
 						<div className='flex flex-col space-y-3 text-sm font-medium text-[#A5A9B1] cursor-pointer'>
 							{socialIcons.map(({ Icon, name }, index) => (
 								<div key={index} className='flex items-center hover:text-white'>
@@ -127,10 +134,10 @@ function Footer() {
 					</div>
 					<div className='md:col-span-1 md:flex md:flex-col md:items-end w-full'>
 						<h4 className='font-bold mb-4 text-base text-right'>
-							Subscribe to our newsletter
+							{t('footer.newsletter')}
 						</h4>
 						<p className='text-gray-400 mb-4 text-right'>
-							Get exclusive email-only offers when you signup!
+							{t('footer.newsletterDescription')}
 						</p>
 						<div className='flex w-full'>
 							<input
@@ -143,32 +150,13 @@ function Footer() {
 							</button>
 						</div>
 						<label className='flex items-center text-sm text-gray-400 mt-4'>
-							<input type='checkbox' className='mr-2' /> I agree to receiving
-							marketing emails and special deals
+							<input type='checkbox' className='mr-2' />{' '}
+							{t('footer.newsletterConsent')}
 						</label>
 					</div>
 				</div>
 				<div className='mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center'>
-					<div className='text-sm'>
-						© 2025 MAINGEAR, All rights reserved. Powered by Shopify
-					</div>
-					{/* <div className='flex space-x-6'>
-						<Image
-							src='/apay.png'
-							alt='APay'
-							className='h-6'
-							width={20}
-							height={20}
-						/>
-						<Image
-							src='/paypal.png'
-							alt='GPay'
-							className='h-6'
-							width={20}
-							height={20}
-						/>
-						<Image src='/visa.png' alt='Visa' width={20} height={20} />
-					</div> */}
+					<div className='text-sm'>{t('footer.copyright')}</div>
 				</div>
 			</div>
 		</footer>

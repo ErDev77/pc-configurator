@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { useLanguage, Language } from '@/context/LanguageContext'
+import { Language } from '@/context/LanguageContext'
 import { ChevronDown, Globe, Loader2 } from 'lucide-react'
 
 interface LanguageSwitcherProps {

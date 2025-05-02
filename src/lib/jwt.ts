@@ -11,19 +11,23 @@ if (!JWT_SECRET) {
 interface JWTPayload {
 	id: number
 	email: string
-	twoFactorVerified?: boolean
-	twoFactorEnabled?: boolean
 }
 
-export async function signToken(payload: JWTPayload) {
+export async function signToken(
+	payload: JWTPayload,
+	sessionTimeoutMinutes?: number
+) {
 	const josePayload: JoseJWTPayload = {
 		...payload,
 	}
 
+	// Use session timeout if provided, otherwise default to 1 day
+	const expiration = sessionTimeoutMinutes ? `${sessionTimeoutMinutes}m` : '1d'
+
 	return new SignJWT(josePayload)
 		.setProtectedHeader({ alg: 'HS256' })
 		.setIssuedAt()
-		.setExpirationTime('1d')
+		.setExpirationTime(expiration)
 		.sign(new TextEncoder().encode(JWT_SECRET))
 }
 
@@ -31,10 +35,7 @@ export async function verifyToken(token: string): Promise<JWTPayload> {
 	try {
 		const { payload } = await jwtVerify(
 			token,
-			new TextEncoder().encode(JWT_SECRET),
-			{
-				maxTokenAge: '1d', // Enforce max token age
-			}
+			new TextEncoder().encode(JWT_SECRET)
 		)
 
 		// Validate that the payload has the required fields
@@ -48,6 +49,3 @@ export async function verifyToken(token: string): Promise<JWTPayload> {
 		throw error
 	}
 }
-
-// Helper function that doesn't query the database directly
-

@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
+function parseSpecs(specs: any): string[] {
+	if (Array.isArray(specs)) {
+		return specs
+	}
+
+	if (typeof specs === 'string') {
+		try {
+			const parsed = JSON.parse(specs)
+			return Array.isArray(parsed) ? parsed : []
+		} catch (e) {
+			return []
+		}
+	}
+
+	return []
+}
+
 // Получение категорий и компонентов
 export async function GET(req: NextRequest) {
 	try {
@@ -35,13 +52,21 @@ export async function GET(req: NextRequest) {
 			[validPageSize, offset]
 		)
 
+		// Parse the specs from JSON strings to arrays
+		const components = resComponents.rows.map(product => ({
+			...product,
+			specs_en: parseSpecs(product.specs_en),
+			specs_ru: parseSpecs(product.specs_ru),
+			specs_am: parseSpecs(product.specs_am),
+		}))
+
 		console.log(
-			`Returning ${resComponents.rows.length} products of ${totalCount} total`
+			`Returning ${components.length} products of ${totalCount} total`
 		)
 
 		return NextResponse.json({
 			categories: resCategories.rows,
-			components: resComponents.rows,
+			components: components,
 			pagination: {
 				currentPage: page,
 				pageSize: validPageSize,

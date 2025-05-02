@@ -19,6 +19,7 @@ export function SecuritySettings() {
 	const [sessionTimeout, setSessionTimeout] = useState(60)
 	const [maxLoginAttempts, setMaxLoginAttempts] = useState(5)
 	const [saving, setSaving] = useState(false)
+	const [loadingSettings, setLoadingSettings] = useState(true)
 	const [accountSettings, setAccountSettings] = useState({
 		name: user?.name || 'Admin User',
 		email: user?.email || 'admin@example.com',
@@ -38,7 +39,28 @@ export function SecuritySettings() {
 		}
 	}, [user])
 
-	const handlePasswordChange = () => {
+	// Load security settings
+	useEffect(() => {
+		const fetchSecuritySettings = async () => {
+			try {
+				const response = await fetch('/api/admin/security-settings')
+				if (response.ok) {
+					const data = await response.json()
+					setSessionTimeout(data.session_timeout_minutes || 60)
+					setMaxLoginAttempts(data.max_login_attempts || 5)
+				}
+			} catch (error) {
+				console.error('Error fetching security settings:', error)
+				toast.error('Failed to load security settings')
+			} finally {
+				setLoadingSettings(false)
+			}
+		}
+
+		fetchSecuritySettings()
+	}, [])
+
+	const handlePasswordChange = async () => {
 		if (accountSettings.newPassword !== accountSettings.confirmPassword) {
 			toast.error('New passwords do not match')
 			return
@@ -56,17 +78,76 @@ export function SecuritySettings() {
 
 		setSaving(true)
 
-		// Simulate API call - in a real app, this would be an actual API request
-		setTimeout(() => {
-			toast.success('Password changed successfully!')
-			setAccountSettings({
-				...accountSettings,
-				currentPassword: '',
-				newPassword: '',
-				confirmPassword: '',
+		try {
+			const response = await fetch('/api/admin/change-password', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					currentPassword: accountSettings.currentPassword,
+					newPassword: accountSettings.newPassword,
+				}),
 			})
+
+			const data = await response.json()
+
+			if (response.ok) {
+				toast.success('Password changed successfully!')
+				setAccountSettings({
+					...accountSettings,
+					currentPassword: '',
+					newPassword: '',
+					confirmPassword: '',
+				})
+			} else {
+				toast.error(data.error || 'Failed to change password')
+			}
+		} catch (error) {
+			console.error('Error changing password:', error)
+			toast.error('An unexpected error occurred')
+		} finally {
 			setSaving(false)
-		}, 1500)
+		}
+	}
+
+	const handleSaveSecuritySettings = async () => {
+		setSaving(true)
+
+		try {
+			const response = await fetch('/api/admin/security-settings', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					session_timeout_minutes: sessionTimeout,
+					max_login_attempts: maxLoginAttempts,
+				}),
+			})
+
+			const data = await response.json()
+
+			if (response.ok) {
+				toast.success('Security settings updated successfully!')
+			} else {
+				toast.error(data.error || 'Failed to update security settings')
+			}
+		} catch (error) {
+			console.error('Error updating security settings:', error)
+			toast.error('An unexpected error occurred')
+		} finally {
+			setSaving(false)
+		}
+	}
+
+
+	if (loadingSettings) {
+		return (
+			<div className='flex items-center justify-center h-64'>
+				<Loader size={32} className='animate-spin text-blue-500' />
+			</div>
+		)
 	}
 
 	return (
@@ -196,16 +277,27 @@ export function SecuritySettings() {
 						</div>
 					</div>
 
-					<div className='mt-4'>
+					<div className='flex gap-4'>
 						<button
-							className='px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2'
-							onClick={() => {
-								// Implement sign out all devices functionality
-								toast.success('All devices signed out successfully')
-							}}
+							onClick={handleSaveSecuritySettings}
+							disabled={saving}
+							className={`px-4 py-2 ${
+								saving
+									? 'bg-blue-700 opacity-75 cursor-not-allowed'
+									: 'bg-blue-600 hover:bg-blue-700'
+							} text-white rounded-lg transition-colors flex items-center gap-2`}
 						>
-							<Lock size={16} />
-							<span>Sign Out All Devices</span>
+							{saving ? (
+								<>
+									<Loader size={16} className='animate-spin' />
+									<span>Saving...</span>
+								</>
+							) : (
+								<>
+									<Shield size={16} />
+									<span>Save Security Settings</span>
+								</>
+							)}
 						</button>
 					</div>
 				</div>
