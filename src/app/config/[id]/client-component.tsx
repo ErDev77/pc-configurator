@@ -129,160 +129,176 @@ export default function ClientConfiguration({
 		}
 	}, [configuration])
 
-	useEffect(() => {
-		if (selectedConfigId === null) return
-
-		const fetchConfigurationDetails = async () => {
-			setIsLoading(true)
-			try {
-				console.log('Fetching config ID:', selectedConfigId)
-
-				// Fetch the configuration with its products
-				const configResponse = await fetch(
-					`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${selectedConfigId}`,
-					{ cache: 'no-store' }
-				)
-
-				if (!configResponse.ok) {
-					console.error(
-						'Error fetching configuration:',
-						configResponse.statusText
-					)
-					return
+		useEffect(() => {
+			const fetchData = async () => {
+				try {
+					// Fetch compatibility map first
+					const map = await fetchCompatibilityMap()
+					setCompatibilityMap(map)
+				} catch (error) {
+					console.error('Error fetching compatibility map:', error)
 				}
-
-				const configData = await configResponse.json()
-				console.log('Config data:', configData)
-
-				// Fetch configuration products specifically
-				const configProductsResponse = await fetch(
-					`${process.env.NEXT_PUBLIC_SITE_URL}/api/configuration_products/${selectedConfigId}`,
-					{ cache: 'no-store' }
-				)
-
-				if (!configProductsResponse.ok) {
-					console.error(
-						'Error fetching configuration products:',
-						configProductsResponse.statusText
-					)
-					return
-				}
-
-				const configProductsData = await configProductsResponse.json()
-				console.log('Config products data:', configProductsData)
-
-				// Fetch all products and categories
-				const productsResponse = await fetch(
-					`${process.env.NEXT_PUBLIC_SITE_URL}/api/products`,
-					{ cache: 'no-store' }
-				)
-
-				if (!productsResponse.ok) {
-					console.error('Error fetching products:', productsResponse.statusText)
-					return
-				}
-
-				const { categories, components } = await productsResponse.json()
-
-				// Create a map of all categories
-				const allCategories = new Map()
-
-				// Add categories from the API
-				categories.forEach((category: any) => {
-					allCategories.set(category.id, {
-						id: category.id,
-						name: category.name,
-						name_en: category.name_en || category.name,
-						name_ru:
-							category.name_ru === '[null]' ? '' : category.name_ru || '',
-						name_am:
-							category.name_am === '[null]' ? '' : category.name_am || '',
-						components: [],
-					})
-				})
-
-				// Process configuration products
-				const defaultComponentsMap: { [key: string]: Component | null } = {}
-				const selectedComponentsMap: { [key: string]: Component | null } = {}
-
-				if (configProductsData && Array.isArray(configProductsData.products)) {
-					configProductsData.products.forEach((productData: any) => {
-						console.log('Processing product:', productData)
-
-						if (productData.category_id) {
-							const categoryIdKey = productData.category_id.toString()
-
-							// Create a Component object
-							const component: Component = {
-								id: productData.id,
-								name: productData.name,
-								price: productData.price,
-								brand: productData.brand || '',
-								image_url: productData.image_url,
-								specs_en: productData.specs_en || [],
-								specs_ru: productData.specs_ru || [],
-								specs_am: productData.specs_am || [],
-								category_id: parseInt(productData.category_id),
-								discount: productData.discount || 0,
-								hidden: productData.hidden || false,
-							}
-
-							defaultComponentsMap[categoryIdKey] = component
-							selectedComponentsMap[categoryIdKey] = component
-
-							// Add missing category if it doesn't exist
-							if (!allCategories.has(productData.category_id)) {
-								allCategories.set(productData.category_id, {
-									id: productData.category_id,
-									name: `Category ${productData.category_id}`,
-									name_en: `Category ${productData.category_id}`,
-									name_ru: '',
-									name_am: '',
-									components: [],
-								})
-							}
-						} else {
-							console.warn('Product without category_id:', productData)
-						}
-					})
-				}
-
-				// Convert map to array and add components
-				const formattedCategories = Array.from(allCategories.values()).map(
-					category => ({
-						...category,
-						components: components.filter(
-							(product: Component) => product.category_id === category.id
-						),
-					})
-				)
-
-				setCategories(formattedCategories)
-
-				console.log('Final defaultComponentsMap:', defaultComponentsMap)
-				console.log('Final selectedComponentsMap:', selectedComponentsMap)
-				console.log('All categories:', formattedCategories)
-
-				setDefaultComponents(defaultComponentsMap)
-				setSelectedComponents(selectedComponentsMap)
-
-				// Calculate total price
-				const newTotalPrice = Object.values(selectedComponentsMap)
-					.filter(item => item !== null)
-					.reduce((sum, item) => (item ? sum + item.price : sum), 0)
-
-				setTotalPrice(newTotalPrice)
-
-				setIsLoading(false)
-				setConfigCustomized(false)
-			} catch (error) {
-				console.error('Error in fetchConfigurationDetails:', error)
-				setIsLoading(false)
 			}
-		}
+			fetchData()
+		}, [])
 
-		fetchConfigurationDetails()
-	}, [selectedConfigId])
+		useEffect(() => {
+			if (selectedConfigId === null) return
+
+			const fetchConfigurationDetails = async () => {
+				setIsLoading(true)
+				try {
+					console.log('Fetching config ID:', selectedConfigId)
+
+					// Fetch the configuration with its products
+					const configResponse = await fetch(
+						`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${selectedConfigId}`,
+						{ cache: 'no-store' }
+					)
+
+					if (!configResponse.ok) {
+						console.error(
+							'Error fetching configuration:',
+							configResponse.statusText
+						)
+						return
+					}
+
+					const configData = await configResponse.json()
+					console.log('Config data:', configData)
+
+					// Fetch all products and categories with pagination
+					const productsResponse = await fetch(
+						`${process.env.NEXT_PUBLIC_SITE_URL}/api/products?page=1&pageSize=1000`,
+						{ cache: 'no-store' }
+					)
+
+					if (!productsResponse.ok) {
+						console.error(
+							'Error fetching products:',
+							productsResponse.statusText
+						)
+						return
+					}
+
+					const { categories, components } = await productsResponse.json()
+					console.log('All categories fetched:', categories)
+					console.log('All components fetched:', components)
+
+					// Create a map of all categories
+					const allCategories = new Map()
+
+					// Add categories from the API
+					categories.forEach((category: any) => {
+						allCategories.set(category.id, {
+							id: category.id,
+							name: category.name,
+							name_en: category.name_en || category.name,
+							name_ru:
+								category.name_ru === '[null]' ? '' : category.name_ru || '',
+							name_am:
+								category.name_am === '[null]' ? '' : category.name_am || '',
+							components: [],
+						})
+					})
+
+					// Process configuration products
+					const defaultComponentsMap: { [key: string]: Component | null } = {}
+					const selectedComponentsMap: { [key: string]: Component | null } = {}
+
+					// Use the products directly from the configuration
+					if (configData.products && Array.isArray(configData.products)) {
+						configData.products.forEach((productData: any) => {
+							console.log('Processing config product:', productData)
+
+							if (productData.category_id) {
+								const categoryIdKey = productData.category_id.toString()
+
+								// Create a Component object
+								const component: Component = {
+									id: productData.id,
+									name: productData.name,
+									price: productData.price,
+									brand: productData.brand || '',
+									image_url: productData.image_url,
+									specs_en: productData.specs_en || [],
+									specs_ru: productData.specs_ru || [],
+									specs_am: productData.specs_am || [],
+									category_id: parseInt(productData.category_id),
+									discount: productData.discount || 0,
+									hidden: productData.hidden || false,
+								}
+
+								defaultComponentsMap[categoryIdKey] = component
+								selectedComponentsMap[categoryIdKey] = component
+
+								// Add missing category if it doesn't exist
+								if (!allCategories.has(productData.category_id)) {
+									const categoryName = `Category ${productData.category_id}`
+									allCategories.set(productData.category_id, {
+										id: productData.category_id,
+										name: categoryName,
+										name_en: categoryName,
+										name_ru: '',
+										name_am: '',
+										components: [],
+									})
+								}
+							} else {
+								console.warn('Product without category_id:', productData)
+							}
+						})
+					}
+
+					// Convert map to array and add components
+					const formattedCategories = Array.from(allCategories.values()).map(
+						category => {
+							// Filter components for this category
+							const categoryComponents = components.filter(
+								(product: Component) =>
+									product.category_id === category.id && !product.hidden
+							)
+
+							console.log(
+								`Category ${category.name_en} (ID: ${category.id}) has ${categoryComponents.length} components`
+							)
+
+							return {
+								...category,
+								components: categoryComponents,
+							}
+						}
+					)
+
+					// Sort categories to ensure consistent display order
+					formattedCategories.sort((a, b) => a.id - b.id)
+
+					setCategories(formattedCategories)
+
+					console.log('Final defaultComponentsMap:', defaultComponentsMap)
+					console.log('Final selectedComponentsMap:', selectedComponentsMap)
+					console.log('All categories with components:', formattedCategories)
+
+					setDefaultComponents(defaultComponentsMap)
+					setSelectedComponents(selectedComponentsMap)
+
+					// Calculate total price
+					const newTotalPrice = Object.values(selectedComponentsMap)
+						.filter(item => item !== null)
+						.reduce((sum, item) => (item ? sum + item.price : sum), 0)
+
+					setTotalPrice(newTotalPrice)
+
+					setIsLoading(false)
+					setConfigCustomized(false)
+				} catch (error) {
+					console.error('Error in fetchConfigurationDetails:', error)
+					setIsLoading(false)
+				}
+			}
+
+			fetchConfigurationDetails()
+		}, [selectedConfigId])
 
 	const isCompatibleWithSelected = (component: Component): boolean => {
 		const selectedInCategory = selectedComponents[component.category_id]

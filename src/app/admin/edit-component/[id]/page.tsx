@@ -41,6 +41,14 @@ interface Component {
 	specs_am?: string[]
 }
 
+interface Category {
+	id: number
+	name: string
+	name_en?: string
+	name_ru?: string
+	name_am?: string
+}
+
 interface HistoryItem {
 	date: string
 	action: string
@@ -50,11 +58,9 @@ export default function EditComponentPage() {
 	const params = useParams()
 	const componentId = Number(params.id)
 
-	const [categories, setCategories] = useState<{ id: number; name: string }[]>(
-		[]
-	)
+	const [categories, setCategories] = useState<Category[]>([])
 	const [useDefaultSpecs, setUseDefaultSpecs] = useState<boolean>(true)
-	
+
 	const [componentData, setComponentData] = useState<Component>({
 		name: '',
 		price: 0,
@@ -75,12 +81,11 @@ export default function EditComponentPage() {
 	const [showCompatibility, setShowCompatibility] = useState(true)
 	const [activeTab, setActiveTab] = useState<'general' | 'specs'>('general')
 	const [changeHistory, setChangeHistory] = useState<HistoryItem[]>([
-		{ date: '24 Apr 2025', action: 'Продукт создан' },
-		{ date: '25 Apr 2025', action: 'Изменена цена' },
+		{ date: '24 Apr 2025', action: 'Product created' },
+		{ date: '25 Apr 2025', action: 'Price changed' },
 	])
 	const [showHistory, setShowHistory] = useState(false)
 	const router = useRouter()
-	const [selectedCategory, setSelectedCategory] = useState<number>(1)
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -101,22 +106,34 @@ export default function EditComponentPage() {
 					setOriginalData(productWithSpecs)
 					setPreviewImageUrl(data.product.image_url)
 				} else {
-					toast.error('Компонент не найден')
+					toast.error('Component not found')
 				}
 			} catch (error) {
-				console.error('Ошибка при получении данных:', error)
-				toast.error('Ошибка при загрузке данных')
+				console.error('Error fetching data:', error)
+				toast.error('Error loading data')
 			}
 			setIsLoading(false)
 		}
 
 		const fetchCategories = async () => {
 			try {
-				const res = await fetch('/api/products')
+				// Fetch with pagination to get all categories
+				const res = await fetch('/api/products?page=1&pageSize=1000')
 				const data = await res.json()
-				setCategories(data.categories || [])
+
+				// Format categories properly
+				const formattedCategories = data.categories.map((category: any) => ({
+					id: category.id,
+					name: category.name,
+					name_en: category.name_en || category.name,
+					name_ru: category.name_ru === '[null]' ? '' : category.name_ru || '',
+					name_am: category.name_am === '[null]' ? '' : category.name_am || '',
+				}))
+
+				setCategories(formattedCategories || [])
+				console.log('Loaded categories:', formattedCategories)
 			} catch (error) {
-				console.error('Ошибка при загрузке категорий:', error)
+				console.error('Error loading categories:', error)
 			}
 		}
 
@@ -164,7 +181,7 @@ export default function EditComponentPage() {
 		const file = acceptedFiles[0]
 		setFile(file)
 		setPreviewImageUrl(URL.createObjectURL(file))
-		toast.info('Изображение выбрано')
+		toast.info('Image selected')
 	}
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -202,24 +219,22 @@ export default function EditComponentPage() {
 
 				if (!res.ok) {
 					const errorData = await res.json()
-					console.error('Ошибка загрузки:', errorData)
-					throw new Error(
-						`Ошибка при загрузке изображения. Статус: ${res.status}`
-					)
+					console.error('Upload error:', errorData)
+					throw new Error(`Error uploading image. Status: ${res.status}`)
 				}
 
 				const data = await res.json()
 
 				if (!data.secure_url) {
-					throw new Error('Не удалось получить ссылку на изображение')
+					throw new Error('Failed to get image URL')
 				}
 
 				setIsUploading(false)
 				return data.secure_url
 			} catch (error) {
-				console.error('Ошибка загрузки изображения:', error)
+				console.error('Image upload error:', error)
 				setIsUploading(false)
-				toast.error('Ошибка загрузки изображения!')
+				toast.error('Image upload error!')
 				return null
 			}
 		}
@@ -230,18 +245,18 @@ export default function EditComponentPage() {
 		try {
 			// Validate required fields
 			if (!componentData.name) {
-				toast.error('Пожалуйста, введите название продукта')
+				toast.error('Please enter the product name')
 				return
 			}
 
 			if (componentData.price <= 0) {
-				toast.error('Цена должна быть больше нуля')
+				toast.error('Price must be greater than zero')
 				return
 			}
 
 			setIsSaving(true)
 			// Show loading toast
-			const loadingToastId = toast.loading('Обновление продукта...')
+			const loadingToastId = toast.loading('Updating product...')
 
 			// Upload image only if we have a new file
 			let imageUrl = componentData.image_url
@@ -249,14 +264,14 @@ export default function EditComponentPage() {
 				const uploadedImageUrl = await uploadImage()
 				if (!uploadedImageUrl) {
 					toast.dismiss(loadingToastId)
-					toast.error('Не удалось загрузить изображение')
+					toast.error('Failed to upload image')
 					setIsSaving(false)
 					return
 				}
 				imageUrl = uploadedImageUrl
 				if (!imageUrl) {
 					toast.dismiss(loadingToastId)
-					toast.error('Не удалось загрузить изображение')
+					toast.error('Failed to upload image')
 					setIsSaving(false)
 					return
 				}
@@ -289,14 +304,14 @@ export default function EditComponentPage() {
 
 			if (!response.ok) {
 				const errorData = await response.json()
-				throw new Error(errorData.error || 'Ошибка обновления продукта')
+				throw new Error(errorData.error || 'Product update error')
 			}
 
 			// Update history
 			setChangeHistory(prev => [
 				{
-					date: new Date().toLocaleDateString('ru-RU'),
-					action: 'Продукт обновлен',
+					date: new Date().toLocaleDateString('en-US'),
+					action: 'Product updated',
 				},
 				...prev,
 			])
@@ -307,12 +322,10 @@ export default function EditComponentPage() {
 			// Clear file selection since it's already uploaded
 			setFile(null)
 
-			toast.success('Продукт успешно обновлен!')
+			toast.success('Product updated successfully!')
 		} catch (error) {
-			console.error('Ошибка при обновлении:', error)
-			toast.error(
-				error instanceof Error ? error.message : 'Ошибка при обновлении!'
-			)
+			console.error('Update error:', error)
+			toast.error(error instanceof Error ? error.message : 'Update error!')
 			setIsSaving(false)
 		}
 	}
@@ -322,8 +335,13 @@ export default function EditComponentPage() {
 			setComponentData(originalData)
 			setPreviewImageUrl(originalData.image_url)
 			setFile(null)
-			toast.info('Изменения отменены')
+			toast.info('Changes canceled')
 		}
+	}
+
+	// Get category name (prioritizing English)
+	const getCategoryName = (category: Category): string => {
+		return category.name_en || category.name || `Category ${category.id}`
 	}
 
 	if (isLoading) {
@@ -347,7 +365,7 @@ export default function EditComponentPage() {
 						<button
 							onClick={() => router.back()}
 							className='mr-4 p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors'
-							title='Вернуться назад'
+							title='Go back'
 						>
 							<ArrowLeft className='h-5 w-5 text-white' />
 						</button>
@@ -355,7 +373,7 @@ export default function EditComponentPage() {
 							<span className='mr-3 p-1.5 bg-blue-500 rounded-lg'>
 								<Tag className='h-6 w-6 text-white' />
 							</span>
-							Редактирование продукта
+							Edit Product
 						</h1>
 					</div>
 					<div className='flex items-center'>
@@ -364,13 +382,13 @@ export default function EditComponentPage() {
 							className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3 flex items-center'
 						>
 							<History className='h-4 w-4 mr-2' />
-							История
+							History
 						</button>
 						<button
 							onClick={resetForm}
 							className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3'
 						>
-							Отменить изменения
+							Cancel Changes
 						</button>
 						<button
 							onClick={handleSubmit}
@@ -382,12 +400,12 @@ export default function EditComponentPage() {
 							{isSaving ? (
 								<>
 									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
-									Сохранение...
+									Saving...
 								</>
 							) : (
 								<>
 									<Save className='h-4 w-4 mr-2' />
-									Сохранить
+									Save
 								</>
 							)}
 						</button>
@@ -398,7 +416,7 @@ export default function EditComponentPage() {
 					<div className='bg-[#202529] mb-6 p-4 rounded-xl border border-gray-700 shadow-lg'>
 						<h3 className='text-lg text-white mb-3 font-bold flex items-center'>
 							<History className='h-5 w-5 mr-2 text-blue-400' />
-							История изменений
+							Change History
 						</h3>
 						<div className='max-h-48 overflow-y-auto pr-2 custom-scrollbar'>
 							<div className='border-l-2 border-gray-600 pl-4 space-y-3'>
@@ -429,7 +447,7 @@ export default function EditComponentPage() {
 						}`}
 					>
 						<Layout className='h-5 w-5 mr-2' />
-						<span>Общая информация</span>
+						<span>General Information</span>
 					</button>
 					<button
 						onClick={() => setActiveTab('specs')}
@@ -440,7 +458,7 @@ export default function EditComponentPage() {
 						}`}
 					>
 						<Globe className='h-5 w-5 mr-2' />
-						<span>Спецификации</span>
+						<span>Specifications</span>
 					</button>
 				</div>
 
@@ -451,7 +469,7 @@ export default function EditComponentPage() {
 							<div className='bg-[#202529] p-8 rounded-2xl shadow-2xl border border-gray-700'>
 								<h2 className='text-xl text-white mb-6 font-bold flex items-center'>
 									<Tag className='h-5 w-5 mr-2 text-blue-400' />
-									Информация о продукте
+									Product Information
 								</h2>
 
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -460,7 +478,7 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<Tag className='h-4 w-4 mr-2 text-blue-400' />
-												Категория:
+												Category:
 											</label>
 											<select
 												name='category_id'
@@ -470,7 +488,7 @@ export default function EditComponentPage() {
 											>
 												{categories.map(category => (
 													<option key={category.id} value={category.id}>
-														{category.name}
+														{getCategoryName(category)}
 													</option>
 												))}
 											</select>
@@ -479,14 +497,14 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<Tag className='h-4 w-4 mr-2 text-blue-400' />
-												Название продукта:
+												Product Name:
 											</label>
 											<input
 												type='text'
 												name='name'
 												value={componentData.name}
 												onChange={handleChange}
-												placeholder='Введите название продукта'
+												placeholder='Enter product name'
 												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
 											/>
 										</div>
@@ -494,14 +512,14 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<DollarSign className='h-4 w-4 mr-2 text-blue-400' />
-												Цена:
+												Price:
 											</label>
 											<input
 												type='number'
 												name='price'
 												value={componentData.price}
 												onChange={handleChange}
-												placeholder='Цена продукта'
+												placeholder='Product price'
 												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
 											/>
 										</div>
@@ -509,14 +527,14 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<Briefcase className='h-4 w-4 mr-2 text-blue-400' />
-												Бренд:
+												Brand:
 											</label>
 											<input
 												type='text'
 												name='brand'
 												value={componentData.brand}
 												onChange={handleChange}
-												placeholder='Введите бренд продукта'
+												placeholder='Enter product brand'
 												className='bg-[#2C3136] text-white p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
 											/>
 										</div>
@@ -532,7 +550,7 @@ export default function EditComponentPage() {
 												/>
 												<span className='text-white text-sm flex items-center'>
 													<EyeOff className='h-4 w-4 mr-2 text-blue-400' />
-													Скрыть товар
+													Hide product
 												</span>
 											</label>
 										</div>
@@ -542,7 +560,7 @@ export default function EditComponentPage() {
 									<div>
 										<label className='text-white text-sm font-medium flex mb-2'>
 											<ImageIcon className='h-4 w-4 mr-2 text-blue-400' />
-											Изображение продукта:
+											Product Image:
 										</label>
 										<div
 											{...getRootProps()}
@@ -557,7 +575,7 @@ export default function EditComponentPage() {
 												<div className='relative w-full'>
 													<img
 														src={previewImageUrl}
-														alt='Предпросмотр'
+														alt='Preview'
 														className='object-contain max-h-48 mx-auto rounded-lg'
 													/>
 													<button
@@ -568,7 +586,7 @@ export default function EditComponentPage() {
 															setPreviewImageUrl(componentData.image_url)
 														}}
 														className='absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors'
-														title='Удалить'
+														title='Delete'
 													>
 														<Trash size={16} />
 													</button>
@@ -577,10 +595,10 @@ export default function EditComponentPage() {
 												<div className='text-center'>
 													<ImageIcon className='mx-auto h-12 w-12 text-gray-400' />
 													<p className='mt-2 text-sm text-gray-300'>
-														Перетащите изображение сюда или кликните для выбора
+														Drag and drop an image here or click to select
 													</p>
 													<p className='mt-1 text-xs text-gray-400'>
-														PNG, JPG, WEBP до 5MB
+														PNG, JPG, WEBP up to 5MB
 													</p>
 												</div>
 											)}
@@ -588,34 +606,34 @@ export default function EditComponentPage() {
 
 										<div className='mt-4 bg-[#2C3136] p-4 rounded-lg border border-gray-700'>
 											<h4 className='text-white text-sm font-medium mb-2'>
-												Предпросмотр компонента:
+												Component Preview:
 											</h4>
 											<div className='bg-[#1A1D21] p-4 rounded-lg flex items-center'>
 												<div className='w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0'>
 													{componentData.image_url && (
 														<img
 															src={previewImageUrl || componentData.image_url}
-															alt='Превью'
+															alt='Preview'
 															className='w-full h-full object-cover'
 														/>
 													)}
 												</div>
 												<div className='ml-4'>
 													<h3 className='text-white font-medium'>
-														{componentData.name || 'Название продукта'}
+														{componentData.name || 'Product Name'}
 													</h3>
 													<div className='flex items-center mt-1'>
 														<span className='text-gray-400 text-xs mr-2'>
-															{componentData.brand || 'Бренд'}
+															{componentData.brand || 'Brand'}
 														</span>
 														<span className='text-blue-400 font-bold'>
-															{componentData.price} ₽
+															${componentData.price}
 														</span>
 													</div>
 													{componentData.hidden && (
 														<span className='text-yellow-500 text-xs flex items-center mt-1'>
 															<EyeOff className='h-3 w-3 mr-1' />
-															Скрыт
+															Hidden
 														</span>
 													)}
 												</div>
@@ -631,7 +649,7 @@ export default function EditComponentPage() {
 								<div className='bg-[#202529] p-4 rounded-lg mb-4 border border-gray-700'>
 									<div className='flex items-center justify-between mb-2'>
 										<h3 className='text-white font-medium'>
-											Формат спецификаций
+											Specification Format
 										</h3>
 										<div className='flex items-center'>
 											<label className='mr-2 text-gray-400 text-sm cursor-pointer'>
@@ -641,7 +659,7 @@ export default function EditComponentPage() {
 													onChange={() => setUseDefaultSpecs(true)}
 													className='mr-1'
 												/>
-												Шаблонные параметры
+												Template Parameters
 											</label>
 											<label className='text-gray-400 text-sm cursor-pointer'>
 												<input
@@ -650,19 +668,19 @@ export default function EditComponentPage() {
 													onChange={() => setUseDefaultSpecs(false)}
 													className='mr-1'
 												/>
-												Свободный ввод
+												Free Input
 											</label>
 										</div>
 									</div>
 									<p className='text-gray-400 text-sm'>
-										Выберите шаблонные параметры для категории или свободный
-										ввод для создания собственных спецификаций.
+										Choose template parameters for the category or free input to
+										create custom specifications.
 									</p>
 								</div>
 
 								{useDefaultSpecs ? (
 									<DefaultSpecsTab
-										categoryId={selectedCategory}
+										categoryId={componentData.category_id}
 										specs_en={componentData.specs_en || []}
 										specs_ru={componentData.specs_ru || []}
 										specs_am={componentData.specs_am || []}
@@ -692,7 +710,7 @@ export default function EditComponentPage() {
 						>
 							<span className='font-medium text-lg flex items-center'>
 								<CheckCircle className='h-5 w-5 mr-2 text-blue-400' />
-								Управление совместимостью
+								Manage Compatibility
 							</span>
 							{showCompatibility ? (
 								<ChevronUp className='h-5 w-5' />

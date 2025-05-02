@@ -1,10 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useDropzone } from 'react-dropzone'
-import Image from 'next/image'
-import { toast, ToastContainer } from 'react-toastify'
-import { useRouter } from 'next/navigation'
+import { toast } from 'react-toastify'
 import {
 	Trash,
 	ChevronDown,
@@ -12,8 +9,8 @@ import {
 	Search,
 	CheckCircle,
 	AlertCircle,
+	PlusCircle,
 } from 'lucide-react'
-import 'react-toastify/dist/ReactToastify.css'
 
 // Interfaces
 interface Component {
@@ -29,6 +26,9 @@ interface Component {
 interface Category {
 	id: number
 	name: string
+	name_en?: string
+	name_ru?: string
+	name_am?: string
 }
 
 interface Compatibility {
@@ -57,29 +57,52 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 	const fetchData = async () => {
 		setLoading(true)
 		try {
-			const productsRes = await fetch('/api/products')
-			const { categories, components } = await productsRes.json()
+			// Fetch products with pagination to get all products
+			const productsRes = await fetch('/api/products?page=1&pageSize=1000')
+			const { categories: fetchedCategories, components: fetchedComponents } =
+				await productsRes.json()
 
-			setCategories(categories || [])
-			setComponents(
-				components?.filter((comp: Component) => comp.id !== componentId) || []
-			)
+			console.log('Fetched categories:', fetchedCategories)
+			console.log('Fetched components:', fetchedComponents)
 
+			// Format categories properly
+			const formattedCategories = fetchedCategories.map((category: any) => ({
+				id: category.id,
+				name: category.name,
+				name_en: category.name_en || category.name,
+				name_ru: category.name_ru === '[null]' ? '' : category.name_ru || '',
+				name_am: category.name_am === '[null]' ? '' : category.name_am || '',
+			}))
+
+			setCategories(formattedCategories || [])
+
+			// Filter out hidden components and the current component
+			const filteredComponents =
+				fetchedComponents?.filter(
+					(comp: Component) => comp.id !== componentId && !comp.hidden
+				) || []
+
+			setComponents(filteredComponents)
+
+			// Fetch existing compatibilities
 			const compatRes = await fetch(
 				`/api/compatibility?componentId=${componentId}`
 			)
 			const compatData = await compatRes.json()
 			setCompatibilities(compatData || [])
 
-			// Initialize all categories as closed
+			// Initialize category open states as closed
 			const initialCategoryState: { [key: number]: boolean } = {}
-			categories?.forEach((cat: Category) => {
+			formattedCategories?.forEach((cat: Category) => {
 				initialCategoryState[cat.id] = false
 			})
 			setCategoryOpenState(initialCategoryState)
+
+			console.log('Components set:', filteredComponents)
+			console.log('Categories set:', formattedCategories)
 		} catch (error) {
-			console.error('Ошибка при загрузке данных:', error)
-			toast.error('Ошибка при загрузке данных совместимости')
+			console.error('Error loading data:', error)
+			toast.error('Error loading compatibility data')
 		}
 		setLoading(false)
 	}
@@ -93,13 +116,13 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 
 	const handleAddCompatibility = async (compId: number) => {
 		if (!componentId) {
-			toast.warning('Сначала сохраните компонент')
+			toast.warning('Please save the component first')
 			return
 		}
 
 		try {
 			// Show loading toast
-			const loadingToastId = toast.loading('Добавление совместимости...')
+			const loadingToastId = toast.loading('Adding compatibility...')
 
 			const res = await fetch('/api/compatibility', {
 				method: 'POST',
@@ -114,15 +137,15 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 			toast.dismiss(loadingToastId)
 
 			if (res.ok) {
-				toast.success('Совместимость успешно добавлена!')
-				fetchData() // перезагрузка данных
+				toast.success('Compatibility added successfully!')
+				fetchData() // reload data
 			} else {
 				const errorData = await res.json()
-				toast.error(errorData.message || 'Ошибка при добавлении совместимости!')
+				toast.error(errorData.message || 'Error adding compatibility!')
 			}
 		} catch (error) {
-			console.error('Ошибка:', error)
-			toast.error('Произошла ошибка при добавлении совместимости!')
+			console.error('Error:', error)
+			toast.error('An error occurred while adding compatibility!')
 		}
 	}
 
@@ -135,8 +158,10 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 	}
 
 	const filteredComponents = searchText
-		? components.filter(comp =>
-				comp.name.toLowerCase().includes(searchText.toLowerCase())
+		? components.filter(
+				comp =>
+					comp.name.toLowerCase().includes(searchText.toLowerCase()) ||
+					comp.brand?.toLowerCase().includes(searchText.toLowerCase())
 		  )
 		: components
 
@@ -151,14 +176,25 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 		}
 	})
 
+	// Get category name (prioritizing English)
+	const getCategoryName = (category: Category): string => {
+		return category.name_en || category.name || `Category ${category.id}`
+	}
+
+	// Add debug logging for categories
+	useEffect(() => {
+		console.log('Current categories:', categories)
+		console.log('Components by category:', componentsByCategory)
+	}, [categories, componentsByCategory])
+
 	return (
 		<div className='bg-[#202529] p-6 rounded-2xl border border-gray-700 shadow-lg'>
 			<h3 className='text-xl text-white mb-4 font-bold flex items-center'>
 				<CheckCircle className='h-5 w-5 mr-2 text-blue-400' />
-				Добавить совместимость
+				Add Compatibility
 			</h3>
 
-			{/* Поиск */}
+			{/* Search */}
 			<div className='relative mb-4'>
 				<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
 					<Search className='h-5 w-5 text-gray-400' />
@@ -168,43 +204,48 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 					value={searchText}
 					onChange={e => setSearchText(e.target.value)}
 					className='bg-[#2C3136] text-white pl-10 pr-4 py-2 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
-					placeholder='Поиск по компонентам...'
+					placeholder='Search components...'
 				/>
 			</div>
 
-			{/* Список категорий */}
+			{/* Categories list */}
 			<div className='space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar'>
 				{loading ? (
 					<div className='flex justify-center items-center p-6'>
 						<div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500'></div>
-						<span className='ml-3 text-blue-400'>
-							Загрузка списка компонентов...
-						</span>
+						<span className='ml-3 text-blue-400'>Loading components...</span>
 					</div>
 				) : categories.length > 0 ? (
-					categories.map(category => (
-						<div
-							key={category.id}
-							className='bg-[#1A1D21] rounded-xl overflow-hidden'
-						>
-							<button
-								onClick={() => handleCategoryToggle(category.id)}
-								className='bg-[#252A30] text-white p-3 w-full flex justify-between items-center hover:bg-gray-700 transition-colors'
-							>
-								<span className='font-medium'>{category.name}</span>
-								{categoryOpenState[category.id] ? (
-									<ChevronUp className='h-5 w-5 text-gray-400' />
-								) : (
-									<ChevronDown className='h-5 w-5 text-gray-400' />
-								)}
-							</button>
+					categories.map(category => {
+						const categoryComponents = componentsByCategory[category.id] || []
 
-							{/* Продукты внутри категории */}
-							{categoryOpenState[category.id] &&
-								componentsByCategory[category.id] && (
+						return (
+							<div
+								key={category.id}
+								className='bg-[#1A1D21] rounded-xl overflow-hidden'
+							>
+								<button
+									onClick={() => handleCategoryToggle(category.id)}
+									className='bg-[#252A30] text-white p-3 w-full flex justify-between items-center hover:bg-gray-700 transition-colors'
+								>
+									<span className='font-medium'>
+										{getCategoryName(category)}
+										<span className='text-gray-400 text-sm ml-2'>
+											({categoryComponents.length})
+										</span>
+									</span>
+									{categoryOpenState[category.id] ? (
+										<ChevronUp className='h-5 w-5 text-gray-400' />
+									) : (
+										<ChevronDown className='h-5 w-5 text-gray-400' />
+									)}
+								</button>
+
+								{/* Products inside category */}
+								{categoryOpenState[category.id] && (
 									<div className='divide-y divide-gray-700'>
-										{componentsByCategory[category.id].length > 0 ? (
-											componentsByCategory[category.id].map(comp => (
+										{categoryComponents.length > 0 ? (
+											categoryComponents.map(comp => (
 												<div
 													key={comp.id}
 													className='flex justify-between items-center p-3 hover:bg-[#252A30] transition-colors'
@@ -218,34 +259,48 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 													{alreadyCompatible(comp.id!) ? (
 														<span className='text-green-400 flex items-center'>
 															<CheckCircle className='h-4 w-4 mr-1' />
-															Совместимо
+															Compatible
 														</span>
 													) : (
 														<button
 															onClick={() => handleAddCompatibility(comp.id!)}
 															className='bg-[#0C6FFC] hover:bg-blue-600 text-white py-1 px-3 rounded-lg transition-colors flex items-center'
 														>
-															<span>Добавить</span>
+															<PlusCircle className='h-4 w-4 mr-1' />
+															<span>Add</span>
 														</button>
 													)}
 												</div>
 											))
 										) : (
 											<div className='p-3 text-gray-400 text-center italic'>
-												Нет компонентов в этой категории
+												No components in this category
 											</div>
 										)}
 									</div>
 								)}
-						</div>
-					))
+							</div>
+						)
+					})
 				) : (
 					<div className='text-center p-4'>
 						<AlertCircle className='h-6 w-6 text-yellow-500 mx-auto mb-2' />
-						<p className='text-gray-300'>Категории не найдены</p>
+						<p className='text-gray-300'>No categories found</p>
 					</div>
 				)}
 			</div>
+
+			{!loading && components.length === 0 && (
+				<div className='text-center p-4 mt-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg'>
+					<AlertCircle className='h-6 w-6 text-yellow-500 mx-auto mb-2' />
+					<p className='text-yellow-400'>
+						No components available to add compatibility
+					</p>
+					<p className='text-gray-400 text-sm'>
+						Make sure there are other components in the system
+					</p>
+				</div>
+			)}
 		</div>
 	)
 }

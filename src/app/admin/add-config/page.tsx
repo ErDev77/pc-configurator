@@ -9,8 +9,11 @@ import { useDropzone } from 'react-dropzone'
 import { Trash2, Info, PlusCircle, MinusCircle, ChevronDown, ChevronUp, Upload, X, Eye, EyeOff } from 'lucide-react'
 
 interface Category {
-  id: number
-  name: string
+	id: number
+	name: string
+	name_en: string
+	name_ru: string
+	name_am: string
 }
 
 interface Product {
@@ -43,29 +46,51 @@ export default function AddConfigurationPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch('/api/products')
-        const data = await res.json()
+		const fetchData = async () => {
+			try {
+				// Fix: Add pagination parameters to get all products
+				const res = await fetch('/api/products?page=1&pageSize=100')
+				const data = await res.json()
 
-        if (res.ok) {
-          setCategories(data.categories)
-          setComponents(data.components)
-        } else {
-          throw new Error(data.error || 'Не удалось получить данные с сервера')
-        }
+				if (res.ok) {
+					// Format categories properly (same as edit page)
+					const formattedCategories = data.categories.map((category: any) => ({
+						id: category.id,
+						name: category.name,
+						name_en: category.name_en || category.name,
+						name_ru:
+							category.name_ru === '[null]' ? '' : category.name_ru || '',
+						name_am:
+							category.name_am === '[null]' ? '' : category.name_am || '',
+					}))
+					setCategories(formattedCategories)
+					setComponents(data.components)
 
-        setIsLoading(false)
-      } catch (error) {
-        toast.error(
-          (error instanceof Error ? error.message : 'Неизвестная ошибка') ||
-          'Ошибка при получении данных с сервера'
-        )
-        setIsLoading(false)
-      }
-    }
-    fetchData()
-  }, [])
+					// Add debug logging to verify data
+					console.log('Total components fetched:', data.components.length)
+					console.log('Categories:', formattedCategories)
+					console.log('Components by category:')
+					formattedCategories.forEach((category: Category) => {
+						const count = data.components.filter(
+							(p: Product) => p.category_id === category.id
+						).length
+						console.log(`${category.name}: ${count} components`)
+					})
+				} else {
+					throw new Error(data.error || 'Не удалось получить данные с сервера')
+				}
+
+				setIsLoading(false)
+			} catch (error) {
+				toast.error(
+					(error instanceof Error ? error.message : 'Неизвестная ошибка') ||
+						'Ошибка при получении данных с сервера'
+				)
+				setIsLoading(false)
+			}
+		}
+		fetchData()
+	}, [])
 
   const handleToggleCategory = (categoryId: number) => {
     setExpandedCategories(prev =>
@@ -410,161 +435,205 @@ export default function AddConfigurationPage() {
   )
 
   const renderStep2 = () => (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-        <h2 className="text-xl text-blue-300 font-bold mb-4">Выбор компонентов</h2>
-        
-        {categories.map(category => (
-          <div key={category.id} className="mb-4">
-            <button
-              onClick={() => handleToggleCategory(category.id)}
-              className="w-full text-left p-3 bg-gray-800 text-white font-bold rounded flex justify-between items-center hover:bg-gray-700 transition-all border border-gray-700"
-            >
-              <span>{category.name}</span>
-              <span>
-                {expandedCategories.includes(category.id) ? (
-                  <ChevronUp size={20} className="text-blue-400" />
-                ) : (
-                  <ChevronDown size={20} className="text-blue-400" />
-                )}
-              </span>
-            </button>
+		<div className='space-y-6 animate-fadeIn'>
+			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+				<h2 className='text-xl text-blue-300 font-bold mb-4'>
+					Выбор компонентов
+				</h2>
 
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                expandedCategories.includes(category.id)
-                  ? 'max-h-[500px] opacity-100'
-                  : 'max-h-0 opacity-0'
-              }`}
-            >
-              {expandedCategories.includes(category.id) && (
-                <div className="pl-4 mt-2 bg-gray-800/50 rounded p-3 border-l-2 border-blue-600">
-                  <h4 className="text-gray-300 mb-2 font-semibold flex items-center gap-2">
-                    <PlusCircle size={16} className="text-blue-400" />
-                    Доступные компоненты:
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                    {Array.isArray(components) && components
-                      .filter(p => p.category_id === category.id)
-                      .map(product => {
-                        const isSelected = selectedProducts[category.id]?.some(
-                          p => p.product_id === product.id
-                        )
-                        return (
-                          <button
-                            key={product.id}
-                            disabled={isSelected}
-                            onClick={() => handleSelectProduct(category.id, product)}
-                            className={`text-left p-3 rounded flex justify-between items-center ${
-                              isSelected
-                                ? 'bg-blue-900/30 text-gray-400 cursor-not-allowed border border-blue-600/30'
-                                : 'bg-gray-700 text-white hover:bg-gray-600 border border-gray-600'
-                            }`}
-                          >
-                            <span>{product.name}</span>
-                            <span className="text-gray-400">${product.price}</span>
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {Object.keys(selectedProducts).length > 0 && (
-        <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30">
-          <h2 className="text-xl text-blue-300 font-bold mb-4">Выбранные компоненты</h2>
-          
-          <div className="space-y-4">
-            {categories.map(category => {
-              const items = selectedProducts[category.id]
-              if (!items || items.length === 0) return null
+				{categories.map(category => (
+					<div key={category.id} className='mb-4'>
+						<button
+							onClick={() => handleToggleCategory(category.id)}
+							className='w-full text-left p-3 bg-gray-800 text-white font-bold rounded flex justify-between items-center hover:bg-gray-700 transition-all border border-gray-700'
+						>
+							<span>{category.name_en || category.name}</span>{' '}
+							<span>
+								{expandedCategories.includes(category.id) ? (
+									<ChevronUp size={20} className='text-blue-400' />
+								) : (
+									<ChevronDown size={20} className='text-blue-400' />
+								)}
+							</span>
+						</button>
 
-              return (
-                <div key={category.id} className="bg-gray-800/50 p-4 rounded-lg border-l-2 border-blue-600">
-                  <h3 className="text-gray-300 font-semibold mb-3">{category.name}</h3>
-                  <ul className="space-y-2">
-                    {items.map(item => {
-                      const product = components.find(p => p.id === item.product_id)
-                      if (!product) return null
-                      return (
-                        <li
-                          key={item.product_id}
-                          className="flex justify-between items-center bg-gray-700 p-3 rounded border border-gray-600"
-                        >
-                          <div className="flex-1">
-                            <p className="text-white">{product.name}</p>
-                            <p className="text-gray-400 text-sm">${product.price} за единицу</p>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center bg-gray-800 rounded-md">
-                              <button
-                                onClick={() => handleQuantityChange(category.id, item.product_id, item.quantity - 1)}
-                                className="p-1 text-gray-400 hover:text-white"
-                                disabled={item.quantity <= 1}
-                              >
-                                <MinusCircle size={18} className={item.quantity <= 1 ? 'opacity-50' : ''} />
-                              </button>
-                              
-                              <span className="px-3 text-white">{item.quantity}</span>
-                              
-                              <button
-                                onClick={() => handleQuantityChange(category.id, item.product_id, item.quantity + 1)}
-                                className="p-1 text-gray-400 hover:text-white"
-                              >
-                                <PlusCircle size={18} />
-                              </button>
-                            </div>
-                            
-                            <span className="text-white font-medium min-w-24 text-right">
-                              ${product.price * item.quantity}
-                            </span>
-                            
-                            <button
-                              onClick={() => handleRemoveProduct(category.id, item.product_id)}
-                              className="p-1 text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-      
-      <div className="flex justify-between mt-6">
-        <button
-          onClick={() => setActiveStep(1)}
-          className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all flex items-center gap-2"
-        >
-          <ChevronUp className="transform rotate-270" size={18} />
-          Назад
-        </button>
-        
-        <button
-          onClick={() => setActiveStep(3)}
-          disabled={Object.keys(selectedProducts).length === 0}
-          className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
-            ${Object.keys(selectedProducts).length === 0
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-        >
-          Далее
-          <ChevronDown className="transform rotate-270" size={18} />
-        </button>
-      </div>
-    </div>
-  )
+						<div
+							className={`overflow-hidden transition-all duration-300 ease-in-out ${
+								expandedCategories.includes(category.id)
+									? 'max-h-[500px] opacity-100'
+									: 'max-h-0 opacity-0'
+							}`}
+						>
+							{expandedCategories.includes(category.id) && (
+								<div className='pl-4 mt-2 bg-gray-800/50 rounded p-3 border-l-2 border-blue-600'>
+									<h4 className='text-gray-300 mb-2 font-semibold flex items-center gap-2'>
+										<PlusCircle size={16} className='text-blue-400' />
+										Доступные компоненты:
+									</h4>
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar'>
+										{Array.isArray(components) &&
+											components
+												.filter(p => p.category_id === category.id)
+												.map(product => {
+													const isSelected = selectedProducts[
+														category.id
+													]?.some(p => p.product_id === product.id)
+													return (
+														<button
+															key={product.id}
+															disabled={isSelected}
+															onClick={() =>
+																handleSelectProduct(category.id, product)
+															}
+															className={`text-left p-3 rounded flex justify-between items-center ${
+																isSelected
+																	? 'bg-blue-900/30 text-gray-400 cursor-not-allowed border border-blue-600/30'
+																	: 'bg-gray-700 text-white hover:bg-gray-600 border border-gray-600'
+															}`}
+														>
+															<span>{product.name}</span>
+															<span className='text-gray-400'>
+																${product.price}
+															</span>
+														</button>
+													)
+												})}
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				))}
+			</div>
+
+			{Object.keys(selectedProducts).length > 0 && (
+				<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
+					<h2 className='text-xl text-blue-300 font-bold mb-4'>
+						Выбранные компоненты
+					</h2>
+
+					<div className='space-y-4'>
+						{categories.map(category => {
+							const items = selectedProducts[category.id]
+							if (!items || items.length === 0) return null
+
+							return (
+								<div
+									key={category.id}
+									className='bg-gray-800/50 p-4 rounded-lg border-l-2 border-blue-600'
+								>
+									<h3 className='text-gray-300 font-semibold mb-3'>
+										{category.name}
+									</h3>
+									<ul className='space-y-2'>
+										{items.map(item => {
+											const product = components.find(
+												p => p.id === item.product_id
+											)
+											if (!product) return null
+											return (
+												<li
+													key={item.product_id}
+													className='flex justify-between items-center bg-gray-700 p-3 rounded border border-gray-600'
+												>
+													<div className='flex-1'>
+														<p className='text-white'>{product.name}</p>
+														<p className='text-gray-400 text-sm'>
+															${product.price} за единицу
+														</p>
+													</div>
+
+													<div className='flex items-center gap-3'>
+														<div className='flex items-center bg-gray-800 rounded-md'>
+															<button
+																onClick={() =>
+																	handleQuantityChange(
+																		category.id,
+																		item.product_id,
+																		item.quantity - 1
+																	)
+																}
+																className='p-1 text-gray-400 hover:text-white'
+																disabled={item.quantity <= 1}
+															>
+																<MinusCircle
+																	size={18}
+																	className={
+																		item.quantity <= 1 ? 'opacity-50' : ''
+																	}
+																/>
+															</button>
+
+															<span className='px-3 text-white'>
+																{item.quantity}
+															</span>
+
+															<button
+																onClick={() =>
+																	handleQuantityChange(
+																		category.id,
+																		item.product_id,
+																		item.quantity + 1
+																	)
+																}
+																className='p-1 text-gray-400 hover:text-white'
+															>
+																<PlusCircle size={18} />
+															</button>
+														</div>
+
+														<span className='text-white font-medium min-w-24 text-right'>
+															${product.price * item.quantity}
+														</span>
+
+														<button
+															onClick={() =>
+																handleRemoveProduct(
+																	category.id,
+																	item.product_id
+																)
+															}
+															className='p-1 text-red-400 hover:text-red-300'
+														>
+															<Trash2 size={18} />
+														</button>
+													</div>
+												</li>
+											)
+										})}
+									</ul>
+								</div>
+							)
+						})}
+					</div>
+				</div>
+			)}
+
+			<div className='flex justify-between mt-6'>
+				<button
+					onClick={() => setActiveStep(1)}
+					className='px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-md font-medium transition-all flex items-center gap-2'
+				>
+					<ChevronUp className='transform rotate-270' size={18} />
+					Назад
+				</button>
+
+				<button
+					onClick={() => setActiveStep(3)}
+					disabled={Object.keys(selectedProducts).length === 0}
+					className={`px-8 py-3 rounded-md font-medium transition-all flex items-center gap-2
+            ${
+							Object.keys(selectedProducts).length === 0
+								? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+								: 'bg-blue-600 hover:bg-blue-700 text-white'
+						}`}
+				>
+					Далее
+					<ChevronDown className='transform rotate-270' size={18} />
+				</button>
+			</div>
+		</div>
+	)
 
   const renderStep3 = () => (
     <div className="space-y-6 animate-fadeIn">
