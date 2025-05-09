@@ -31,7 +31,7 @@ interface SelectedProduct {
 
 export default function EditConfigurationPage() {
 	const { id } = useParams<{ id: string }>()
-
+	const [customId, setCustomId] = useState('')
 	const [categories, setCategories] = useState<Category[]>([])
 	const [components, setComponents] = useState<Product[]>([])
 	const [configName, setConfigName] = useState('')
@@ -104,6 +104,7 @@ export default function EditConfigurationPage() {
 						setOriginalImageUrl(configData.image_url || null)
 						setIsHiddenConfig(configData.hidden || false)
 						setCustomPrice(configData.price || '')
+						setCustomId(configData.custom_id || '') // <-- Add this line
 
 						// Map the selected products to the format we need
 						if (configData.products && Array.isArray(configData.products)) {
@@ -131,7 +132,7 @@ export default function EditConfigurationPage() {
 										}
 									}
 								}
-							)	
+							)
 							// In edit-config/[id]/page.tsx and add-config/page.tsx, after fetching products
 							console.log('All products:', productsData.components)
 							console.log(
@@ -340,6 +341,7 @@ export default function EditConfigurationPage() {
 				id: id,
 				name: configName,
 				description,
+				custom_id: customId || undefined, // Only include if not empty
 				image_url: finalImageUrl,
 				price:
 					typeof customPrice === 'number' && customPrice > 0
@@ -431,6 +433,30 @@ export default function EditConfigurationPage() {
 							value={configName}
 							onChange={e => setConfigName(e.target.value)}
 						/>
+					</div>
+
+					<div className='flex flex-col'>
+						<label className='text-gray-300 mb-1 font-medium'>
+							Custom ID (для URL)
+						</label>
+						<div className='relative'>
+							<input
+								type='text'
+								placeholder='my-awesome-pc'
+								className='p-3 bg-gray-800 text-white rounded border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none w-full'
+								value={customId}
+								onChange={e =>
+									setCustomId(e.target.value.replace(/\s+/g, '-').toLowerCase())
+								}
+							/>
+							<div className='absolute right-3 top-3 text-gray-400 text-sm'>
+								/config/<span className='text-blue-400'>{customId || id}</span>
+							</div>
+						</div>
+						<p className='text-gray-500 text-xs mt-1'>
+							Используется в URL вместо ID. Оставьте пустым для использования
+							обычного ID.
+						</p>
 					</div>
 
 					<div className='flex flex-col'>

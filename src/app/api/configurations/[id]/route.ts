@@ -79,6 +79,7 @@ export async function DELETE(
 	}
 }
 
+// src/app/api/configurations/[id]/route.ts (PUT method update)
 export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
@@ -88,7 +89,7 @@ export async function PUT(
 
 	try {
 		const body = await req.json()
-		const { name, description, price, image_url, hidden, products } = body
+		const { name, description, price, image_url, hidden, custom_id, products } = body
 
 		if (!name || !description || !price || !image_url) {
 			return NextResponse.json(
@@ -97,16 +98,40 @@ export async function PUT(
 			)
 		}
 
-		// Обновляем конфигурацию
-		const updateConfigResult = await pool.query(
+		// Check if custom_id is unique (excluding current config)
+		if (custom_id) {
+			const checkQuery = `
+				SELECT id FROM configurations 
+				WHERE custom_id = $1 AND id != $2
 			`
-      UPDATE configurations
-      SET name = $1, description = $2, price = $3, image_url = $4, hidden = $5
-      WHERE id = $6
-      RETURNING *
-      `,
-			[name, description, price, image_url, hidden ?? null, id]
-		)
+			const checkResult = await pool.query(checkQuery, [custom_id, id])
+			
+			if (checkResult.rows.length > 0) {
+				return NextResponse.json(
+					{ error: 'This custom ID is already in use' },
+					{ status: 400 }
+				)
+			}
+		}
+
+		// Update the configuration
+		const updateConfigQuery = `
+			UPDATE configurations
+			SET name = $1, description = $2, price = $3, image_url = $4, hidden = $5, custom_id = $6
+			WHERE id = $7
+			RETURNING *
+		`
+		const updateConfigValues = [
+			name, 
+			description, 
+			price, 
+			image_url, 
+			hidden ?? null, 
+			custom_id || null, 
+			id
+		]
+
+		const updateConfigResult = await pool.query(updateConfigQuery, updateConfigValues)
 
 		if (updateConfigResult.rows.length === 0) {
 			console.log('API: Configuration not found for update')
@@ -119,15 +144,22 @@ export async function PUT(
 		const updatedConfiguration = updateConfigResult.rows[0]
 		console.log('API: Configuration updated:', updatedConfiguration)
 
-		// Если переданы продукты — добавим их в связующую таблицу
+		// If products are provided, update them in the linking table
 		if (Array.isArray(products) && products.length > 0) {
+			// First delete existing links
+			await pool.query(
+				'DELETE FROM configuration_products WHERE configuration_id = $1',
+				[id]
+			)
+
+			// Then insert new links
 			const insertPromises = products.map(product =>
 				pool.query(
 					`
-          INSERT INTO configuration_products (configuration_id, product_id, quantity)
-          VALUES ($1, $2, $3)
-          ON CONFLICT DO NOTHING
-          `,
+					INSERT INTO configuration_products (configuration_id, product_id, quantity)
+					VALUES ($1, $2, $3)
+					ON CONFLICT DO NOTHING
+					`,
 					[id, product.id, product.quantity ?? 1]
 				)
 			)

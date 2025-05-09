@@ -32,6 +32,7 @@ interface Configuration {
 	description?: string
 	isFavorite?: boolean
 	components?: string[]
+	custom_id?: string
 }
 
 export interface Favorite {
@@ -589,6 +590,13 @@ export default function ConfigurationsPage() {
 												{formatPrice(config.price)}
 											</span>
 										</div>
+										{config.custom_id && (
+											<div className='mt-1 text-sm text-gray-500'>
+												<span className='bg-gray-100 px-2 py-0.5 rounded text-xs'>
+													Custom URL: /config/{config.custom_id}
+												</span>
+											</div>
+										)}
 										{config.description && (
 											<p className='text-gray-600 mt-2 line-clamp-2'>
 												{config.description}

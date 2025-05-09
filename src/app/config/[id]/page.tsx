@@ -1,3 +1,4 @@
+// src/app/config/[id]/page.tsx - Updated version
 import type { PageProps } from './$types'
 import ClientConfiguration from './client-component'
 import { Metadata } from 'next'
@@ -13,13 +14,23 @@ export default async function Page(props: PageProps) {
 		return <div>Invalid configuration ID</div>
 	}
 
-	// Fetch the configuration from your backend
-	const res = await fetch(
-		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${id}`,
+	// First try to fetch by custom_id
+	let res = await fetch(
+		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/custom/${id}`,
 		{
 			cache: 'no-store',
 		}
 	)
+
+	// If not found by custom_id, try by regular id
+	if (!res.ok) {
+		res = await fetch(
+			`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${id}`,
+			{
+				cache: 'no-store',
+			}
+		)
+	}
 
 	if (!res.ok) {
 		console.error('Failed to load configuration')
@@ -37,7 +48,7 @@ export default async function Page(props: PageProps) {
 
 	// Fix: Correctly fetch configuration products with proper endpoint path
 	const productsRes = await fetch(
-		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configuration_products/${id}`,
+		`${process.env.NEXT_PUBLIC_SITE_URL}/api/configuration_products/${configuration.id}`,
 		{
 			cache: 'no-store',
 		}
@@ -72,13 +83,23 @@ export async function generateMetadata({
 	}
 
 	try {
-		// Fetch configuration for metadata
-		const res = await fetch(
-			`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${id}`,
+		// Try to fetch by custom_id first
+		let res = await fetch(
+			`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/custom/${id}`,
 			{
 				cache: 'no-store',
 			}
 		)
+
+		// If not found, try by regular id
+		if (!res.ok) {
+			res = await fetch(
+				`${process.env.NEXT_PUBLIC_SITE_URL}/api/configurations/${id}`,
+				{
+					cache: 'no-store',
+				}
+			)
+		}
 
 		if (!res.ok) {
 			return {

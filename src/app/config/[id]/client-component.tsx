@@ -296,6 +296,7 @@ export default function ClientConfiguration({
 			fetchConfigurationDetails()
 		}, [selectedConfigId])
 
+
 	const isCompatibleWithSelected = (component: Component): boolean => {
 		const selectedInCategory = selectedComponents[component.category_id]
 		if (selectedInCategory?.id === component.id) {
