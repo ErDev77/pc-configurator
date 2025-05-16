@@ -3,16 +3,18 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev",
+		"dev": "cross-env NODE_OPTIONS=--max-old-space-size=8192 next dev",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"
 	},
 	"dependencies": {
 		"@reduxjs/toolkit": "^2.7.0",
+		"@types/dotenv": "^8.2.3",
 		"bcrypt": "^5.1.1",
 		"chart.js": "^4.4.9",
 		"cloudinary": "^2.6.0",
+		"dotenv": "^16.5.0",
 		"jose": "^6.0.10",
 		"jsonwebtoken": "^9.0.2",
 		"lucide-react": "^0.503.0",
@@ -40,6 +42,7 @@
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"@types/streamifier": "^0.1.2",
+		"cross-env": "^7.0.3",
 		"eslint": "^9",
 		"eslint-config-next": "15.3.1",
 		"tailwindcss": "^4",

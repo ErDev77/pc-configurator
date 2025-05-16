@@ -91,6 +91,9 @@ export async function PUT(
 		const body = await req.json()
 		const { name, description, price, image_url, hidden, custom_id, products } = body
 
+		console.log('Received custom_id:', custom_id)
+
+
 		if (!name || !description || !price || !image_url) {
 			return NextResponse.json(
 				{ error: 'Missing required fields' },
@@ -143,6 +146,8 @@ export async function PUT(
 
 		const updatedConfiguration = updateConfigResult.rows[0]
 		console.log('API: Configuration updated:', updatedConfiguration)
+		// Note custom_id info for debugging
+		console.log('Updated custom_id:', updatedConfiguration.custom_id)
 
 		// If products are provided, update them in the linking table
 		if (Array.isArray(products) && products.length > 0) {

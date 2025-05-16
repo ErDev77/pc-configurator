@@ -114,6 +114,11 @@ export default function ConfigurationsPage() {
 		fetchConfigurations()
 	}, [])
 
+	const getConfigUrl = (config: Configuration) => {
+		// If custom_id exists, use it, otherwise use the regular id
+		return `/config/${config.custom_id || config.id}`
+	}
+
 	
 
 	const updateFavoriteStatus = async (id: string, isFavorite: boolean) => {
@@ -618,8 +623,7 @@ export default function ConfigurationsPage() {
 								</div>
 
 								<div className='flex space-x-1'>
-									<Link
-										href={`/config/${config.id}`}
+								<Link href={getConfigUrl(config)}
 										className='p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700'
 										title='View Configuration'
 									>

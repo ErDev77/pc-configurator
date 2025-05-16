@@ -341,7 +341,7 @@ export default function EditConfigurationPage() {
 				id: id,
 				name: configName,
 				description,
-				custom_id: customId || undefined, // Only include if not empty
+				custom_id: customId === '' ? null : customId, // Only include if not empty
 				image_url: finalImageUrl,
 				price:
 					typeof customPrice === 'number' && customPrice > 0

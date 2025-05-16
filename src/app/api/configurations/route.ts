@@ -8,6 +8,7 @@ interface NewConfiguration {
 	price: number
 	hidden?: boolean
 	products: { id: number }[]
+	custom_id?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -20,7 +21,9 @@ export async function POST(req: NextRequest) {
 			price,
 			hidden = false,
 			products,
+			custom_id,
 		} = body
+		console.log('Received configuration with custom_id:', custom_id)
 
 		if (
 			!name ||
@@ -35,12 +38,25 @@ export async function POST(req: NextRequest) {
 			)
 		}
 
+		if (custom_id) {
+			const checkResult = await pool.query(
+				'SELECT id FROM configurations WHERE custom_id = $1',
+				[custom_id]
+			)
+
+			if (checkResult.rows.length > 0) {
+				return NextResponse.json(
+					{ error: 'This custom ID is already in use' },
+					{ status: 400 }
+				)
+			}
+		}
 		const configQuery = `
-      INSERT INTO configurations (name, description, image_url, price, hidden)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO configurations (name, description, image_url, price, hidden, custom_id)
+	  VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `
-		const configValues = [name, description, image_url, price, hidden]
+		const configValues = [name, description, image_url, price, hidden, custom_id || null]
 		const configResult = await pool.query(configQuery, configValues)
 		const newConfiguration = configResult.rows[0]
 

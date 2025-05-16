@@ -1,12 +1,12 @@
 // src/lib/db.ts
 import { Pool } from 'pg'
+import dotenv from 'dotenv'
 
 const pool = new Pool({
-	user: 'postgres',
-	host: 'localhost',
-	database: 'pc_configurator',
-	password: 'Pg!2025_SecureDB*',
-	port: 5432,
+	connectionString: process.env.DATABASE_URL,
+	ssl: {
+		rejectUnauthorized: false,
+	},
 })
 
 // Test the connection
