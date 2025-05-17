@@ -226,7 +226,7 @@ function AdminLoginContent() {
 									<label className='block text-sm font-medium text-gray-300'>
 										Password
 									</label>
-									
+									<a
 										href='#'
 										className='text-sm text-blue-400 hover:text-blue-300'
 									>
