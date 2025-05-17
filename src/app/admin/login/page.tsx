@@ -103,6 +103,7 @@ function AdminLoginContent() {
 		)
 	}
 
+	// Make sure the return statement is properly formatted
 	return (
 		<div className='flex min-h-screen bg-gradient-to-br from-[#171C1F] to-[#0F1215]'>
 			{/* Left panel with image/illustration */}
