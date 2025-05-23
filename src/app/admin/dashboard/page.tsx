@@ -253,42 +253,42 @@ const Admin = () => {
 
 	const statsCards: StatsCard[] = [
 		{
-			title: 'Total Revenue',
+			title: 'Общий доход',
 			value: totalRevenue,
 			icon: <DollarSign size={24} />,
 			trend: 18.2,
 			color: 'bg-gradient-to-r from-green-600 to-green-400',
 		},
 		{
-			title: 'Orders',
+			title: 'Заказы',
 			value: totalOrders,
 			icon: <ShoppingCart size={24} />,
 			trend: 5.3,
 			color: 'bg-gradient-to-r from-blue-600 to-blue-400',
 		},
 		{
-			title: 'Configurations',
+			title: 'Конфигурации',
 			value: totalConfigurations,
 			icon: <Layers size={24} />,
 			trend: 12.1,
 			color: 'bg-gradient-to-r from-indigo-600 to-indigo-400',
 		},
 		{
-			title: 'Components',
+			title: 'Комплектующие',
 			value: totalComponents,
 			icon: <Package size={24} />,
 			trend: -2.4,
 			color: 'bg-gradient-to-r from-purple-600 to-purple-400',
 		},
 		{
-			title: 'Categories',
+			title: 'Категории',
 			value: totalCategories,
 			icon: <Layers size={24} />,
 			trend: 0,
 			color: 'bg-gradient-to-r from-yellow-500 to-yellow-300',
 		},
 		{
-			title: 'Hidden Components',
+			title: 'Скрытые комплектующие',
 			value: hiddenComponentsCount,
 			icon: <AlertCircle size={24} />,
 			trend: 8.5,
@@ -331,25 +331,25 @@ const Admin = () => {
 	}
 
 	const months = [
-		'Jan',
-		'Feb',
-		'Mar',
-		'Apr',
-		'May',
-		'Jun',
-		'Jul',
-		'Aug',
-		'Sep',
-		'Oct',
-		'Nov',
-		'Dec',
+		'Янв',
+		'Фев',
+		'Мар',
+		'Апр',
+		'Май',
+		'Июн',
+		'Июл',
+		'Авг',
+		'Сен',
+		'Окт',
+		'Ноя',
+		'Дек',
 	]
 
 	const salesChartData = {
 		labels: months,
 		datasets: [
 			{
-				label: 'Revenue ($)',
+				label: 'Доход ($)',
 				data: salesByMonth,
 				backgroundColor: 'rgba(75, 192, 192, 0.6)',
 				borderColor: 'rgba(75, 192, 192, 1)',
@@ -362,11 +362,11 @@ const Admin = () => {
 	const getOrderStatusChartData = () => {
 		// Define standard statuses and colors (even if some have 0 orders)
 		const statusLabels = [
-			'pending',
-			'processing',
-			'shipped',
-			'delivered',
-			'cancelled',
+			'В ожидании',
+			'Обрабатывается',
+			'Отправлено',
+			'Доставлено',
+			'Отменено',
 		]
 		const backgroundColors = [
 			'rgba(255, 206, 86, 0.8)', // pending - yellow
@@ -406,22 +406,22 @@ const Admin = () => {
 
 	const quickActions = [
 		{
-			name: 'Add Component',
+			name: 'Добавить комплектующую',
 			icon: <Cpu size={20} />,
 			href: '/admin/add-component',
 		},
 		{
-			name: 'Add Configuration',
+			name: 'Добавить конфигурацию',
 			icon: <PcCase size={20} />,
 			href: '/admin/add-config',
 		},
 		{
-			name: 'View Orders',
+			name: 'Посмотреть заказы',
 			icon: <ShoppingCart size={20} />,
 			href: '/admin/orders',
 		},
 		{
-			name: 'Manage Categories',
+			name: 'Управление категориями',
 			icon: <Layers size={20} />,
 			href: '/admin/categories',
 		},
@@ -458,8 +458,8 @@ const Admin = () => {
 				{/* Header section */}
 				<div className='flex justify-between items-center mb-8'>
 					<div>
-						<h1 className='text-3xl font-bold text-white'>Dashboard</h1>
-						<p className='text-gray-400'>Welcome to your admin dashboard</p>
+						<h1 className='text-3xl font-bold text-white'>Админ-панель</h1>
+						<p className='text-gray-400'>Добро пожаловать в админ-панель</p>
 					</div>
 					<div className='flex gap-4'>
 						{quickActions.map((action, i) => (
@@ -513,7 +513,7 @@ const Admin = () => {
 					{/* Sales Chart */}
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6'>
 						<h2 className='text-xl font-bold text-white mb-4'>
-							Revenue Overview
+							Обзор доходов
 						</h2>
 						<div className='h-80'>
 							<Bar
@@ -564,7 +564,7 @@ const Admin = () => {
 
 					{/* Order Status Chart */}
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6'>
-						<h2 className='text-xl font-bold text-white mb-4'>Order Status</h2>
+						<h2 className='text-xl font-bold text-white mb-4'>Статус заказа</h2>
 						<div className='flex justify-center items-center h-80'>
 							<div className='w-3/4'>
 								<Doughnut
@@ -628,7 +628,7 @@ const Admin = () => {
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8'>
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6 lg:col-span-2'>
 						<h2 className='text-xl font-bold text-white mb-4'>
-							Components by Category
+							Распределение комплектующих по категориям
 						</h2>
 						<div className='h-80'>
 							<Bar
@@ -671,7 +671,7 @@ const Admin = () => {
 					</div>
 
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6'>
-						<h2 className='text-xl font-bold text-white mb-4'>Recent Orders</h2>
+						<h2 className='text-xl font-bold text-white mb-4'>Последние заказы</h2>
 						<div className='overflow-y-auto max-h-80'>
 							{recentOrders.length > 0 ? (
 								<ul className='space-y-4'>
@@ -711,7 +711,7 @@ const Admin = () => {
 							) : (
 								<div className='flex flex-col items-center justify-center h-64 text-gray-400'>
 									<ShoppingCart size={48} className='mb-4 opacity-50' />
-									<p>No orders yet</p>
+									<p>Пока нет заказов</p>
 								</div>
 							)}
 						</div>
@@ -722,13 +722,13 @@ const Admin = () => {
 				<div className='bg-[#202529] rounded-xl shadow-lg p-6 mb-8'>
 					<div className='flex justify-between items-center mb-6'>
 						<h2 className='text-xl font-bold text-white'>
-							Recent Configurations
+							Последние конфигурации
 						</h2>
 						<Link
 							href='/admin/configurations'
 							className='text-blue-400 text-sm hover:underline'
 						>
-							View all
+							Посмотреть все
 						</Link>
 					</div>
 
@@ -772,7 +772,7 @@ const Admin = () => {
 				{resourcesLoaded && (
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6'>
 						<h2 className='text-xl font-bold text-white mb-4'>
-							System Information
+							Статистика производительности
 						</h2>
 						<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 							<div className='bg-[#262a30] p-4 rounded-lg'>

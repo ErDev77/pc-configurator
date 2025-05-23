@@ -231,9 +231,6 @@ export default function ConfigurationsPage() {
 		fetchFavorites()
 	}, [user])
 
-
-
-
 	const toggleFavorite = async (id: string) => {
 		const currentStatus = favorites[id]
 		const success = await updateFavoriteStatus(id, currentStatus)
@@ -242,11 +239,6 @@ export default function ConfigurationsPage() {
 			toast.error('Failed to update favorite status')
 		}
 	}
-
-
-
-	
-
 	// Save favorites to localStorage when they change
 	useEffect(() => {
 		localStorage.setItem('configFavorites', JSON.stringify(favorites))
@@ -266,9 +258,9 @@ export default function ConfigurationsPage() {
 					delete newFavorites[id]
 					setFavorites(newFavorites)
 				}
-				toast.success('Configuration deleted successfully')
+				toast.success('Конфигурация удалена успешно!')
 			} else {
-				toast.error('Failed to delete configuration')
+				toast.error('Не удалось удалить конфигурацию')
 			}
 		} catch (error) {
 			toast.error('An error occurred')
@@ -363,14 +355,14 @@ export default function ConfigurationsPage() {
 					<div className='flex flex-col items-center text-center'>
 						<AlertCircle className='h-16 w-16 text-red-500 mb-4' />
 						<h2 className='text-2xl font-bold text-gray-800 mb-2'>
-							Error Loading Configurations
+							Ошибка загрузки конфигураций
 						</h2>
 						<p className='text-gray-600 mb-6'>{error}</p>
 						<button
 							onClick={() => window.location.reload()}
 							className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors'
 						>
-							Try Again
+							Попробовать снова
 						</button>
 					</div>
 				</div>
@@ -397,7 +389,7 @@ export default function ConfigurationsPage() {
 			<div className='container mx-auto p-6 max-w-6xl'>
 				<div className='mb-8'>
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6'>
-						<h1 className='text-3xl font-bold text-white'>Configurations</h1>
+						<h1 className='text-3xl font-bold text-white'>Конфигурации</h1>
 
 						<div className='flex items-center gap-2'>
 							<Link
@@ -405,7 +397,7 @@ export default function ConfigurationsPage() {
 								className='flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
 							>
 								<Plus className='w-5 h-5 mr-2' />
-								Create New
+								Создать конфигурацию
 							</Link>
 
 							<button
@@ -413,7 +405,7 @@ export default function ConfigurationsPage() {
 								className='flex items-center px-4 py-2 bg-[#202529] border border-gray-300 text-white rounded-lg hover:bg-gray-600 transition-colors'
 							>
 								<Filter className='w-5 h-5 mr-2' />
-								Filters
+								Фильтры
 								{showFilters ? (
 									<ChevronUp className='ml-2 w-4 h-4' />
 								) : (
@@ -433,7 +425,7 @@ export default function ConfigurationsPage() {
 									/>
 									<input
 										type='text'
-										placeholder='Search configurations...'
+										placeholder='Искать конфигурации...'
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
 										className='pl-10 p-2 border border-gray-300 text-white rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none'
@@ -443,14 +435,14 @@ export default function ConfigurationsPage() {
 								<div className='flex gap-2'>
 									<input
 										type='number'
-										placeholder='Min price'
+										placeholder='Мин.цена'
 										value={minPrice}
 										onChange={e => setMinPrice(e.target.value)}
 										className='p-2 border border-gray-300 text-white rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none'
 									/>
 									<input
 										type='number'
-										placeholder='Max price'
+										placeholder='Макс.цена'
 										value={maxPrice}
 										onChange={e => setMaxPrice(e.target.value)}
 										className='p-2 border border-gray-300 text-white rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none'
@@ -476,7 +468,7 @@ export default function ConfigurationsPage() {
 												}`}
 											></div>
 										</div>
-										<span className='ml-3 text-white'>Show favorites only</span>
+										<span className='ml-3 text-white'>Показать только избранное</span>
 									</label>
 
 									<button
@@ -484,7 +476,7 @@ export default function ConfigurationsPage() {
 										className='ml-auto flex items-center text-white hover:text-gray-700'
 									>
 										<X className='w-4 h-4 mr-1' />
-										Reset
+										Сбросить
 									</button>
 								</div>
 							</div>
@@ -505,7 +497,7 @@ export default function ConfigurationsPage() {
 									sortBy === 'name' ? 'text-blue-600 font-medium' : 'text-white'
 								}`}
 							>
-								<span>Name</span>
+								<span>Навзвание</span>
 								{sortBy === 'name' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -522,7 +514,7 @@ export default function ConfigurationsPage() {
 										: 'text-white'
 								}`}
 							>
-								<span>Price</span>
+								<span>Цена</span>
 								{sortBy === 'price' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -537,7 +529,7 @@ export default function ConfigurationsPage() {
 									sortBy === 'date' ? 'text-blue-600 font-medium' : 'text-white'
 								}`}
 							>
-								<span>Date</span>
+								<span>Дата</span>
 								{sortBy === 'date' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -555,10 +547,11 @@ export default function ConfigurationsPage() {
 							<div className='flex flex-col items-center'>
 								<AlertCircle className='h-12 w-12 text-white mb-4' />
 								<h3 className='text-xl font-semibold text-white mb-2'>
-									No configurations found
+									Нет конфигураций, соответствующих критериям поиска
 								</h3>
 								<p className='text-white'>
-									Try adjusting your search or create a new configuration
+									Попробуйте изменить параметры фильтрации или создать новую
+									конфигурацию.
 								</p>
 							</div>
 						</div>
@@ -587,7 +580,7 @@ export default function ConfigurationsPage() {
 										<div className='flex items-center mt-1 text-gray-600 text-sm'>
 											<Clock className='w-4 h-4 mr-1' />
 											<span>
-												Created:{' '}
+												Создано:{' '}
 												{new Date(config.createdAt).toLocaleDateString()}
 											</span>
 											<DollarSign className='w-4 h-4 ml-4 mr-1' />
@@ -598,7 +591,7 @@ export default function ConfigurationsPage() {
 										{config.custom_id && (
 											<div className='mt-1 text-sm text-gray-500'>
 												<span className='bg-gray-100 px-2 py-0.5 rounded text-xs'>
-													Custom URL: /config/{config.custom_id}
+													Кастомная ссылка: /config/{config.custom_id}
 												</span>
 											</div>
 										)}
@@ -623,16 +616,17 @@ export default function ConfigurationsPage() {
 								</div>
 
 								<div className='flex space-x-1'>
-								<Link href={getConfigUrl(config)}
+									<Link
+										href={getConfigUrl(config)}
 										className='p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700'
-										title='View Configuration'
+										title='Посмотреть конфигурацию'
 									>
 										<Eye size={16} />
 									</Link>
 									<Link href={`/admin/edit-config/${config.id}`}>
 										<button
 											className='p-1.5 bg-amber-600 text-white rounded hover:bg-amber-700'
-											title='Edit Configuration'
+											title='Редактировать конфигурацию'
 										>
 											<Edit size={16} />
 										</button>
@@ -640,7 +634,7 @@ export default function ConfigurationsPage() {
 									<button
 										onClick={() => handleDeleteConfiguration(config.id)}
 										disabled={deleteInProgress[config.id]}
-										title='Delete Configuration'
+										title='Удалить конфигурацию'
 										className={`p-1.5 bg-red-600 text-white rounded hover:bg-red-700
                       ${
 												deleteInProgress[config.id]
@@ -651,7 +645,7 @@ export default function ConfigurationsPage() {
 										{deleteInProgress[config.id] ? (
 											<>
 												<RefreshCw className='w-4 h-4 mr-2 animate-spin' />{' '}
-												Wait...
+												Подождите...
 											</>
 										) : (
 											<>

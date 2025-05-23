@@ -5,7 +5,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { User, Lock, Shield, Check, Loader } from 'lucide-react'
 
-// Create a client component that uses useSearchParams
+
 function AdminLoginContent() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
@@ -37,13 +37,10 @@ function AdminLoginContent() {
 				const data = await res.json()
 				console.log('Login successful')
 				
-				// If login is successful, proceed with normal login
 				setLoginSuccess(true)
 
-				// Wait a moment for cookie to be properly set
 				setTimeout(async () => {
 					try {
-						// Double-check auth before redirecting
 						const checkRes = await fetch('/api/admin/me', {
 							method: 'GET',
 							credentials: 'include',
@@ -54,16 +51,12 @@ function AdminLoginContent() {
 						})
 
 						if (checkRes.ok) {
-							// Update the authentication context
 							console.log(
 								'Authentication verified, refreshing user and redirecting...'
 							)
 							await refreshUser()
 
-							// Get the redirect destination if any
 							const from = searchParams?.get('from') || '/admin/dashboard'
-
-							// Use replace instead of push for cleaner navigation
 							router.replace(from)
 						} else {
 							console.log('Authentication check failed:', await checkRes.text())
@@ -106,7 +99,6 @@ function AdminLoginContent() {
 	// Make sure the return statement is properly formatted
 	return (
 		<div className='flex min-h-screen bg-gradient-to-br from-[#171C1F] to-[#0F1215]'>
-			{/* Left panel with image/illustration */}
 			<div className='hidden lg:flex lg:w-1/2 bg-[#0C6FFC]/10 items-center justify-center p-12'>
 				<div className='max-w-md text-center'>
 					<div className='mb-8 flex justify-center'>
@@ -118,11 +110,12 @@ function AdminLoginContent() {
 						</div>
 					</div>
 					<h1 className='text-3xl font-bold text-white mb-4'>
-						PC Admin Dashboard
+						Админская панель управления
 					</h1>
 					<p className='text-gray-400 mb-8'>
-						Manage your store, track orders, and update product inventory with
-						our powerful admin interface.
+						Управляйте своим бизнесом с помощью нашего безопасного и
+						интуитивно понятного интерфейса. Получите доступ к аналитике,
+						управлению запасами и многому другому.
 					</p>
 					<div className='bg-gradient-to-r from-[#0C6FFC]/20 to-[#0C6FFC]/5 p-6 rounded-xl'>
 						<div className='flex items-center gap-4 mb-6'>
@@ -130,9 +123,9 @@ function AdminLoginContent() {
 								<Shield className='text-[#0C6FFC] w-6 h-6' />
 							</div>
 							<div className='text-left'>
-								<h3 className='text-white font-medium'>Secure Admin Area</h3>
+								<h3 className='text-white font-medium'>Безопасная админ-зона</h3>
 								<p className='text-gray-400 text-sm'>
-									Advanced admin dashboard
+									Расширенная админ-панель
 								</p>
 							</div>
 						</div>
@@ -143,7 +136,7 @@ function AdminLoginContent() {
 									<Check className='text-[#0C6FFC] w-3 h-3' />
 								</div>
 								<span className='text-gray-300 text-sm'>
-									Real-time order tracking
+									Отслеживание заказов в режиме реального времени
 								</span>
 							</li>
 							<li className='flex items-center gap-2'>
@@ -151,7 +144,7 @@ function AdminLoginContent() {
 									<Check className='text-[#0C6FFC] w-3 h-3' />
 								</div>
 								<span className='text-gray-300 text-sm'>
-									Inventory management
+									Управление продуктами и категориями
 								</span>
 							</li>
 							<li className='flex items-center gap-2'>
@@ -159,7 +152,7 @@ function AdminLoginContent() {
 									<Check className='text-[#0C6FFC] w-3 h-3' />
 								</div>
 								<span className='text-gray-300 text-sm'>
-									Revenue & sales analytics
+									Анализ продаж и доходов
 								</span>
 							</li>
 							<li className='flex items-center gap-2'>
@@ -167,7 +160,7 @@ function AdminLoginContent() {
 									<Check className='text-[#0C6FFC] w-3 h-3' />
 								</div>
 								<span className='text-gray-300 text-sm'>
-									Customer data protection
+									Защита данных клиентов
 								</span>
 							</li>
 						</ul>
@@ -185,7 +178,7 @@ function AdminLoginContent() {
 							</div>
 							<h2 className='text-2xl font-bold text-white'>Admin Login</h2>
 							<p className='text-gray-400 mt-2'>
-								Enter your credentials to access the admin panel
+								Введите свои учетные данные для доступа к админ-панели
 							</p>
 						</div>
 
@@ -203,7 +196,7 @@ function AdminLoginContent() {
 						<form onSubmit={handleSubmit} className='space-y-6'>
 							<div>
 								<label className='block text-sm font-medium text-gray-300 mb-2'>
-									Email
+									Электронная почта
 								</label>
 								<div className='relative'>
 									<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
@@ -224,13 +217,13 @@ function AdminLoginContent() {
 							<div>
 								<div className='flex items-center justify-between mb-2'>
 									<label className='block text-sm font-medium text-gray-300'>
-										Password
+										Пароль
 									</label>
 									<a
 										href='#'
 										className='text-sm text-blue-400 hover:text-blue-300'
 									>
-										Forgot password?
+										Забыли пароль?
 									</a>
 								</div>
 								<div className='relative'>
@@ -257,17 +250,18 @@ function AdminLoginContent() {
 								{loading ? (
 									<>
 										<Loader className='animate-spin w-5 h-5' />
-										<span>Authenticating...</span>
+										<span>Авторизация</span>
 									</>
 								) : loginSuccess ? (
 									<>
 										<Check className='w-5 h-5' />
-										<span>Success! Redirecting...</span>
+										<span>Успешно! Перенаправляем...</span>
 									</>
 								) : (
 									<>
 										<Lock className='w-5 h-5' />
-										<span>Sign In</span>
+
+										<span>Вход</span>
 									</>
 								)}
 							</button>
@@ -279,7 +273,6 @@ function AdminLoginContent() {
 	)
 }
 
-// Create a wrapper component that sets up Suspense
 export default function AdminLoginPage() {
 	return (
 		<Suspense fallback={<div>Loading...</div>}>

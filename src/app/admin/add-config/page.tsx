@@ -530,7 +530,7 @@ export default function AddConfigurationPage() {
 		<div className='space-y-6 animate-fadeIn'>
 			<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
 				<h2 className='text-xl text-blue-300 font-bold mb-4'>
-					Выбор компонентов
+					Выбор комплектующих
 				</h2>
 
 				{categories.map(category => (
@@ -560,7 +560,7 @@ export default function AddConfigurationPage() {
 								<div className='pl-4 mt-2 bg-gray-800/50 rounded p-3 border-l-2 border-blue-600'>
 									<h4 className='text-gray-300 mb-2 font-semibold flex items-center gap-2'>
 										<PlusCircle size={16} className='text-blue-400' />
-										Доступные компоненты:
+										Доступные комплектующие:
 									</h4>
 									<div className='grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar'>
 										{Array.isArray(components) &&
@@ -601,7 +601,7 @@ export default function AddConfigurationPage() {
 			{Object.keys(selectedProducts).length > 0 && (
 				<div className='bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 shadow-lg border border-blue-600/30'>
 					<h2 className='text-xl text-blue-300 font-bold mb-4'>
-						Выбранные компоненты
+						Выбранные комплектующие
 					</h2>
 
 					<div className='space-y-4'>
@@ -892,7 +892,7 @@ export default function AddConfigurationPage() {
 					Создание новой конфигурации
 				</h1>
 				<p className='text-gray-400 mb-8 text-center'>
-					Создайте новую сборку компьютера, указав компоненты и детали
+					Создайте новую сборку компьютера, указав комплектующие и детали
 				</p>
 
 				{renderStepIndicator()}

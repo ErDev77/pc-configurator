@@ -7,7 +7,6 @@ import {
 	Edit2,
 	Trash2,
 	Globe,
-	ChevronRight,
 	AlertCircle,
 	Clock,
 	Loader2,
@@ -271,7 +270,7 @@ export default function CategoriesPage() {
 				{/* Header */}
 				<div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4'>
 					<h1 className='text-3xl font-bold text-white'>
-						{t('categories.title', { defaultValue: 'Category Management' })}
+						{t('categories.title', { defaultValue: 'Управление категориями' })}
 					</h1>
 
 					<button
@@ -279,7 +278,7 @@ export default function CategoriesPage() {
 						className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2'
 					>
 						<PlusCircle size={18} />
-						{t('categories.add', { defaultValue: 'Add Category' })}
+						{t('categories.add', { defaultValue: 'Добавить категорию' })}
 					</button>
 				</div>
 
@@ -290,7 +289,7 @@ export default function CategoriesPage() {
 						<input
 							type='text'
 							placeholder={t('categories.search', {
-								defaultValue: 'Search categories...',
+								defaultValue: 'Искать категории...',
 							})}
 							value={searchTerm}
 							onChange={e => setSearchTerm(e.target.value)}
@@ -312,7 +311,7 @@ export default function CategoriesPage() {
 					<div className='flex flex-col items-center justify-center py-12'>
 						<Loader2 className='w-12 h-12 text-blue-500 animate-spin mb-4' />
 						<p className='text-gray-400'>
-							{t('common.loading', { defaultValue: 'Loading categories...' })}
+							{t('common.loading', { defaultValue: 'Загрузка категории...' })}
 						</p>
 					</div>
 				)}
@@ -324,12 +323,12 @@ export default function CategoriesPage() {
 							<Globe className='w-8 h-8 text-blue-400' />
 						</div>
 						<h2 className='text-xl font-bold text-white mb-2'>
-							{t('categories.empty', { defaultValue: 'No categories' })}
+							{t('categories.empty', { defaultValue: 'Нет категории' })}
 						</h2>
 						<p className='text-gray-400 mb-6 max-w-md mx-auto'>
 							{t('categories.emptyDescription', {
 								defaultValue:
-									'Add your first category by clicking the "Add" button',
+									'Добавьте категории, чтобы начать управлять ими.',
 							})}
 						</p>
 						<button
@@ -337,7 +336,7 @@ export default function CategoriesPage() {
 							className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2'
 						>
 							<PlusCircle size={18} />
-							{t('categories.add', { defaultValue: 'Add Category' })}
+							{t('categories.add', { defaultValue: 'Добавить категорию' })}
 						</button>
 					</div>
 				)}
@@ -352,13 +351,13 @@ export default function CategoriesPage() {
 							</div>
 							<h2 className='text-xl font-bold text-white mb-2'>
 								{t('categories.noResults', {
-									defaultValue: 'No categories found',
+									defaultValue: 'Ничего не найдено',
 								})}
 							</h2>
 							<p className='text-gray-400 mb-6 max-w-md mx-auto'>
 								{t('categories.noResultsDescription', {
 									defaultValue:
-										'No categories found matching "{searchTerm}". Try changing your search query.',
+										'Не найдено категории по запросу "{searchTerm}". Попробуйте изменить поисковый запрос.',
 									searchTerm,
 								})}
 							</p>
@@ -367,7 +366,7 @@ export default function CategoriesPage() {
 								className='bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors inline-flex items-center gap-2'
 							>
 								<RefreshCw size={18} />
-								{t('categories.clearSearch', { defaultValue: 'Clear Search' })}
+								{t('categories.clearSearch', { defaultValue: 'Очистить поиск' })}
 							</button>
 						</div>
 					)}
@@ -400,7 +399,7 @@ export default function CategoriesPage() {
 												</span>
 												<span>
 													{t('categories.products', {
-														defaultValue: 'products',
+														defaultValue: 'Комплектующие',
 													})}
 												</span>
 											</div>
@@ -409,7 +408,7 @@ export default function CategoriesPage() {
 											<div className='bg-gray-700 text-gray-300 text-xs py-1 px-2 rounded-full flex items-center'>
 												<Clock size={12} className='mr-1' />
 												<span>
-													{t('categories.created', { defaultValue: 'Created' })}
+													{t('categories.created', { defaultValue: 'Создано' })}
 													: {formatDate(category.created_at)}
 												</span>
 											</div>
@@ -443,7 +442,7 @@ export default function CategoriesPage() {
 										>
 											<Edit2 size={16} />
 											<span>
-												{t('categories.edit', { defaultValue: 'Edit' })}
+												{t('categories.edit', { defaultValue: 'Редактировать' })}
 											</span>
 										</button>
 
@@ -462,7 +461,7 @@ export default function CategoriesPage() {
 												<Trash2 size={16} />
 											)}
 											<span>
-												{t('categories.delete', { defaultValue: 'Delete' })}
+												{t('categories.delete', { defaultValue: 'Удалить' })}
 											</span>
 										</button>
 									</div>

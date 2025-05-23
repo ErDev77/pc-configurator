@@ -19,7 +19,6 @@ import {
 	Trash2,
 	Star,
 	StarOff,
-	Heart,
 	AlertCircle,
 	Plus,
 } from 'lucide-react'
@@ -245,7 +244,7 @@ const ComponentsPage = () => {
 				const newFavorites = { ...favoriteComponents }
 				delete newFavorites[componentId]
 				setFavoriteComponents(newFavorites)
-				toast.success('Removed from favorites')
+				toast.success('Удалено из избранного')
 			}
 		} catch (error) {
 			console.error('Error toggling favorite:', error)
@@ -288,7 +287,7 @@ const ComponentsPage = () => {
 				setFavoriteComponents(newFavorites)
 			}
 
-			toast.success('Component deleted!')
+			toast.success('Комплектующее удалено!')
 			setDeleteModalOpen(false)
 			setComponentToDelete(null)
 		} catch (err) {
@@ -420,12 +419,12 @@ const ComponentsPage = () => {
 
 				<div className='mb-8'>
 					<div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4'>
-						<h1 className='text-3xl font-bold text-white'>Components</h1>
+						<h1 className='text-3xl font-bold text-white'>Комплектующие</h1>
 						<div className='flex items-center space-x-3'>
 							<Link href='/admin/add-component'>
 								<button className='flex items-center space-x-1 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors'>
 									<Plus size={18} />
-									<span>Add New</span>
+									<span>Добавить комплектующее</span>
 								</button>
 							</Link>
 							<button
@@ -454,7 +453,7 @@ const ComponentsPage = () => {
 							>
 								<Filter size={18} />
 								<span className='hidden sm:inline'>
-									{showFilters ? 'Hide Filters' : 'Show Filters'}
+									{showFilters ? 'Скрыть фильтры' : 'Показывать фильтры'}
 								</span>
 								{showFilters ? (
 									<ChevronUp size={18} />
@@ -476,7 +475,7 @@ const ComponentsPage = () => {
 										/>
 										<input
 											type='text'
-											placeholder='Search components...'
+											placeholder='Искать комплектующее...'
 											value={searchQuery}
 											onChange={e => setSearchQuery(e.target.value)}
 											className='bg-[#1a1f23] text-white p-2 pl-10 rounded-lg w-full border border-gray-700 focus:border-blue-500 focus:outline-none'
@@ -487,7 +486,7 @@ const ComponentsPage = () => {
 								<div className='flex-1 min-w-[180px]'>
 									<input
 										type='number'
-										placeholder='Min price'
+										placeholder='Мин.цена'
 										value={minPrice}
 										onChange={e => setMinPrice(e.target.value)}
 										className='bg-[#1a1f23] text-white p-2 rounded-lg w-full border border-gray-700 focus:border-blue-500 focus:outline-none'
@@ -497,7 +496,7 @@ const ComponentsPage = () => {
 								<div className='flex-1 min-w-[180px]'>
 									<input
 										type='number'
-										placeholder='Max price'
+										placeholder='Макс.цена'
 										value={maxPrice}
 										onChange={e => setMaxPrice(e.target.value)}
 										className='bg-[#1a1f23] text-white p-2 rounded-lg w-full border border-gray-700 focus:border-blue-500 focus:outline-none'
@@ -520,7 +519,7 @@ const ComponentsPage = () => {
 											backgroundPosition: 'right 0.5rem center',
 										}}
 									>
-										<option value=''>All categories</option>
+										<option value=''>Все категории</option>
 										{categories.map(category => (
 											<option key={category.id} value={category.id}>
 												{category.name}
@@ -569,7 +568,7 @@ const ComponentsPage = () => {
 												}`}
 											></div>
 										</div>
-										<span className='ml-3 text-white'>Favorites only</span>
+										<span className='ml-3 text-white'>Только избранное</span>
 									</label>
 								</div>
 
@@ -578,7 +577,7 @@ const ComponentsPage = () => {
 									className='bg-[#1a1f23] hover:bg-[#2a3035] text-gray-400 hover:text-white p-2 rounded-lg flex items-center justify-center border border-gray-700'
 								>
 									<X size={18} className='mr-1' />
-									Reset
+									Сбросить
 								</button>
 							</div>
 						</div>
@@ -590,14 +589,14 @@ const ComponentsPage = () => {
 							components
 						</div>
 						<div className='flex items-center space-x-4 overflow-x-auto'>
-							<span className='text-gray-400 whitespace-nowrap'>Sort by:</span>
+							<span className='text-gray-400 whitespace-nowrap'>Сортировать по:</span>
 							<button
 								onClick={() => handleSort('name')}
 								className={`flex items-center whitespace-nowrap ${
 									sortBy === 'name' ? 'text-blue-500' : 'text-gray-300'
 								}`}
 							>
-								<span>Name</span>
+								<span>Название</span>
 								{sortBy === 'name' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -612,7 +611,7 @@ const ComponentsPage = () => {
 									sortBy === 'price' ? 'text-blue-500' : 'text-gray-300'
 								}`}
 							>
-								<span>Price</span>
+								<span>Цена</span>
 								{sortBy === 'price' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -627,7 +626,7 @@ const ComponentsPage = () => {
 									sortBy === 'brand' ? 'text-blue-500' : 'text-gray-300'
 								}`}
 							>
-								<span>Brand</span>
+								<span>Бренд</span>
 								{sortBy === 'brand' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -644,27 +643,27 @@ const ComponentsPage = () => {
 						<div className='flex flex-col items-center justify-center'>
 							<Search className='w-16 h-16 text-gray-500 mb-4' />
 							<h3 className='text-xl font-semibold mb-2'>
-								No components found
+								Не найдено комплектующих
 							</h3>
 							<p className='text-gray-400 mb-4'>
-								Try adjusting your search or filter criteria
+								Попробуйте изменить фильтры или добавить новые комплектующие.
 							</p>
 							<button
 								onClick={resetFilters}
 								className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg'
 							>
-								Reset Filters
+								Сбросить фильтры
 							</button>
 						</div>
 					</div>
 				) : viewMode === 'list' ? (
 					<div className='bg-[#202529] rounded-xl shadow-lg w-full overflow-hidden'>
 						<div className='grid grid-cols-6 gap-4 p-4 border-b border-gray-700 text-white font-semibold text-sm'>
-							<div className='text-center'>Image</div>
-							<div className='text-center col-span-2'>Name</div>
-							<div className='text-center'>Brand</div>
-							<div className='text-center'>Price</div>
-							<div className='text-center'>Actions</div>
+							<div className='text-center'>Изображение</div>
+							<div className='text-center col-span-2'>Название</div>
+							<div className='text-center'>Бренд</div>
+							<div className='text-center'>Цена</div>
+							<div className='text-center'>Действия</div>
 						</div>
 						<div className='divide-y divide-gray-700'>
 							{sortedComponents.map((component, index) => (
@@ -675,7 +674,7 @@ const ComponentsPage = () => {
 									<div className='flex justify-center'>
 										{imageError[component.id] ? (
 											<div className='w-14 h-14 bg-gray-800 rounded-lg flex items-center justify-center text-gray-500'>
-												No Image
+												Нет изображения
 											</div>
 										) : (
 											<div className='relative w-14 h-14 bg-gray-800 rounded-lg overflow-hidden'>
@@ -705,8 +704,8 @@ const ComponentsPage = () => {
 												}`}
 												title={
 													favoriteComponents[component.id]
-														? 'Remove from favorites'
-														: 'Add to favorites'
+														? 'Удалить из избранного'
+														: 'Добавить в избранное'
 												}
 											>
 												{favoriteLoading[component.id] ? (
@@ -720,7 +719,7 @@ const ComponentsPage = () => {
 											<span className='truncate'>{component.name}</span>
 										</div>
 										<div className='text-xs text-gray-500 mt-1'>
-											Category: {getCategoryName(component.category_id)}
+											Категория: {getCategoryName(component.category_id)}
 										</div>
 									</div>
 									<div className='text-gray-400'>{component.brand}</div>
@@ -731,14 +730,14 @@ const ComponentsPage = () => {
 										<button
 											onClick={() => handleViewComponent(component)}
 											className='p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700'
-											title='View Details'
+											title='Посмотреть детали'
 										>
 											<Eye size={16} />
 										</button>
 										<Link href={`/admin/edit-component/${component.id}`}>
 											<button
 												className='p-1.5 bg-amber-600 text-white rounded hover:bg-amber-700'
-												title='Edit Component'
+												title='Редактировать комплектующее'
 											>
 												<Edit size={16} />
 											</button>
@@ -746,7 +745,7 @@ const ComponentsPage = () => {
 										<button
 											onClick={() => handleConfirmDelete(component.id)}
 											className='p-1.5 bg-red-600 text-white rounded hover:bg-red-700'
-											title='Delete Component'
+											title='Удалить комплектующее'
 										>
 											<Trash2 size={16} />
 										</button>
@@ -773,8 +772,8 @@ const ComponentsPage = () => {
 										}`}
 										title={
 											favoriteComponents[component.id]
-												? 'Remove from favorites'
-												: 'Add to favorites'
+												? 'Удалить из избранного'
+												: 'Добавить в избранное'
 										}
 									>
 										{favoriteLoading[component.id] ? (
@@ -787,7 +786,7 @@ const ComponentsPage = () => {
 									</button>
 									{imageError[component.id] ? (
 										<div className='w-full h-full flex items-center justify-center text-gray-500'>
-											No Image Available
+											Нет изображения
 										</div>
 									) : (
 										<Image
@@ -808,7 +807,7 @@ const ComponentsPage = () => {
 								<div className='p-4'>
 									<div className='flex items-center mb-1'>
 										<span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900 text-blue-200'>
-											Category: {getCategoryName(component.category_id)}
+											Категория: {getCategoryName(component.category_id)}
 										</span>
 									</div>
 									<h3 className='font-semibold text-lg mb-1 truncate'>
@@ -823,14 +822,14 @@ const ComponentsPage = () => {
 											<button
 												onClick={() => handleViewComponent(component)}
 												className='p-1.5 bg-blue-600 text-white rounded hover:bg-blue-700'
-												title='View Details'
+												title='Посмотреть детали'
 											>
 												<Eye size={16} />
 											</button>
 											<Link href={`/admin/edit-component/${component.id}`}>
 												<button
 													className='p-1.5 bg-amber-600 text-white rounded hover:bg-amber-700'
-													title='Edit Component'
+													title='Редактировать комплектующее'
 												>
 													<Edit size={16} />
 												</button>
@@ -838,7 +837,7 @@ const ComponentsPage = () => {
 											<button
 												onClick={() => handleConfirmDelete(component.id)}
 												className='p-1.5 bg-red-600 text-white rounded hover:bg-red-700'
-												title='Delete Component'
+												title='Удалить комплектующее'
 											>
 												<Trash2 size={16} />
 											</button>
@@ -864,10 +863,10 @@ const ComponentsPage = () => {
 							{isLoadingMore ? (
 								<div className='flex items-center justify-center'>
 									<RefreshCw className='animate-spin mr-2 h-5 w-5' />
-									<span>Loading...</span>
+									<span>Загрузка...</span>
 								</div>
 							) : (
-								'Load More Components'
+								'Загрузить больше'
 							)}
 						</button>
 					</div>
@@ -880,7 +879,7 @@ const ComponentsPage = () => {
 					<div className='bg-[#202529] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
 						<div className='sticky top-0 bg-[#202529] px-6 py-4 border-b border-gray-700 flex justify-between items-center'>
 							<h2 className='text-xl font-bold text-white'>
-								Component Details
+								Детали комплектующего
 							</h2>
 							<button
 								onClick={() => setViewModalOpen(false)}
@@ -896,7 +895,7 @@ const ComponentsPage = () => {
 									<div className='bg-gray-800 rounded-lg p-2 h-48 md:h-64 relative'>
 										{imageError[viewComponent.id] ? (
 											<div className='w-full h-full flex items-center justify-center text-gray-500'>
-												No Image Available
+												Нет изображения
 											</div>
 										) : (
 											<Image
@@ -928,17 +927,17 @@ const ComponentsPage = () => {
 											{favoriteLoading[viewComponent.id] ? (
 												<>
 													<RefreshCw size={16} className='animate-spin' />
-													<span>Processing...</span>
+													<span>Обработка...</span>
 												</>
 											) : favoriteComponents[viewComponent.id] ? (
 												<>
 													<Star size={16} className='fill-white' />
-													<span>Remove from Favorites</span>
+													<span>Удалить из избранного</span>
 												</>
 											) : (
 												<>
 													<Star size={16} />
-													<span>Add to Favorites</span>
+													<span>Добавить в избранное</span>
 												</>
 											)}
 										</button>
@@ -962,12 +961,12 @@ const ComponentsPage = () => {
 
 									<div className='space-y-3 text-gray-300'>
 										<div className='flex justify-between py-2 border-b border-gray-700'>
-											<span className='text-gray-400'>Brand:</span>
+											<span className='text-gray-400'>Бренд:</span>
 											<span className='font-medium'>{viewComponent.brand}</span>
 										</div>
 
 										<div className='flex justify-between py-2 border-b border-gray-700'>
-											<span className='text-gray-400'>Category:</span>
+											<span className='text-gray-400'>Категория:</span>
 											<span className='font-medium'>
 												{getCategoryName(viewComponent.category_id)}
 											</span>
@@ -979,7 +978,7 @@ const ComponentsPage = () => {
 										</div>
 
 										<div className='flex justify-between py-2 border-b border-gray-700'>
-											<span className='text-gray-400'>Created:</span>
+											<span className='text-gray-400'>Создано:</span>
 											<span className='font-medium'>
 												{new Date(
 													viewComponent.created_at
@@ -988,7 +987,7 @@ const ComponentsPage = () => {
 										</div>
 
 										<div className='flex justify-between py-2 border-b border-gray-700'>
-											<span className='text-gray-400'>Visibility:</span>
+											<span className='text-gray-400'>Видимость:</span>
 											<span
 												className={`font-medium ${
 													viewComponent.hidden
@@ -996,7 +995,7 @@ const ComponentsPage = () => {
 														: 'text-green-400'
 												}`}
 											>
-												{viewComponent.hidden ? 'Hidden' : 'Visible'}
+												{viewComponent.hidden ? 'Скрыто' : 'Видимо'}
 											</span>
 										</div>
 									</div>
@@ -1009,12 +1008,12 @@ const ComponentsPage = () => {
 											}}
 											className='px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors'
 										>
-											Delete
+											Удалить
 										</button>
 
 										<Link href={`/admin/edit-component/${viewComponent.id}`}>
 											<button className='px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors'>
-												Edit
+												Редактировать
 											</button>
 										</Link>
 
@@ -1022,7 +1021,7 @@ const ComponentsPage = () => {
 											onClick={() => setViewModalOpen(false)}
 											className='px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors'
 										>
-											Close
+											Закрыть
 										</button>
 									</div>
 								</div>
@@ -1042,18 +1041,18 @@ const ComponentsPage = () => {
 							</div>
 						</div>
 						<h3 className='text-xl font-bold text-white text-center mb-2'>
-							Confirm Deletion
+							Подтверждение удаления
 						</h3>
 						<p className='text-gray-300 text-center mb-6'>
-							Are you sure you want to delete this component? This action cannot
-							be undone.
+							Вы уверены, что хотите удалить это комплектующее? Это действие
+							необратимо.
 						</p>
 						<div className='flex justify-center space-x-4'>
 							<button
 								onClick={() => setDeleteModalOpen(false)}
 								className='px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600'
 							>
-								Cancel
+								Отмена
 							</button>
 							<button
 								onClick={() =>
@@ -1061,7 +1060,7 @@ const ComponentsPage = () => {
 								}
 								className='px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700'
 							>
-								Delete
+								Удалить
 							</button>
 						</div>
 					</div>

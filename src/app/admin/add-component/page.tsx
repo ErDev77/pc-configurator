@@ -213,7 +213,7 @@ export default function AddComponentPage() {
 		try {
 			// Validate required fields first
 			if (!componentData.name) {
-				toast.error('Пожалуйста, введите название продукта')
+				toast.error('Пожалуйста, введите название комплектующего')
 				return
 			}
 
@@ -223,13 +223,15 @@ export default function AddComponentPage() {
 			}
 
 			if (!file && !savedComponentId) {
-				toast.error('Пожалуйста, загрузите изображение продукта')
+				toast.error('Пожалуйста, загрузите изображение комплектующего')
 				return
 			}
 
 			// Show loading toast
 			const loadingToastId = toast.loading(
-				savedComponentId ? 'Обновление продукта...' : 'Создание продукта...'
+				savedComponentId
+					? 'Обновление комплектующего...'
+					: 'Создание комплектующего...'
 			)
 
 			// Upload image only if we have a new file
@@ -300,7 +302,7 @@ export default function AddComponentPage() {
 			// Check if response is successful
 			if (!response.ok) {
 				throw new Error(
-					responseData.message || 'Ошибка при сохранении продукта'
+					responseData.message || 'Ошибка при сохранении комплектующего'
 				)
 			}
 
@@ -309,20 +311,20 @@ export default function AddComponentPage() {
 				setSavedComponentId(responseData.id)
 				setShowCompatibility(true)
 				toast.success(
-					'Продукт успешно создан! Теперь вы можете добавить совместимости.'
+					'Комплектующее успешно создано! Теперь вы можете добавить совместимости.'
 				)
 			} else {
-				toast.success('Продукт успешно обновлен!')
+				toast.success('Комплектующее успешно обновлено!')
 			}
 
 			// Clear file selection since it's already uploaded
 			setFile(null)
 		} catch (error) {
-			console.error('Ошибка при добавлении продукта:', error)
+			console.error('Ошибка при добавлении комплектующего:', error)
 			toast.error(
 				error instanceof Error
 					? error.message
-					: 'Ошибка при добавлении продукта!'
+					: 'Ошибка при добавлении комплектующего!'
 			)
 		}
 	}
@@ -380,7 +382,9 @@ export default function AddComponentPage() {
 							d='M12 6v6m0 0v6m0-6h6m-6 0H6'
 						/>
 					</svg>
-					{savedComponentId ? 'Редактирование продукта' : 'Добавление продукта'}
+					{savedComponentId
+						? 'Редактирование комплектующего'
+						: 'Добавление комплектующего'}
 				</h1>
 
 				{/* Tabs */}
@@ -483,7 +487,7 @@ export default function AddComponentPage() {
 												d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
 											/>
 										</svg>
-										Название продукта:
+										Название комплектующего:
 									</label>
 									<input
 										type='text'
@@ -582,7 +586,7 @@ export default function AddComponentPage() {
 												d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'
 											/>
 										</svg>
-										Изображение продукта:
+										Изображение комплектующее:
 									</label>
 									<div
 										{...getRootProps()}
@@ -810,8 +814,8 @@ export default function AddComponentPage() {
 										Сначала сохраните компонент
 									</h3>
 									<p className='text-gray-400'>
-										После создания продукта вы сможете добавить информацию о
-										совместимости с другими компонентами
+										После создания комплектующего вы сможете добавить информацию
+										о совместимости с другими комплектующими
 									</p>
 								</div>
 							</div>
