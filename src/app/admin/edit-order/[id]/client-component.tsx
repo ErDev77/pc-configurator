@@ -64,7 +64,7 @@ const formatCurrency = (amount: any) => {
 	const numberAmount = ensureNumberPrice(amount)
 	return new Intl.NumberFormat('ru-RU', {
 		style: 'currency',
-		currency: 'RUB',
+		currency: 'USD',
 		maximumFractionDigits: 0,
 	}).format(numberAmount)
 }
@@ -348,7 +348,7 @@ export default function EditOrderClient({
 							<ArrowLeft size={20} />
 						</button>
 						<div>
-							<h1 className='text-2xl font-bold text-white'>Edit Order</h1>
+							<h1 className='text-2xl font-bold text-white'>Редактировать заказ</h1>
 							<p className='text-gray-400'>{order.generated_order_number}</p>
 						</div>
 					</div>
@@ -359,7 +359,7 @@ export default function EditOrderClient({
 							className='flex items-center gap-2 bg-red-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-red-700'
 						>
 							<Trash2 size={16} />
-							Delete
+							Удалить
 						</button>
 
 						<button
@@ -376,7 +376,7 @@ export default function EditOrderClient({
 							) : (
 								<Save size={16} />
 							)}
-							<span>{saving ? 'Saving...' : 'Save Changes'}</span>
+							<span>{saving ? 'Сохранение...' : 'Сохранить изменения'}</span>
 						</button>
 					</div>
 				</div>
@@ -388,7 +388,7 @@ export default function EditOrderClient({
 						<div className='bg-[#202529] rounded-lg shadow-md overflow-hidden mb-6'>
 							<div className='p-5 border-b border-gray-700'>
 								<h2 className='text-lg font-semibold text-white'>
-									Order Information
+									Информация о заказе
 								</h2>
 							</div>
 
@@ -396,7 +396,7 @@ export default function EditOrderClient({
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											Order Number
+											Номер заказа
 										</label>
 										<input
 											type='text'
@@ -408,7 +408,7 @@ export default function EditOrderClient({
 
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											Date Placed
+											Дата размещения
 										</label>
 										<input
 											type='text'
@@ -421,24 +421,24 @@ export default function EditOrderClient({
 
 								<div>
 									<label className='block text-sm font-medium text-gray-400 mb-2'>
-										Status
+										Статус
 									</label>
 									<select
 										value={order.status}
 										onChange={e => handleChange('status', e.target.value)}
 										className='w-full bg-[#2A2F35] border border-gray-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 									>
-										<option value='pending'>Pending</option>
-										<option value='processing'>Processing</option>
-										<option value='shipped'>Shipped</option>
-										<option value='delivered'>Delivered</option>
-										<option value='cancelled'>Cancelled</option>
+										<option value='pending'>В ожидании</option>
+										<option value='processing'>В обработке</option>
+										<option value='shipped'>Отправлено</option>
+										<option value='delivered'>Доставлено</option>
+										<option value='cancelled'>Отменено</option>
 									</select>
 								</div>
 
 								<div>
 									<label className='block text-sm font-medium text-gray-400 mb-2'>
-										Payment Method
+										Способ оплаты
 									</label>
 									<input
 										type='text'
@@ -456,7 +456,7 @@ export default function EditOrderClient({
 						<div className='bg-[#202529] rounded-lg shadow-md overflow-hidden mb-6'>
 							<div className='p-5 border-b border-gray-700'>
 								<h2 className='text-lg font-semibold text-white'>
-									Customer Information
+									Информация о клиенте
 								</h2>
 							</div>
 
@@ -464,7 +464,7 @@ export default function EditOrderClient({
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											First Name
+											Имя
 										</label>
 										<input
 											type='text'
@@ -478,7 +478,7 @@ export default function EditOrderClient({
 
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											Last Name
+											Фамилия
 										</label>
 										<input
 											type='text'
@@ -508,7 +508,7 @@ export default function EditOrderClient({
 
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											Phone
+											Телефон
 										</label>
 										<input
 											type='text'
@@ -527,14 +527,14 @@ export default function EditOrderClient({
 						<div className='bg-[#202529] rounded-lg shadow-md overflow-hidden mb-6'>
 							<div className='p-5 border-b border-gray-700'>
 								<h2 className='text-lg font-semibold text-white'>
-									Shipping Address
+									Адрес доставки
 								</h2>
 							</div>
 
 							<div className='p-5 space-y-5'>
 								<div>
 									<label className='block text-sm font-medium text-gray-400 mb-2'>
-										Street Address
+										Улица
 									</label>
 									<input
 										type='text'
@@ -549,7 +549,7 @@ export default function EditOrderClient({
 								<div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											City
+											Город
 										</label>
 										<input
 											type='text'
@@ -563,7 +563,7 @@ export default function EditOrderClient({
 
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											State
+											Штат
 										</label>
 										<input
 											type='text'
@@ -577,7 +577,7 @@ export default function EditOrderClient({
 
 									<div>
 										<label className='block text-sm font-medium text-gray-400 mb-2'>
-											Zip Code
+											Почтовый индекс
 										</label>
 										<input
 											type='text'
@@ -592,7 +592,7 @@ export default function EditOrderClient({
 
 								<div>
 									<label className='block text-sm font-medium text-gray-400 mb-2'>
-										Country
+										Страна
 									</label>
 									<input
 										type='text'
@@ -613,35 +613,35 @@ export default function EditOrderClient({
 						<div className='bg-[#202529] rounded-lg shadow-md overflow-hidden mb-6'>
 							<div className='p-5 border-b border-gray-700'>
 								<h2 className='text-lg font-semibold text-white'>
-									Order Summary
+									Сводка заказа
 								</h2>
 							</div>
 
 							<div className='p-5'>
 								<div className='space-y-4'>
 									<div className='flex justify-between'>
-										<span className='text-gray-400'>Subtotal:</span>
+										<span className='text-gray-400'>Промежуточный итог:</span>
 										<span className='text-gray-200'>
 											{formatCurrency(order.subtotal)}
 										</span>
 									</div>
 
 									<div className='flex justify-between'>
-										<span className='text-gray-400'>Shipping:</span>
+										<span className='text-gray-400'>Доставка:</span>
 										<span className='text-gray-200'>
 											{formatCurrency(order.shipping_cost)}
 										</span>
 									</div>
 
 									<div className='flex justify-between'>
-										<span className='text-gray-400'>Tax:</span>
+										<span className='text-gray-400'>Налог:</span>
 										<span className='text-gray-200'>
 											{formatCurrency(order.tax)}
 										</span>
 									</div>
 
 									<div className='pt-4 border-t border-gray-700 flex justify-between font-bold'>
-										<span className='text-white'>Total:</span>
+										<span className='text-white'>Итого:</span>
 										<span className='text-green-400'>
 											{formatCurrency(order.total)}
 										</span>
@@ -654,7 +654,7 @@ export default function EditOrderClient({
 						<div className='bg-[#202529] rounded-lg shadow-md overflow-hidden'>
 							<div className='p-5 border-b border-gray-700'>
 								<h2 className='text-lg font-semibold text-white'>
-									Order Items
+									Товары в заказе
 								</h2>
 							</div>
 
@@ -669,7 +669,7 @@ export default function EditOrderClient({
 												<div>
 													<p className='font-medium text-white'>{item.name}</p>
 													<p className='text-sm text-gray-400'>
-														Qty: {item.quantity} × {formatCurrency(item.price)}
+														Количество: {item.quantity} × {formatCurrency(item.price)}
 													</p>
 												</div>
 												<span className='font-medium text-white'>
@@ -682,7 +682,7 @@ export default function EditOrderClient({
 									<div className='flex flex-col items-center justify-center p-8 text-center'>
 										<Info size={36} className='text-gray-500 mb-3' />
 										<p className='text-gray-400'>
-											No items found for this order
+											Нет товаров для этого заказа
 										</p>
 									</div>
 								)}
@@ -702,24 +702,24 @@ export default function EditOrderClient({
 							</div>
 						</div>
 						<h3 className='text-xl font-bold text-white text-center mb-2'>
-							Confirm Deletion
+							Подтвердите удаление
 						</h3>
 						<p className='text-gray-300 text-center mb-6'>
-							Are you sure you want to delete this order? This action cannot be
-							undone.
+							Вы уверены, что хотите удалить этот заказ? Это действие нельзя
+							отменить.
 						</p>
 						<div className='flex justify-center space-x-4'>
 							<button
 								onClick={() => setConfirmDeleteOpen(false)}
 								className='px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600'
 							>
-								Cancel
+								Отмена
 							</button>
 							<button
 								onClick={handleDelete}
 								className='px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700'
 							>
-								Delete
+								Удалить
 							</button>
 						</div>
 					</div>

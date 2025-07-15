@@ -366,7 +366,7 @@ export default function FavoritesPage() {
 	const formatPrice = (price: number) => {
 		return new Intl.NumberFormat('ru-RU', {
 			style: 'currency',
-			currency: 'RUB',
+			currency: 'USD',
 			maximumFractionDigits: 0,
 		}).format(price)
 	}
@@ -569,7 +569,7 @@ export default function FavoritesPage() {
 					<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6'>
 						<div className='flex items-center'>
 							<Star className='w-8 h-8 text-yellow-400 mr-3' />
-							<h1 className='text-3xl font-bold text-white'>My Favorites</h1>
+							<h1 className='text-3xl font-bold text-white'>Избранное</h1>
 						</div>
 
 						<div className='flex items-center gap-2'>
@@ -578,7 +578,7 @@ export default function FavoritesPage() {
 								className='flex items-center px-4 py-2 bg-gray-800 border border-gray-700 text-gray-200 rounded-lg hover:bg-gray-700 transition-colors'
 							>
 								<Filter className='w-5 h-5 mr-2' />
-								Filters
+								Фильтры
 								{showFilters ? (
 									<ChevronUp className='ml-2 w-4 h-4' />
 								) : (
@@ -599,7 +599,7 @@ export default function FavoritesPage() {
 							}`}
 						>
 							<PcCase className='w-5 h-5 mr-2' />
-							Configurations
+							Конфигурации
 							{configurations.length > 0 && (
 								<span className='ml-2 bg-blue-900 text-blue-200 text-xs rounded-full px-2 py-0.5'>
 									{configurations.length}
@@ -616,7 +616,7 @@ export default function FavoritesPage() {
 							}`}
 						>
 							<Cpu className='w-5 h-5 mr-2' />
-							Components
+							Комплектующие
 							{components.length > 0 && (
 								<span className='ml-2 bg-blue-900 text-blue-200 text-xs rounded-full px-2 py-0.5'>
 									{components.length}
@@ -633,7 +633,7 @@ export default function FavoritesPage() {
 							}`}
 						>
 							<ShoppingCart className='w-5 h-5 mr-2' />
-							Orders
+							Заказы
 							{orders.length > 0 && (
 								<span className='ml-2 bg-blue-900 text-blue-200 text-xs rounded-full px-2 py-0.5'>
 									{orders.length}
@@ -653,7 +653,7 @@ export default function FavoritesPage() {
 									/>
 									<input
 										type='text'
-										placeholder={`Search ${activeTab}...`}
+										placeholder={`Искать ${activeTab}...`}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
 										className='pl-10 p-2 bg-gray-700 border border-gray-600 text-white rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none'
@@ -663,14 +663,14 @@ export default function FavoritesPage() {
 								<div className='flex gap-2'>
 									<input
 										type='number'
-										placeholder='Min price'
+										placeholder='Мин цена'
 										value={minPrice}
 										onChange={e => setMinPrice(e.target.value)}
 										className='p-2 bg-gray-700 border border-gray-600 text-white rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none'
 									/>
 									<input
 										type='number'
-										placeholder='Max price'
+										placeholder='Макс цена'
 										value={maxPrice}
 										onChange={e => setMaxPrice(e.target.value)}
 										className='p-2 bg-gray-700 border border-gray-600 text-white rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none'
@@ -683,7 +683,7 @@ export default function FavoritesPage() {
 										className='ml-auto flex items-center text-gray-400 hover:text-gray-200'
 									>
 										<X className='w-4 h-4 mr-1' />
-										Reset Filters
+										Сбросить фильтры
 									</button>
 								</div>
 							</div>
@@ -693,12 +693,12 @@ export default function FavoritesPage() {
 					{/* Sort Controls */}
 					<div className='flex justify-between items-center mb-6'>
 						<div className='text-gray-400'>
-							Showing {getFilteredItems().length} of {getTotalCount()} favorited{' '}
-							{activeTab}
+							Показано {getFilteredItems().length} из {getTotalCount()}{' '}
+							избранных {activeTab}
 						</div>
 
 						<div className='flex items-center gap-4'>
-							<span className='text-gray-400'>Sort by:</span>
+							<span className='text-gray-400'>Сортировать по:</span>
 							<button
 								onClick={() => toggleSort('name')}
 								className={`flex items-center ${
@@ -707,7 +707,9 @@ export default function FavoritesPage() {
 										: 'text-gray-400'
 								}`}
 							>
-								<span>{activeTab === 'orders' ? 'Order #' : 'Name'}</span>
+								<span>
+									{activeTab === 'orders' ? 'Номер заказа' : 'Название'}
+								</span>
 								{sortBy === 'name' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -724,7 +726,7 @@ export default function FavoritesPage() {
 										: 'text-gray-400'
 								}`}
 							>
-								<span>{activeTab === 'orders' ? 'Amount' : 'Price'}</span>
+								<span>{activeTab === 'orders' ? 'Сумма' : 'Цена'}</span>
 								{sortBy === 'price' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -741,7 +743,7 @@ export default function FavoritesPage() {
 										: 'text-gray-400'
 								}`}
 							>
-								<span>Date</span>
+								<span>Дата</span>
 								{sortBy === 'date' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />
@@ -761,19 +763,19 @@ export default function FavoritesPage() {
 							<div className='flex flex-col items-center'>
 								<StarOff className='h-12 w-12 text-gray-500 mb-4' />
 								<h3 className='text-xl font-semibold text-white mb-2'>
-									No favorited {activeTab} found
+									Не найдено избранных {activeTab}
 								</h3>
 								<p className='text-gray-400 mb-6'>
 									{searchQuery || minPrice || maxPrice
-										? 'Try adjusting your search filters'
-										: `You haven't added any ${activeTab} to your favorites yet`}
+										? 'Попробуйте настроить фильтры поиска.'
+										: `Вы еще не добавили ни одного ${activeTab} в избранное`}
 								</p>
 								{searchQuery || minPrice || maxPrice ? (
 									<button
 										onClick={resetFilters}
 										className='px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors'
 									>
-										Reset Filters
+										Сбросить фильтры
 									</button>
 								) : (
 									<Link
@@ -781,12 +783,12 @@ export default function FavoritesPage() {
 											activeTab === 'configurations'
 												? '/admin/configurations'
 												: activeTab === 'components'
-												? '/admin/products'
+												? '/admin/components'
 												: '/admin/orders'
 										}
 										className='px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center'
 									>
-										<span>Browse {activeTab}</span>
+										<span>Просмотреть {activeTab}</span>
 										<ChevronRight className='ml-1 w-5 h-5' />
 									</Link>
 								)}
@@ -845,7 +847,7 @@ export default function FavoritesPage() {
 								<div className='flex items-center gap-2 self-end sm:self-center'>
 									<Link href={`/config/${config.id}`}>
 										<button className='flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'>
-											<Eye className='w-4 h-4 mr-2' /> View
+											<Eye className='w-4 h-4 mr-2' /> Посмотреть
 										</button>
 									</Link>
 
@@ -868,7 +870,7 @@ export default function FavoritesPage() {
 											</>
 										) : (
 											<>
-												<Trash2 className='w-4 h-4 mr-2' /> Remove
+												<Trash2 className='w-4 h-4 mr-2' /> Удалить
 											</>
 										)}
 									</button>
@@ -899,7 +901,7 @@ export default function FavoritesPage() {
 											</span>
 											<Clock className='w-4 h-4 mr-1' />
 											<span>
-												Added:{' '}
+												Добавлено:{' '}
 												{new Date(component.created_at).toLocaleDateString()}
 											</span>
 											<DollarSign className='w-4 h-4 ml-4 mr-1' />
@@ -909,15 +911,15 @@ export default function FavoritesPage() {
 										</div>
 
 										<p className='text-gray-400 mt-2'>
-											Brand: {component.brand}
+											Бренд: {component.brand}
 										</p>
 									</div>
 								</div>
 
 								<div className='flex items-center gap-2 self-end sm:self-center'>
-									<Link href={`/product/${component.id}`}>
+									<Link href={`/components/${component.id}`}>
 										<button className='flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'>
-											<Eye className='w-4 h-4 mr-2' /> View
+											<Eye className='w-4 h-4 mr-2' /> Посмотреть
 										</button>
 									</Link>
 
@@ -940,7 +942,7 @@ export default function FavoritesPage() {
 											</>
 										) : (
 											<>
-												<Trash2 className='w-4 h-4 mr-2' /> Remove
+												<Trash2 className='w-4 h-4 mr-2' /> Удалить
 											</>
 										)}
 									</button>
@@ -1005,7 +1007,7 @@ export default function FavoritesPage() {
 									<div className='flex items-center gap-2 self-end sm:self-center mt-4 sm:mt-0'>
 										<Link href={`/order/${order.id}`}>
 											<button className='flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'>
-												<Eye className='w-4 h-4 mr-2' /> View
+												<Eye className='w-4 h-4 mr-2' /> Посмотреть
 											</button>
 										</Link>
 
@@ -1028,7 +1030,7 @@ export default function FavoritesPage() {
 												</>
 											) : (
 												<>
-													<Trash2 className='w-4 h-4 mr-2' /> Remove
+													<Trash2 className='w-4 h-4 mr-2' /> Удалить
 												</>
 											)}
 										</button>
@@ -1039,7 +1041,7 @@ export default function FavoritesPage() {
 								{order.items && order.items.length > 0 && (
 									<div className='mt-2 border-t border-gray-700 pt-3'>
 										<h3 className='text-sm font-medium text-gray-400 mb-2'>
-											Order Items
+											Товары в заказе
 										</h3>
 										<div className='space-y-2'>
 											{order.items.map((item, itemIndex) => (

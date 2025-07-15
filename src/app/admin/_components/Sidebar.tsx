@@ -89,55 +89,55 @@ const Sidebar = () => {
 	// Navigation links grouped by category
 	const navigationLinks = [
 		{
-			category: 'Dashboard',
+			category: 'Панель управления',
 			links: [
 				{
-					name: 'Overview',
+					name: 'Главная',
 					icon: <Home className='w-5 h-5' />,
 					href: '/admin/dashboard',
 				},
 				{
-					name: 'Favorites',
+					name: 'Избранное',
 					icon: <Star className='w-5 h-5' />,
 					href: '/admin/favorites',
 				},
 			],
 		},
 		{
-			category: 'Products',
+			category: 'Продукты',
 			links: [
 				{
-					name: 'Components',
+					name: 'Компоненты',
 					icon: <Cpu className='w-5 h-5' />,
 					href: '/admin/components',
 				},
 				{
-					name: 'Configurations',
+					name: 'Конфигурации',
 					icon: <PcCase className='w-5 h-5' />,
 					href: '/admin/configurations',
 				},
 				{
-					name: 'Categories',
+					name: 'Категории',
 					icon: <Layers className='w-5 h-5' />,
 					href: '/admin/categories',
 				},
 			],
 		},
 		{
-			category: 'Orders',
+			category: 'Заказы',
 			links: [
 				{
-					name: 'Manage Orders',
+					name: 'Управление заказами',
 					icon: <ShoppingCart className='w-5 h-5' />,
 					href: '/admin/orders',
 				},
 			],
 		},
 		{
-			category: 'System',
+			category: 'Система',
 			links: [
 				{
-					name: 'Settings',
+					name: 'Настройки',
 					icon: <Settings className='w-5 h-5' />,
 					href: '/admin/settings',
 				},
@@ -267,7 +267,7 @@ const Sidebar = () => {
 									className='flex items-center w-full py-2 px-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors'
 								>
 									<LogOut size={20} />
-									<span className='ml-3'>Log Out</span>
+									<span className='ml-3'>Выйти</span>
 								</button>
 							</div>
 						) : (

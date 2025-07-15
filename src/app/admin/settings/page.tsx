@@ -158,45 +158,39 @@ export default function SettingsPage() {
 	const sections: SettingsSection[] = [
 		{
 			id: 'account',
-			title: 'Account Settings',
+			title: 'Настройки учетной записи',
 			icon: <User size={20} />,
-			description: 'Manage your account information and security settings',
+			description: 'Управляйте информацией учетной записи',
 		},
 		{
 			id: 'notifications',
-			title: 'Notifications',
+			title: 'Уведомления',
 			icon: <Bell size={20} />,
-			description: 'Configure how and when you receive notifications',
+			description: 'Настройте уведомления',
 		},
 		{
 			id: 'appearance',
-			title: 'Appearance',
+			title: 'Внешний вид',
 			icon: <Palette size={20} />,
-			description: 'Customize the look and feel of the admin dashboard',
+			description: 'Настройте внешний вид',
 		},
 		{
 			id: 'store',
-			title: 'Store Settings',
+			title: 'Настройки магазина',
 			icon: <Globe size={20} />,
-			description: 'Configure global store settings and preferences',
+			description: 'Настройте глобальные параметры магазина',
 		},
 		{
 			id: 'security',
-			title: 'Security',
+			title: 'Безопасность',
 			icon: <Shield size={20} />,
-			description: 'Manage security settings and permissions',
-		},
-		{
-			id: 'integrations',
-			title: 'Integrations',
-			icon: <FileJson size={20} />,
-			description: 'Manage API keys and third-party integrations',
+			description: 'Управляйте параметрами безопасности',
 		},
 		{
 			id: 'system',
-			title: 'System',
+			title: 'Система',
 			icon: <Database size={20} />,
-			description: 'View system information and manage backups',
+			description: 'Просмотр информации о системе',
 		},
 	]
 	useEffect(() => {
@@ -312,9 +306,9 @@ export default function SettingsPage() {
 
 				<div className='flex justify-between items-center mb-8'>
 					<div>
-						<h1 className='text-3xl font-bold text-white'>Settings</h1>
+						<h1 className='text-3xl font-bold text-white'>Настройки</h1>
 						<p className='text-gray-400'>
-							Manage your account and system preferences
+							Управление вашей учетной записью и системными предпочтениями
 						</p>
 					</div>
 					<button
@@ -331,7 +325,7 @@ export default function SettingsPage() {
 						) : (
 							<Save size={18} />
 						)}
-						<span>{saving ? 'Saving...' : 'Save Changes'}</span>
+						<span>{saving ? 'Сохранение...' : 'Сохранить изменения'}</span>
 					</button>
 				</div>
 
@@ -359,26 +353,6 @@ export default function SettingsPage() {
 								</button>
 							))}
 						</nav>
-
-						<div className='p-4 bg-blue-600/10 border-t border-blue-600/20 mt-2'>
-							<div className='flex items-center gap-3'>
-								<div className='p-2 bg-blue-600/20 rounded-full'>
-									<LifeBuoy size={18} className='text-blue-400' />
-								</div>
-								<div>
-									<h3 className='text-sm font-medium text-white'>Need help?</h3>
-									<p className='text-xs text-gray-400'>
-										Check our documentation
-									</p>
-								</div>
-							</div>
-							<button
-								onClick={() => router.push('/admin/help')}
-								className='mt-3 w-full py-2 px-3 bg-[#2a2f35] hover:bg-[#353a42] text-blue-400 rounded-lg text-sm transition-colors'
-							>
-								View Documentation
-							</button>
-						</div>
 					</div>
 
 					{/* Settings Content */}
@@ -388,17 +362,18 @@ export default function SettingsPage() {
 							<div className='space-y-8'>
 								<div className='pb-5 border-b border-gray-700'>
 									<h2 className='text-xl font-bold text-white mb-1'>
-										Account Settings
+										Настройки учетной записи
 									</h2>
 									<p className='text-gray-400 text-sm'>
-										Manage your personal information and account security
+										Управление вашей личной информацией и безопасностью учетной
+										записи
 									</p>
 								</div>
 
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Full Name
+											Полное имя
 										</label>
 										<input
 											type='text'
@@ -415,7 +390,7 @@ export default function SettingsPage() {
 
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Email Address
+											Электронная почта
 										</label>
 										<input
 											type='email'
@@ -438,16 +413,16 @@ export default function SettingsPage() {
 							<div className='space-y-8'>
 								<div className='pb-5 border-b border-gray-700'>
 									<h2 className='text-xl font-bold text-white mb-1'>
-										Notification Settings
+										Настройки уведомлений
 									</h2>
 									<p className='text-gray-400 text-sm'>
-										Control when and how you receive notifications
+										Управление тем, когда и как вы получаете уведомления
 									</p>
 								</div>
 
 								<div>
 									<h3 className='text-lg font-medium text-white mb-4'>
-										Notification Channels
+										Каналы уведомлений
 									</h3>
 
 									<div className='space-y-4'>
@@ -458,10 +433,10 @@ export default function SettingsPage() {
 												</div>
 												<div>
 													<p className='font-medium text-white'>
-														Email Notifications
+														Уведомления по электронной почте
 													</p>
 													<p className='text-sm text-gray-400'>
-														Receive notifications via email
+														Получать уведомления по электронной почте
 													</p>
 												</div>
 											</div>
@@ -488,10 +463,10 @@ export default function SettingsPage() {
 												</div>
 												<div>
 													<p className='font-medium text-white'>
-														Telegram Notifications
+														Уведомления Telegram
 													</p>
 													<p className='text-sm text-gray-400'>
-														Receive notifications via telegram
+														Получать уведомления через Telegram
 													</p>
 												</div>
 											</div>
@@ -518,10 +493,10 @@ export default function SettingsPage() {
 												</div>
 												<div>
 													<p className='font-medium text-white'>
-														Browser Notifications
+														Уведомления в браузере
 													</p>
 													<p className='text-sm text-gray-400'>
-														Receive notifications in browser
+														Получать уведомления в браузере
 													</p>
 												</div>
 											</div>
@@ -544,7 +519,7 @@ export default function SettingsPage() {
 
 								<div className='pt-4 border-t border-gray-700'>
 									<h3 className='text-lg font-medium text-white mb-4'>
-										Notification Types
+										Типы уведомлений
 									</h3>
 
 									<div className='space-y-4'>
@@ -555,10 +530,10 @@ export default function SettingsPage() {
 												</div>
 												<div>
 													<p className='font-medium text-white'>
-														Order Notifications
+														Уведомления о заказах
 													</p>
 													<p className='text-sm text-gray-400'>
-														Notify about new orders and status changes
+														Уведомлять о новых заказах и изменениях статуса
 													</p>
 												</div>
 											</div>
@@ -581,9 +556,11 @@ export default function SettingsPage() {
 													<AlertCircle size={18} className='text-yellow-400' />
 												</div>
 												<div>
-													<p className='font-medium text-white'>Stock Alerts</p>
+													<p className='font-medium text-white'>
+														Уведомления о запасах
+													</p>
 													<p className='text-sm text-gray-400'>
-														Notify about low inventory levels
+														Уведомлять о низком уровне запасов
 													</p>
 												</div>
 											</div>
@@ -606,7 +583,7 @@ export default function SettingsPage() {
 								{browserNotificationsEnabled && (
 									<div className='pt-4 border-t border-gray-700'>
 										<h3 className='text-lg font-medium text-white mb-4'>
-											Browser Notification Permissions
+											Разрешения на уведомления в браузере
 										</h3>
 
 										<div className='p-4 bg-[#2a2f35] rounded-lg'>
@@ -616,11 +593,12 @@ export default function SettingsPage() {
 												</div>
 												<div>
 													<p className='font-medium text-white mb-2'>
-														Allow browser notifications
+														Разрешить уведомления в браузере
 													</p>
 													<p className='text-sm text-gray-400 mb-4'>
-														To receive real-time notifications in your browser,
-														you need to grant permission.
+														Чтобы получать уведомления в реальном времени в
+														вашем браузере, вам необходимо предоставить
+														разрешение.
 													</p>
 
 													<button
@@ -682,16 +660,16 @@ export default function SettingsPage() {
 							<div className='space-y-8'>
 								<div className='pb-5 border-b border-[color:var(--border-color)]'>
 									<h2 className='text-xl font-bold text-[color:var(--text-primary)] mb-1'>
-										Appearance Settings
+										Настройки внешнего вида
 									</h2>
 									<p className='text-[color:var(--text-secondary)] text-sm'>
-										Customize how the admin panel looks
+										Настройте внешний вид панели администратора
 									</p>
 								</div>
 
 								<div>
 									<h3 className='text-lg font-medium text-[color:var(--text-primary)] mb-4'>
-										Theme
+										Темы
 									</h3>
 
 									<div className='flex gap-4'>
@@ -715,7 +693,7 @@ export default function SettingsPage() {
 													}`}
 												></div>
 												<span className='text-[color:var(--text-primary)]'>
-													Dark Mode
+													Темная тема
 												</span>
 											</div>
 										</div>
@@ -740,7 +718,7 @@ export default function SettingsPage() {
 													}`}
 												></div>
 												<span className='text-[color:var(--text-primary)]'>
-													Light Mode
+													Светлая тема
 												</span>
 											</div>
 										</div>
@@ -749,7 +727,7 @@ export default function SettingsPage() {
 
 								<div className='pt-4 border-t border-[color:var(--border-color)]'>
 									<h3 className='text-lg font-medium text-[color:var(--text-primary)] mb-4'>
-										Language
+										Язык
 									</h3>
 
 									<div className='max-w-md'>
@@ -759,11 +737,11 @@ export default function SettingsPage() {
 											className='w-full bg-[color:var(--bg-tertiary)] border border-[color:var(--border-color)] rounded-lg px-4 py-2 text-[color:var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500'
 										>
 											<option value='en'>English</option>
-											<option value='ru'>Russian</option>
-											<option value='am'>Armenian</option>
-											<option value='es'>Spanish</option>
-											<option value='fr'>French</option>
-											<option value='de'>German</option>
+											<option value='ru'>Русский</option>
+											<option value='am'>Հայերեն</option>
+											<option value='es'>Español</option>
+											<option value='fr'>Français</option>
+											<option value='de'>Deutsch</option>
 										</select>
 									</div>
 								</div>
@@ -775,17 +753,17 @@ export default function SettingsPage() {
 							<div className='space-y-8'>
 								<div className='pb-5 border-b border-gray-700'>
 									<h2 className='text-xl font-bold text-white mb-1'>
-										Store Settings
+										Настройки магазина
 									</h2>
 									<p className='text-gray-400 text-sm'>
-										Configure your online store
+										Настройте свой интернет-магазин
 									</p>
 								</div>
 
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Store Name
+											Название магазина
 										</label>
 										<input
 											type='text'
@@ -802,7 +780,7 @@ export default function SettingsPage() {
 
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Store Email
+											Email магазина
 										</label>
 										<input
 											type='email'
@@ -819,7 +797,7 @@ export default function SettingsPage() {
 
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Currency
+											Валюта
 										</label>
 										<select
 											value={storeSettings.storeCurrency}
@@ -831,17 +809,17 @@ export default function SettingsPage() {
 											}
 											className='w-full bg-[#2a2f35] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
 										>
-											<option value='USD'>USD - US Dollar</option>
-											<option value='EUR'>EUR - Euro</option>
-											<option value='GBP'>GBP - British Pound</option>
-											<option value='CAD'>CAD - Canadian Dollar</option>
-											<option value='AUD'>AUD - Australian Dollar</option>
+											<option value='USD'>USD - Доллар США</option>
+											<option value='EUR'>EUR - Евро</option>
+											<option value='GBP'>GBP - Британский фунт</option>
+											<option value='CAD'>CAD - Канадский доллар</option>
+											<option value='AUD'>AUD - Австралийский доллар</option>
 										</select>
 									</div>
 
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Tax Rate (%)
+											Налоговая ставка (%)
 										</label>
 										<input
 											type='number'
@@ -861,7 +839,7 @@ export default function SettingsPage() {
 
 									<div>
 										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Order Number Prefix
+											Префикс номера заказа
 										</label>
 										<input
 											type='text'
@@ -882,162 +860,53 @@ export default function SettingsPage() {
 						{/* Security Settings */}
 						{activeSection === 'security' && <SecuritySettings />}
 
-						{/* Integrations Settings */}
-						{activeSection === 'integrations' && (
-							<div className='space-y-8'>
-								<div className='pb-5 border-b border-gray-700'>
-									<h2 className='text-xl font-bold text-white mb-1'>
-										Integrations
-									</h2>
-									<p className='text-gray-400 text-sm'>
-										Manage API keys and third-party services
-									</p>
-								</div>
-
-								<div>
-									<h3 className='text-lg font-medium text-white mb-4'>
-										API Access
-									</h3>
-
-									<div className='bg-[#2a2f35] rounded-lg p-4 mb-6'>
-										<div className='flex justify-between items-center mb-2'>
-											<label className='text-sm font-medium text-gray-300'>
-												API Key
-											</label>
-											<button
-												onClick={regenerateApiKey}
-												className='text-xs text-blue-400 hover:text-blue-300'
-											>
-												Regenerate
-											</button>
-										</div>
-										<div className='flex'>
-											<input
-												type='text'
-												value={apiKey}
-												readOnly
-												className='flex-grow bg-[#171C1F] border border-gray-700 rounded-l-lg px-4 py-2 text-white focus:outline-none'
-											/>
-											<button
-												onClick={() => {
-													navigator.clipboard.writeText(apiKey)
-													toast.success('API key copied to clipboard!')
-												}}
-												className='bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-r-lg transition-colors'
-											>
-												Copy
-											</button>
-										</div>
-										<p className='text-xs text-gray-400 mt-2'>
-											This API key grants full access to your store. Keep it
-											secure and never share it publicly.
-										</p>
-									</div>
-
-									<h3 className='text-lg font-medium text-white mb-4'>
-										Payment Gateways
-									</h3>
-
-									<div className='space-y-4'>
-										<div className='flex items-center justify-between p-4 bg-[#2a2f35] rounded-lg'>
-											<div className='flex items-center gap-3'>
-												<div className='w-10 h-10 bg-white rounded-md flex items-center justify-center'>
-													<span className='text-blue-600 font-bold text-sm'>
-														Stripe
-													</span>
-												</div>
-												<div>
-													<p className='font-medium text-white'>Stripe</p>
-													<p className='text-sm text-gray-400'>
-														Accept credit card payments
-													</p>
-												</div>
-											</div>
-											<label className='relative inline-flex items-center cursor-pointer'>
-												<input
-													type='checkbox'
-													checked={true}
-													className='sr-only peer'
-												/>
-												<div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-											</label>
-										</div>
-
-										<div className='flex items-center justify-between p-4 bg-[#2a2f35] rounded-lg'>
-											<div className='flex items-center gap-3'>
-												<div className='w-10 h-10 bg-blue-600 rounded-md flex items-center justify-center'>
-													<span className='text-white font-bold text-sm'>
-														PP
-													</span>
-												</div>
-												<div>
-													<p className='font-medium text-white'>PayPal</p>
-													<p className='text-sm text-gray-400'>
-														Accept PayPal payments
-													</p>
-												</div>
-											</div>
-											<label className='relative inline-flex items-center cursor-pointer'>
-												<input
-													type='checkbox'
-													checked={true}
-													className='sr-only peer'
-												/>
-												<div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-											</label>
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
-
 						{/* System Settings */}
 						{activeSection === 'system' && (
 							<div className='space-y-8'>
 								<div className='pb-5 border-b border-gray-700'>
 									<h2 className='text-xl font-bold text-white mb-1'>
-										System Information
+										Информация о системе
 									</h2>
 									<p className='text-gray-400 text-sm'>
-										View system status and manage backups
+										Просмотр состояния системы и управление резервными копиями
 									</p>
 								</div>
 
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 									<div className='bg-[#2a2f35] rounded-lg p-4'>
 										<h3 className='text-lg font-medium text-white mb-4'>
-											System Status
+											Статус системы
 										</h3>
 
 										<div className='space-y-3'>
 											<div className='flex justify-between'>
-												<span className='text-gray-400'>Version</span>
+												<span className='text-gray-400'>Версия</span>
 												<span className='text-white'>{systemInfo.version}</span>
 											</div>
 											<div className='flex justify-between'>
-												<span className='text-gray-400'>Node.js Version</span>
+												<span className='text-gray-400'>Версия Node.js</span>
 												<span className='text-white'>
 													{systemInfo.nodeVersion}
 												</span>
 											</div>
 											<div className='flex justify-between'>
-												<span className='text-gray-400'>Database</span>
+												<span className='text-gray-400'>База данных</span>
 												<span className='text-white'>
 													{systemInfo.dbVersion}
 												</span>
 											</div>
 											<div className='flex justify-between'>
-												<span className='text-gray-400'>Environment</span>
+												<span className='text-gray-400'>Окружение</span>
 												<span className='text-white capitalize'>
 													{systemInfo.environment}
 												</span>
 											</div>
 											<div className='flex justify-between'>
-												<span className='text-gray-400'>Uptime</span>
+												<span className='text-gray-400'>Время работы</span>
 												<span className='text-white'>{systemInfo.uptime}</span>
 											</div>
 											<div className='flex justify-between'>
-												<span className='text-gray-400'>Last Restart</span>
+												<span className='text-gray-400'>Последний перезапуск</span>
 												<span className='text-white'>
 													{new Date(systemInfo.lastRestart).toLocaleString()}
 												</span>
@@ -1047,14 +916,14 @@ export default function SettingsPage() {
 
 									<div className='bg-[#2a2f35] rounded-lg p-4'>
 										<h3 className='text-lg font-medium text-white mb-4'>
-											Resource Usage
+											Использование ресурсов
 										</h3>
 
 										<div className='space-y-6'>
 											{/* Storage */}
 											<div>
 												<div className='flex justify-between mb-2'>
-													<span className='text-gray-400'>Storage</span>
+													<span className='text-gray-400'>Хранилище</span>
 													<span className='text-white'>
 														{systemInfo.storageUsed} GB /{' '}
 														{systemInfo.storageLimit} GB
@@ -1079,7 +948,7 @@ export default function SettingsPage() {
 											{/* Memory */}
 											<div>
 												<div className='flex justify-between mb-2'>
-													<span className='text-gray-400'>Memory</span>
+													<span className='text-gray-400'>Память</span>
 													<span className='text-white'>
 														{systemInfo.memoryUsage}%
 													</span>
@@ -1103,17 +972,17 @@ export default function SettingsPage() {
 
 								<div className='pt-6 border-t border-gray-700'>
 									<h3 className='text-lg font-medium text-white mb-4'>
-										Backup Management
+										Управление резервными копиями
 									</h3>
 
 									<div className='bg-[#2a2f35] rounded-lg p-4 mb-6'>
 										<div className='flex justify-between items-center mb-4'>
 											<div>
 												<h4 className='text-white font-medium'>
-													Automatic Backups
+													Автоматические резервные копии
 												</h4>
 												<p className='text-sm text-gray-400'>
-													System will automatically backup your data
+													Система будет автоматически создавать резервные копии ваших данных
 												</p>
 											</div>
 											<button
@@ -1121,14 +990,14 @@ export default function SettingsPage() {
 												className='px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2'
 											>
 												<HardDrive size={16} />
-												<span>Backup Now</span>
+												<span>Создать резервную копию сейчас</span>
 											</button>
 										</div>
 
 										<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 											<div>
 												<label className='block text-sm font-medium text-gray-300 mb-2'>
-													Backup Frequency
+													Частота резервного копирования
 												</label>
 												<select
 													value={backups.frequency}
@@ -1140,16 +1009,16 @@ export default function SettingsPage() {
 													}
 													className='w-full bg-[#171C1F] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500'
 												>
-													<option value='hourly'>Hourly</option>
-													<option value='daily'>Daily</option>
-													<option value='weekly'>Weekly</option>
-													<option value='monthly'>Monthly</option>
+													<option value='hourly'>Каждый час</option>
+													<option value='daily'>Ежедневно</option>
+													<option value='weekly'>Еженедельно</option>
+													<option value='monthly'>Ежемесячно</option>
 												</select>
 											</div>
 
 											<div>
 												<p className='block text-sm font-medium text-gray-300 mb-2'>
-													Last Backup
+													Последняя резервная копия
 												</p>
 												<div className='flex items-center gap-2 bg-[#171C1F] border border-gray-700 rounded-lg px-4 py-2.5'>
 													<Clock size={16} className='text-gray-400' />
@@ -1161,7 +1030,7 @@ export default function SettingsPage() {
 
 											<div>
 												<p className='block text-sm font-medium text-gray-300 mb-2'>
-													Next Backup
+													Следующая резервная копия
 												</p>
 												<div className='flex items-center gap-2 bg-[#171C1F] border border-gray-700 rounded-lg px-4 py-2.5'>
 													<Clock size={16} className='text-gray-400' />

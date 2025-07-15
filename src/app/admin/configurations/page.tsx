@@ -331,7 +331,7 @@ export default function ConfigurationsPage() {
 	const formatPrice = (price: number) => {
 		return new Intl.NumberFormat('ru-RU', {
 			style: 'currency',
-			currency: 'RUB',
+			currency: 'USD',
 			maximumFractionDigits: 0,
 		}).format(price)
 	}
@@ -485,19 +485,19 @@ export default function ConfigurationsPage() {
 
 					<div className='flex justify-between items-center mb-4'>
 						<div className='text-white'>
-							Showing {filteredAndSortedConfigurations.length} of{' '}
-							{configurations.length} configurations
+							Показано {filteredAndSortedConfigurations.length} из{' '}
+							{configurations.length} конфигураций
 						</div>
 
 						<div className='flex items-center gap-4 '>
-							<span className='text-white'>Sort by:</span>
+							<span className='text-white'>Сортировать по:</span>
 							<button
 								onClick={() => toggleSort('name')}
 								className={`flex items-center ${
 									sortBy === 'name' ? 'text-blue-600 font-medium' : 'text-white'
 								}`}
 							>
-								<span>Навзвание</span>
+								<span>Название</span>
 								{sortBy === 'name' &&
 									(sortOrder === 'asc' ? (
 										<ChevronUp size={16} className='ml-1' />

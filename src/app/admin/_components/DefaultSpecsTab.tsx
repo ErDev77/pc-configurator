@@ -271,7 +271,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 		<div className='bg-[#202529] p-6 rounded-xl border border-gray-700 shadow-lg'>
 			<h3 className='text-xl text-white mb-4 font-bold flex items-center'>
 				<Globe className='h-5 w-5 mr-2 text-blue-400' />
-				Product Specifications
+				Технические характеристики комплектующего
 			</h3>
 
 			{/* Language Tabs */}
@@ -284,7 +284,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 							: 'bg-gray-700 text-gray-300 hover:bg-gray-600'
 					}`}
 				>
-					English 🇺🇸
+					Английский 🇺🇸
 				</button>
 				<button
 					onClick={() => setActiveTab('ru')}
@@ -294,7 +294,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 							: 'bg-gray-700 text-gray-300 hover:bg-gray-600'
 					}`}
 				>
-					Russian 🇷🇺
+					Русский 🇷🇺
 				</button>
 				<button
 					onClick={() => setActiveTab('am')}
@@ -304,7 +304,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 							: 'bg-gray-700 text-gray-300 hover:bg-gray-600'
 					}`}
 				>
-					Armenian 🇦🇲
+					Армянский 🇦🇲
 				</button>
 			</div>
 
@@ -312,10 +312,10 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 			<div className='bg-blue-900/30 border border-blue-700 rounded-lg p-4 mb-6 flex items-start'>
 				<Info className='h-5 w-5 mr-2 text-blue-400 flex-shrink-0 mt-0.5' />
 				<p className='text-sm text-gray-300'>
-					Fill in the specification values for this{' '}
-					{Object.keys(currentTemplate).length > 0 ? 'category' : 'product'}.
-					These will be displayed to customers in their selected language. Leave
-					fields empty if they don't apply.
+					Заполните значения характеристик для этой{' '}
+					{Object.keys(currentTemplate).length > 0 ? 'категории' : 'продукта'}.
+					Эти данные будут отображаться клиентам на их выбранном языке. Оставьте
+					поля пустыми, если они не применимы.
 				</p>
 			</div>
 
@@ -323,7 +323,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 			{Object.keys(currentTemplate).length > 0 ? (
 				<div className='mb-6'>
 					<h4 className='text-lg font-medium text-white mb-4'>
-						Category Parameters
+						Параметры категории
 					</h4>
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 						{Object.keys(currentTemplate).map(key => (
@@ -345,7 +345,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 			) : (
 				<div className='mb-6 text-center py-4 bg-gray-800/50 rounded-lg border border-gray-700'>
 					<p className='text-gray-400'>
-						No default parameters for this category
+						Для этой категории нет параметров по умолчанию.
 					</p>
 				</div>
 			)}
@@ -353,7 +353,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 			{/* Custom Specifications */}
 			<div className='mb-6'>
 				<h4 className='text-lg font-medium text-white mb-4'>
-					Custom Parameters
+					Пользовательские параметры
 				</h4>
 				{Object.keys(customSpecs[activeTab]).length > 0 ? (
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -381,19 +381,19 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 					</div>
 				) : (
 					<div className='text-center py-4 bg-gray-800/50 rounded-lg border border-gray-700 mb-4'>
-						<p className='text-gray-400'>No custom parameters added</p>
+						<p className='text-gray-400'>Специальные параметры не добавлены</p>
 					</div>
 				)}
 
 				{/* Add new custom parameter */}
 				<div className='bg-[#1A1D21] p-4 rounded-lg border border-gray-700 mt-4'>
 					<h5 className='text-md font-medium text-white mb-3'>
-						Add Custom Parameter
+						Добавить пользовательский параметр
 					</h5>
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-sm font-medium text-gray-300 mb-1'>
-								Parameter:
+								Параметр:
 							</label>
 							<input
 								type='text'
@@ -405,7 +405,7 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 						</div>
 						<div>
 							<label className='block text-sm font-medium text-gray-300 mb-1'>
-								Value:
+								Значение:
 							</label>
 							<input
 								type='text'
@@ -421,14 +421,15 @@ const DefaultSpecsTab: React.FC<DefaultSpecsTabProps> = ({
 						className='mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition-colors flex items-center justify-center'
 					>
 						<PlusCircle className='h-4 w-4 mr-2' />
-						Add Parameter
+						Добавить параметр
 					</button>
 				</div>
 			</div>
 
 			<p className='text-sm text-gray-400 mt-4'>
-				Specifications will be displayed in the format "Parameter: Value" (e.g.,
-				"TDP: 105W"). Be sure to include units where applicable.
+				Характеристики будут отображаться в формате «Параметр: Значение»
+				(например, «TDP: 105 Вт»). Обязательно укажите единицы измерения, где
+				это применимо.
 			</p>
 		</div>
 	)

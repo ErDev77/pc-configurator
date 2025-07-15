@@ -153,19 +153,19 @@ export function SecuritySettings() {
 	return (
 		<div className='space-y-8'>
 			<div className='pb-5 border-b border-gray-700'>
-				<h2 className='text-xl font-bold text-white mb-1'>Security Settings</h2>
+				<h2 className='text-xl font-bold text-white mb-1'>
+					Настройки безопасности
+				</h2>
 				<p className='text-gray-400 text-sm'>
-					Manage your security preferences and two-factor authentication
+					Управляйте своими параметрами безопасности
 				</p>
 			</div>
 
-			<div className='pt-4 border-t border-gray-700'>
-				<h3 className='text-lg font-medium text-white mb-4'>Change Password</h3>
-
+				<h3 className='text-lg font-medium text-white mb-4'>Сменить пароль</h3>
 				<div className='space-y-4'>
 					<div>
 						<label className='block text-sm font-medium text-gray-300 mb-2'>
-							Current Password
+							Текущий пароль
 						</label>
 						<input
 							type='password'
@@ -183,7 +183,7 @@ export function SecuritySettings() {
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 						<div>
 							<label className='block text-sm font-medium text-gray-300 mb-2'>
-								New Password
+								Новый пароль
 							</label>
 							<input
 								type='password'
@@ -200,7 +200,7 @@ export function SecuritySettings() {
 
 						<div>
 							<label className='block text-sm font-medium text-gray-300 mb-2'>
-								Confirm New Password
+								Подтвердите новый пароль
 							</label>
 							<input
 								type='password'
@@ -229,28 +229,27 @@ export function SecuritySettings() {
 							{saving ? (
 								<>
 									<Loader size={16} className='animate-spin' />
-									<span>Updating...</span>
+									<span>Обновление...</span>
 								</>
 							) : (
 								<>
 									<Lock size={16} />
-									<span>Update Password</span>
+									<span>Обновить пароль</span>
 								</>
 							)}
 						</button>
 					</div>
 				</div>
-			</div>
 
 			{/* Session Settings */}
 			<div className='pt-4 border-t border-gray-700'>
-				<h3 className='text-lg font-medium text-white mb-4'>Session</h3>
+				<h3 className='text-lg font-medium text-white mb-4'>Настройки сеанса</h3>
 
 				<div className='space-y-4'>
 					<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 						<div>
 							<label className='block text-sm font-medium text-gray-300 mb-2'>
-								Session Timeout (minutes)
+								Тайм-аут сеанса (минуты)
 							</label>
 							<input
 								type='number'
@@ -264,7 +263,7 @@ export function SecuritySettings() {
 
 						<div>
 							<label className='block text-sm font-medium text-gray-300 mb-2'>
-								Maximum Login Attempts
+								Максимальное количество попыток входа
 							</label>
 							<input
 								type='number'
@@ -290,12 +289,12 @@ export function SecuritySettings() {
 							{saving ? (
 								<>
 									<Loader size={16} className='animate-spin' />
-									<span>Saving...</span>
+									<span>Сохранение...</span>
 								</>
 							) : (
 								<>
 									<Shield size={16} />
-									<span>Save Security Settings</span>
+									<span>Сохранить настройки безопасности</span>
 								</>
 							)}
 						</button>

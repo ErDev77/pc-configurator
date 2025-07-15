@@ -191,7 +191,7 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 		<div className='bg-[#202529] p-6 rounded-2xl border border-gray-700 shadow-lg'>
 			<h3 className='text-xl text-white mb-4 font-bold flex items-center'>
 				<CheckCircle className='h-5 w-5 mr-2 text-blue-400' />
-				Add Compatibility
+				Добавить совместимость
 			</h3>
 
 			{/* Search */}
@@ -204,7 +204,7 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 					value={searchText}
 					onChange={e => setSearchText(e.target.value)}
 					className='bg-[#2C3136] text-white pl-10 pr-4 py-2 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all'
-					placeholder='Search components...'
+					placeholder='Поиск комплектующих...'
 				/>
 			</div>
 
@@ -213,7 +213,7 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 				{loading ? (
 					<div className='flex justify-center items-center p-6'>
 						<div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500'></div>
-						<span className='ml-3 text-blue-400'>Loading components...</span>
+						<span className='ml-3 text-blue-400'>Загрузка комплектующих...</span>
 					</div>
 				) : categories.length > 0 ? (
 					categories.map(category => {
@@ -259,7 +259,7 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 													{alreadyCompatible(comp.id!) ? (
 														<span className='text-green-400 flex items-center'>
 															<CheckCircle className='h-4 w-4 mr-1' />
-															Compatible
+															Совместимо
 														</span>
 													) : (
 														<button
@@ -267,14 +267,14 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 															className='bg-[#0C6FFC] hover:bg-blue-600 text-white py-1 px-3 rounded-lg transition-colors flex items-center'
 														>
 															<PlusCircle className='h-4 w-4 mr-1' />
-															<span>Add</span>
+															<span>Добавить</span>
 														</button>
 													)}
 												</div>
 											))
 										) : (
 											<div className='p-3 text-gray-400 text-center italic'>
-												No components in this category
+												Нет комплектующих в этой категории
 											</div>
 										)}
 									</div>
@@ -285,7 +285,7 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 				) : (
 					<div className='text-center p-4'>
 						<AlertCircle className='h-6 w-6 text-yellow-500 mx-auto mb-2' />
-						<p className='text-gray-300'>No categories found</p>
+						<p className='text-gray-300'>Категории не найдены</p>
 					</div>
 				)}
 			</div>
@@ -294,10 +294,10 @@ const AddCompatibility = ({ componentId }: { componentId: number }) => {
 				<div className='text-center p-4 mt-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg'>
 					<AlertCircle className='h-6 w-6 text-yellow-500 mx-auto mb-2' />
 					<p className='text-yellow-400'>
-						No components available to add compatibility
+						Нет комплектующих для добавления совместимости
 					</p>
 					<p className='text-gray-400 text-sm'>
-						Make sure there are other components in the system
+						Убедитесь, что в системе есть другие комплектующие	
 					</p>
 				</div>
 			)}

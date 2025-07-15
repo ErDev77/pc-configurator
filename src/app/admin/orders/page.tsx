@@ -742,7 +742,7 @@ const OrdersPage = () => {
 			<div className='p-6 max-w-7xl mx-auto'>
 				{/* Header */}
 				<div className='mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
-					<h1 className='text-3xl font-bold text-white'>Order Management</h1>
+					<h1 className='text-3xl font-bold text-white'>Управление заказами</h1>
 					<div className='flex items-center gap-3'>
 						<button
 							onClick={handleRefresh}
@@ -752,7 +752,7 @@ const OrdersPage = () => {
 								size={16}
 								className={`${isRefreshing ? 'animate-spin' : ''}`}
 							/>
-							Refresh
+							Обновить
 						</button>
 
 						<button
@@ -760,7 +760,7 @@ const OrdersPage = () => {
 							className='flex items-center gap-2 bg-blue-600 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-blue-700'
 						>
 							<Download size={16} />
-							Export
+							Экспорт
 						</button>
 
 						{selectedOrders.length > 0 && (
@@ -769,7 +769,7 @@ const OrdersPage = () => {
 								className='flex items-center gap-2 bg-red-600 rounded-md px-4 py-2 text-sm font-medium text-white hover:bg-red-700'
 							>
 								<Trash2 size={16} />
-								Delete ({selectedOrders.length})
+								Удалить ({selectedOrders.length})
 							</button>
 						)}
 					</div>
@@ -783,7 +783,7 @@ const OrdersPage = () => {
 						</div>
 						<input
 							type='text'
-							placeholder='Search by order number, ID or customer...'
+							placeholder='Поиск по номеру заказа, ID или клиенту...'
 							value={searchTerm}
 							onChange={e => setSearchTerm(e.target.value)}
 							className='block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-md bg-[#202529] text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
@@ -797,12 +797,12 @@ const OrdersPage = () => {
 							onChange={e => setStatusFilter(e.target.value)}
 							className='block w-full py-2 px-3 border border-gray-700 bg-[#202529] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-white'
 						>
-							<option value='all'>All Statuses</option>
-							<option value='pending'>Pending</option>
-							<option value='processing'>Processing</option>
-							<option value='shipped'>Shipped</option>
-							<option value='delivered'>Delivered</option>
-							<option value='cancelled'>Cancelled</option>
+							<option value='all'>Все статусы</option>
+							<option value='pending'>В ожидании</option>
+							<option value='processing'>В обработке</option>
+							<option value='shipped'>Отправлено</option>
+							<option value='delivered'>Доставлено</option>
+							<option value='cancelled'>Отменено</option>
 						</select>
 					</div>
 
@@ -815,10 +815,10 @@ const OrdersPage = () => {
 							}}
 							className='block w-full py-2 px-3 border border-gray-700 bg-[#202529] rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-white'
 						>
-							<option value={10}>10 per page</option>
-							<option value={25}>25 per page</option>
-							<option value={50}>50 per page</option>
-							<option value={100}>100 per page</option>
+							<option value={10}>10 на странице</option>
+							<option value={25}>25 на странице</option>
+							<option value={50}>50 на странице</option>
+							<option value={100}>100 на странице</option>
 						</select>
 					</div>
 				</div>
@@ -834,10 +834,10 @@ const OrdersPage = () => {
 							<div className='flex flex-col items-center justify-center'>
 								<AlertCircle size={48} className='text-gray-500 mb-4' />
 								<div className='text-gray-300 text-lg font-medium'>
-									No orders found
+									Не найдено заказов
 								</div>
 								<p className='text-gray-500 mt-2'>
-									Try adjusting your search or filter criteria
+									Попробуйте изменить параметры поиска или фильтрации
 								</p>
 							</div>
 						</div>
@@ -881,7 +881,7 @@ const OrdersPage = () => {
 											onClick={() => handleSort('generated_order_number')}
 										>
 											<div className='flex items-center'>
-												Order Number
+												Номер заказа
 												{sortField === 'generated_order_number' && (
 													<span className='ml-1'>
 														{sortDirection === 'asc' ? '↑' : '↓'}
@@ -893,7 +893,7 @@ const OrdersPage = () => {
 											scope='col'
 											className='px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer'
 										>
-											<div className='flex items-center'>Customer</div>
+											<div className='flex items-center'>Клиент</div>
 										</th>
 										<th
 											scope='col'
@@ -901,7 +901,7 @@ const OrdersPage = () => {
 											onClick={() => handleSort('status')}
 										>
 											<div className='flex items-center'>
-												Status
+												Статус
 												{sortField === 'status' && (
 													<span className='ml-1'>
 														{sortDirection === 'asc' ? '↑' : '↓'}
@@ -913,7 +913,7 @@ const OrdersPage = () => {
 											scope='col'
 											className='px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer'
 										>
-											<div className='flex items-center'>Total</div>
+											<div className='flex items-center'>Итого</div>
 										</th>
 										<th
 											scope='col'
@@ -921,7 +921,7 @@ const OrdersPage = () => {
 											onClick={() => handleSort('created_at')}
 										>
 											<div className='flex items-center'>
-												Date Created
+												Дата создания
 												{sortField === 'created_at' && (
 													<span className='ml-1'>
 														{sortDirection === 'asc' ? '↑' : '↓'}
@@ -933,7 +933,7 @@ const OrdersPage = () => {
 											scope='col'
 											className='px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider'
 										>
-											Actions
+											Действия
 										</th>
 									</tr>
 								</thead>
@@ -985,8 +985,8 @@ const OrdersPage = () => {
 														}`}
 														title={
 															favoriteOrders[order.id]
-																? 'Remove from Favorites'
-																: 'Add to Favorites'
+																? 'Удалить из Избранного'
+																: 'Добавить в Избранное'
 														}
 													>
 														{favoriteLoading[order.id] ? (
@@ -1003,21 +1003,21 @@ const OrdersPage = () => {
 													<button
 														onClick={() => handleViewOrder(order)}
 														className='text-blue-500 hover:text-blue-400'
-														title='View Order'
+														title='Просмотр заказа'
 													>
 														<Eye size={18} />
 													</button>
 													<Link
 														href={`/admin/edit-order/${order.generated_order_number}`}
 														className='text-amber-500 hover:text-amber-400'
-														title='Edit Order'
+														title='Редактировать заказ'
 													>
 														<Edit size={18} />
 													</Link>
 													<button
 														onClick={() => handleConfirmDelete(order.id)}
 														className='text-red-500 hover:text-red-400'
-														title='Delete Order'
+														title='Удалить заказ'
 													>
 														<Trash2 size={18} />
 													</button>
@@ -1043,7 +1043,7 @@ const OrdersPage = () => {
 											: 'bg-gray-700 text-gray-200 hover:bg-gray-600'
 									}`}
 								>
-									Previous
+									Предыдущая
 								</button>
 								<button
 									onClick={() =>
@@ -1056,25 +1056,25 @@ const OrdersPage = () => {
 											: 'bg-gray-700 text-gray-200 hover:bg-gray-600'
 									}`}
 								>
-									Next
+									Следующая
 								</button>
 							</div>
 							<div className='hidden sm:flex-1 sm:flex sm:items-center sm:justify-between'>
 								<div>
 									<p className='text-sm text-gray-400'>
-										Showing{' '}
+										Показано{' '}
 										<span className='font-medium text-gray-200'>
 											{(currentPage - 1) * pageSize + 1}
 										</span>{' '}
-										to{' '}
+										по{' '}
 										<span className='font-medium text-gray-200'>
 											{Math.min(currentPage * pageSize, filteredOrders.length)}
 										</span>{' '}
-										of{' '}
+										из{' '}
 										<span className='font-medium text-gray-200'>
 											{filteredOrders.length}
 										</span>{' '}
-										results
+										результатов
 									</p>
 								</div>
 								<div>
@@ -1091,7 +1091,7 @@ const OrdersPage = () => {
 													: 'text-gray-400 hover:bg-gray-700'
 											}`}
 										>
-											<span className='sr-only'>First</span>
+											<span className='sr-only'>Первый</span>
 											{'<<'}
 										</button>
 										<button
@@ -1105,7 +1105,7 @@ const OrdersPage = () => {
 													: 'text-gray-400 hover:bg-gray-700'
 											}`}
 										>
-											<span className='sr-only'>Previous</span>
+											<span className='sr-only'>Предыдущая</span>
 											{'<'}
 										</button>
 
@@ -1148,7 +1148,7 @@ const OrdersPage = () => {
 													: 'text-gray-400 hover:bg-gray-700'
 											}`}
 										>
-											<span className='sr-only'>Next</span>
+											<span className='sr-only'>Следующая</span>
 											{'>'}
 										</button>
 										<button
@@ -1160,7 +1160,7 @@ const OrdersPage = () => {
 													: 'text-gray-400 hover:bg-gray-700'
 											}`}
 										>
-											<span className='sr-only'>Last</span>
+											<span className='sr-only'>Последняя</span>
 											{'>>'}
 										</button>
 									</nav>
@@ -1177,7 +1177,7 @@ const OrdersPage = () => {
 					<div className='bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto'>
 						<div className='sticky top-0 bg-gray-800 px-6 py-4 border-b border-gray-700 flex justify-between items-center'>
 							<h2 className='text-xl font-bold text-white'>
-								Order Details: {viewOrder.generated_order_number}
+								Детали заказа: {viewOrder.generated_order_number}
 							</h2>
 							<button
 								onClick={() => setViewModalOpen(false)}
@@ -1191,23 +1191,23 @@ const OrdersPage = () => {
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
 								<div>
 									<h3 className='text-lg font-medium text-gray-300 mb-3'>
-										Order Information
+										Информация о заказе
 									</h3>
 									<div className='bg-gray-900 rounded-lg p-4 space-y-3'>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Order ID:</span>
+											<span className='text-gray-400'>ID заказа:</span>
 											<span className='text-gray-200 font-medium'>
 												{viewOrder.id}
 											</span>
 										</div>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Order Number:</span>
+											<span className='text-gray-400'>Номер заказа:</span>
 											<span className='text-gray-200 font-medium'>
 												{viewOrder.generated_order_number}
 											</span>
 										</div>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Status:</span>
+											<span className='text-gray-400'>Статус:</span>
 											<span
 												className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(
 													viewOrder.status
@@ -1217,13 +1217,13 @@ const OrdersPage = () => {
 											</span>
 										</div>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Date:</span>
+											<span className='text-gray-400'>Дата:</span>
 											<span className='text-gray-200'>
 												{new Date(viewOrder.created_at).toLocaleString()}
 											</span>
 										</div>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Total Amount:</span>
+											<span className='text-gray-400'>Сумма:</span>
 											<span className='text-green-400 font-bold'>
 												{viewOrder.total
 													? formatCurrency(viewOrder.total)
@@ -1231,7 +1231,7 @@ const OrdersPage = () => {
 											</span>
 										</div>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Payment Method:</span>
+											<span className='text-gray-400'>Способ оплаты:</span>
 											<span className='text-gray-200'>
 												{viewOrder.payment_method || 'N/A'}
 											</span>
@@ -1241,11 +1241,11 @@ const OrdersPage = () => {
 
 								<div>
 									<h3 className='text-lg font-medium text-gray-300 mb-3'>
-										Customer Information
+										Информация о клиенте
 									</h3>
 									<div className='bg-gray-900 rounded-lg p-4 space-y-3'>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Name:</span>
+											<span className='text-gray-400'>Имя:</span>
 											<span className='text-gray-200 font-medium'>
 												{`${viewOrder.customer_first_name} ${viewOrder.customer_last_name}`}
 											</span>
@@ -1257,7 +1257,7 @@ const OrdersPage = () => {
 											</span>
 										</div>
 										<div className='flex justify-between'>
-											<span className='text-gray-400'>Phone:</span>
+											<span className='text-gray-400'>Телефон:</span>
 											<span className='text-gray-200'>
 												{viewOrder.customer_phone || 'N/A'}
 											</span>
@@ -1268,7 +1268,7 @@ const OrdersPage = () => {
 
 							<div className='mb-6'>
 								<h3 className='text-lg font-medium text-gray-300 mb-3'>
-									Shipping Address
+									Адрес доставки
 								</h3>
 								<div className='bg-gray-900 rounded-lg p-4'>
 									<p className='text-gray-200'>
@@ -1288,7 +1288,7 @@ const OrdersPage = () => {
 							</div>
 
 							<h3 className='text-lg font-medium text-gray-300 mb-3'>
-								Order Items
+								Товары в заказе
 							</h3>
 							{viewOrder.items && viewOrder.items.length > 0 ? (
 								<div className='bg-gray-900 rounded-lg overflow-hidden'>
@@ -1296,16 +1296,16 @@ const OrdersPage = () => {
 										<thead>
 											<tr>
 												<th className='px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase'>
-													Product
+													Товар
 												</th>
 												<th className='px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase'>
-													Price
+													Цена
 												</th>
 												<th className='px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase'>
-													Quantity
+													Количество
 												</th>
 												<th className='px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase'>
-													Total
+													Итого
 												</th>
 											</tr>
 										</thead>
@@ -1319,7 +1319,7 @@ const OrdersPage = () => {
 													colSpan={3}
 													className='px-4 py-3 text-right text-sm font-medium text-gray-300'
 												>
-													Subtotal:
+													Подитог:
 												</td>
 												<td className='px-4 py-3 text-right text-gray-200 font-bold'>
 													{formatCurrency(viewOrder.subtotal || 0)}
@@ -1330,7 +1330,7 @@ const OrdersPage = () => {
 													colSpan={3}
 													className='px-4 py-3 text-right text-sm font-medium text-gray-300'
 												>
-													Shipping:
+													Доставка:
 												</td>
 												<td className='px-4 py-3 text-right text-gray-200'>
 													{formatCurrency(viewOrder.shipping_cost || 0)}
@@ -1341,7 +1341,7 @@ const OrdersPage = () => {
 													colSpan={3}
 													className='px-4 py-3 text-right text-sm font-medium text-gray-300'
 												>
-													Tax:
+													Налог:
 												</td>
 												<td className='px-4 py-3 text-right text-gray-200'>
 													{formatCurrency(viewOrder.tax || 0)}
@@ -1352,7 +1352,7 @@ const OrdersPage = () => {
 													colSpan={3}
 													className='px-4 py-3 text-right text-sm font-medium text-gray-300'
 												>
-													Total:
+													Итого:
 												</td>
 												<td className='px-4 py-3 text-right text-green-400 font-bold'>
 													{formatCurrency(viewOrder.total || 0)}
@@ -1364,13 +1364,15 @@ const OrdersPage = () => {
 							) : (
 								<div className='bg-gray-900 rounded-lg p-6 text-center'>
 									<Info className='h-12 w-12 text-gray-600 mx-auto mb-4' />
-									<p className='text-gray-400'>No items found for this order</p>
+									<p className='text-gray-400'>
+										Товары не найдены для этого заказа
+									</p>
 								</div>
 							)}
 
 							<div className='mt-6'>
 								<h3 className='text-lg font-medium text-gray-300 mb-3'>
-									Update Status
+									Обновить статус
 								</h3>
 								<div className='flex flex-wrap gap-2 mb-6'>
 									<button
@@ -1381,7 +1383,7 @@ const OrdersPage = () => {
 												: 'bg-yellow-600 hover:bg-yellow-700 text-white'
 										}`}
 									>
-										Pending
+										Ожидает
 									</button>
 									<button
 										onClick={() =>
@@ -1393,7 +1395,7 @@ const OrdersPage = () => {
 												: 'bg-blue-600 hover:bg-blue-700 text-white'
 										}`}
 									>
-										Processing
+										Обработка
 									</button>
 									<button
 										onClick={() => handleUpdateStatus(viewOrder.id, 'shipped')}
@@ -1427,7 +1429,7 @@ const OrdersPage = () => {
 												: 'bg-red-600 hover:bg-red-700 text-white'
 										}`}
 									>
-										Cancelled
+										Отменен
 									</button>
 								</div>
 							</div>
@@ -1437,13 +1439,13 @@ const OrdersPage = () => {
 									onClick={() => setViewModalOpen(false)}
 									className='px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600'
 								>
-									Close
+									Закрыть
 								</button>
 								<Link
 									href={`/admin/edit-order/${viewOrder.generated_order_number}`}
 									className='px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700'
 								>
-									Edit Order
+									Редактировать заказ
 								</Link>
 							</div>
 						</div>
@@ -1601,24 +1603,24 @@ const OrdersPage = () => {
 							</div>
 						</div>
 						<h3 className='text-xl font-bold text-white text-center mb-2'>
-							Confirm Deletion
+							Подтвердите удаление
 						</h3>
 						<p className='text-gray-300 text-center mb-6'>
-							Are you sure you want to delete this order? This action cannot be
-							undone.
+							Вы уверены, что хотите удалить этот заказ? Это действие нельзя
+							отменить.
 						</p>
 						<div className='flex justify-center space-x-4'>
 							<button
 								onClick={() => setDeleteModalOpen(false)}
 								className='px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600'
 							>
-								Cancel
+								Отменить
 							</button>
 							<button
 								onClick={handleDeleteOrder}
 								className='px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700'
 							>
-								Delete
+								Удалить
 							</button>
 						</div>
 					</div>

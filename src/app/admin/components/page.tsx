@@ -540,7 +540,7 @@ const ComponentsPage = () => {
 											backgroundPosition: 'right 0.5rem center',
 										}}
 									>
-										<option value=''>All brands</option>
+										<option value=''>Все бренды</option>
 										{brands.map(brand => (
 											<option key={brand} value={brand}>
 												{brand}

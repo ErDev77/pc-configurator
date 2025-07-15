@@ -373,7 +373,7 @@ export default function EditComponentPage() {
 							<span className='mr-3 p-1.5 bg-blue-500 rounded-lg'>
 								<Tag className='h-6 w-6 text-white' />
 							</span>
-							Edit Product
+							Редактирование комплектующего
 						</h1>
 					</div>
 					<div className='flex items-center'>
@@ -382,13 +382,13 @@ export default function EditComponentPage() {
 							className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3 flex items-center'
 						>
 							<History className='h-4 w-4 mr-2' />
-							History
+							История
 						</button>
 						<button
 							onClick={resetForm}
 							className='bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg mr-3'
 						>
-							Cancel Changes
+							Отменить
 						</button>
 						<button
 							onClick={handleSubmit}
@@ -400,12 +400,12 @@ export default function EditComponentPage() {
 							{isSaving ? (
 								<>
 									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
-									Saving...
+									Сохранение...
 								</>
 							) : (
 								<>
 									<Save className='h-4 w-4 mr-2' />
-									Save
+									Сохранить
 								</>
 							)}
 						</button>
@@ -416,7 +416,7 @@ export default function EditComponentPage() {
 					<div className='bg-[#202529] mb-6 p-4 rounded-xl border border-gray-700 shadow-lg'>
 						<h3 className='text-lg text-white mb-3 font-bold flex items-center'>
 							<History className='h-5 w-5 mr-2 text-blue-400' />
-							Change History
+							История изменений
 						</h3>
 						<div className='max-h-48 overflow-y-auto pr-2 custom-scrollbar'>
 							<div className='border-l-2 border-gray-600 pl-4 space-y-3'>
@@ -447,7 +447,7 @@ export default function EditComponentPage() {
 						}`}
 					>
 						<Layout className='h-5 w-5 mr-2' />
-						<span>General Information</span>
+						<span>Общая информация</span>
 					</button>
 					<button
 						onClick={() => setActiveTab('specs')}
@@ -458,7 +458,7 @@ export default function EditComponentPage() {
 						}`}
 					>
 						<Globe className='h-5 w-5 mr-2' />
-						<span>Specifications</span>
+						<span>Спецификации</span>
 					</button>
 				</div>
 
@@ -469,7 +469,7 @@ export default function EditComponentPage() {
 							<div className='bg-[#202529] p-8 rounded-2xl shadow-2xl border border-gray-700'>
 								<h2 className='text-xl text-white mb-6 font-bold flex items-center'>
 									<Tag className='h-5 w-5 mr-2 text-blue-400' />
-									Product Information
+									Информация о продукте
 								</h2>
 
 								<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -478,7 +478,7 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<Tag className='h-4 w-4 mr-2 text-blue-400' />
-												Category:
+												Категория:
 											</label>
 											<select
 												name='category_id'
@@ -497,7 +497,7 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<Tag className='h-4 w-4 mr-2 text-blue-400' />
-												Product Name:
+												Название комплектующего:
 											</label>
 											<input
 												type='text'
@@ -512,7 +512,7 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<DollarSign className='h-4 w-4 mr-2 text-blue-400' />
-												Price:
+												Цена:
 											</label>
 											<input
 												type='number'
@@ -527,7 +527,7 @@ export default function EditComponentPage() {
 										<div className='mb-6'>
 											<label className='text-white text-sm font-medium flex mb-2'>
 												<Briefcase className='h-4 w-4 mr-2 text-blue-400' />
-												Brand:
+												Бренд:
 											</label>
 											<input
 												type='text'
@@ -550,7 +550,7 @@ export default function EditComponentPage() {
 												/>
 												<span className='text-white text-sm flex items-center'>
 													<EyeOff className='h-4 w-4 mr-2 text-blue-400' />
-													Hide product
+													Скрыть комплектующее
 												</span>
 											</label>
 										</div>
@@ -560,7 +560,7 @@ export default function EditComponentPage() {
 									<div>
 										<label className='text-white text-sm font-medium flex mb-2'>
 											<ImageIcon className='h-4 w-4 mr-2 text-blue-400' />
-											Product Image:
+											Изображение комплектующего:
 										</label>
 										<div
 											{...getRootProps()}
@@ -595,10 +595,11 @@ export default function EditComponentPage() {
 												<div className='text-center'>
 													<ImageIcon className='mx-auto h-12 w-12 text-gray-400' />
 													<p className='mt-2 text-sm text-gray-300'>
-														Drag and drop an image here or click to select
+														Перетащите изображение сюда или щелкните, чтобы
+														выбрать
 													</p>
 													<p className='mt-1 text-xs text-gray-400'>
-														PNG, JPG, WEBP up to 5MB
+														PNG, JPG, WEBP до 5МБ
 													</p>
 												</div>
 											)}
@@ -606,7 +607,7 @@ export default function EditComponentPage() {
 
 										<div className='mt-4 bg-[#2C3136] p-4 rounded-lg border border-gray-700'>
 											<h4 className='text-white text-sm font-medium mb-2'>
-												Component Preview:
+												Предварительный просмотр комплектующего:
 											</h4>
 											<div className='bg-[#1A1D21] p-4 rounded-lg flex items-center'>
 												<div className='w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0'>
@@ -633,7 +634,7 @@ export default function EditComponentPage() {
 													{componentData.hidden && (
 														<span className='text-yellow-500 text-xs flex items-center mt-1'>
 															<EyeOff className='h-3 w-3 mr-1' />
-															Hidden
+															Скрыто
 														</span>
 													)}
 												</div>
@@ -649,7 +650,7 @@ export default function EditComponentPage() {
 								<div className='bg-[#202529] p-4 rounded-lg mb-4 border border-gray-700'>
 									<div className='flex items-center justify-between mb-2'>
 										<h3 className='text-white font-medium'>
-											Specification Format
+											Формат спецификации
 										</h3>
 										<div className='flex items-center'>
 											<label className='mr-2 text-gray-400 text-sm cursor-pointer'>
@@ -659,7 +660,7 @@ export default function EditComponentPage() {
 													onChange={() => setUseDefaultSpecs(true)}
 													className='mr-1'
 												/>
-												Template Parameters
+												Параметры шаблона
 											</label>
 											<label className='text-gray-400 text-sm cursor-pointer'>
 												<input
@@ -668,13 +669,13 @@ export default function EditComponentPage() {
 													onChange={() => setUseDefaultSpecs(false)}
 													className='mr-1'
 												/>
-												Free Input
+												Свободный ввод
 											</label>
 										</div>
 									</div>
 									<p className='text-gray-400 text-sm'>
-										Choose template parameters for the category or free input to
-										create custom specifications.
+										Выберите параметры шаблона для категории или свободный ввод
+										для создания пользовательских спецификаций.
 									</p>
 								</div>
 
@@ -710,7 +711,7 @@ export default function EditComponentPage() {
 						>
 							<span className='font-medium text-lg flex items-center'>
 								<CheckCircle className='h-5 w-5 mr-2 text-blue-400' />
-								Manage Compatibility
+								Управление совместимостью
 							</span>
 							{showCompatibility ? (
 								<ChevronUp className='h-5 w-5' />

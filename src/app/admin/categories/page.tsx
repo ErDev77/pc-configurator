@@ -266,7 +266,7 @@ export default function CategoriesPage() {
 		<div className='min-h-screen bg-[#171C1F]'>
 			<Sidebar />
 
-			<div className='p-6 ml-0 md:ml-72'>
+			<div className='p-6 ml-0 md:ml-40'>
 				{/* Header */}
 				<div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4'>
 					<h1 className='text-3xl font-bold text-white'>

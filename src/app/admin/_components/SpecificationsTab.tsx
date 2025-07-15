@@ -71,7 +71,7 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 		<div className='bg-[#202529] p-6 rounded-xl border border-gray-700 shadow-lg'>
 			<h3 className='text-xl text-white mb-4 font-bold flex items-center'>
 				<Globe className='h-5 w-5 mr-2 text-blue-400' />
-				Product Specifications
+				Технические характеристики комплектующего
 			</h3>
 
 			{/* Language Tabs */}
@@ -84,7 +84,7 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 							: 'bg-gray-700 text-gray-300 hover:bg-gray-600'
 					}`}
 				>
-					English 🇺🇸
+					Английский 🇺🇸
 				</button>
 				<button
 					onClick={() => setActiveTab('ru')}
@@ -94,7 +94,7 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 							: 'bg-gray-700 text-gray-300 hover:bg-gray-600'
 					}`}
 				>
-					Russian 🇷🇺
+					Русский 🇷🇺
 				</button>
 				<button
 					onClick={() => setActiveTab('am')}
@@ -104,7 +104,7 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 							: 'bg-gray-700 text-gray-300 hover:bg-gray-600'
 					}`}
 				>
-					Armenian 🇦🇲
+					Армянский 🇦🇲
 				</button>
 			</div>
 
@@ -114,12 +114,12 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 					type='text'
 					value={newSpec}
 					onChange={e => setNewSpec(e.target.value)}
-					placeholder={`Add a specification in ${
+					placeholder={`Добавьте спецификацию на ${
 						activeTab === 'en'
-							? 'English'
+							? 'Английском'
 							: activeTab === 'ru'
-							? 'Russian'
-							: 'Armenian'
+							? 'Русском'
+							: 'Армянском'
 					}`}
 					className='flex-grow bg-[#2C3136] text-white p-3 rounded-l-xl border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none'
 					onKeyPress={e => e.key === 'Enter' && handleAddSpec()}
@@ -129,7 +129,7 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 					className='bg-blue-600 text-white px-4 rounded-r-xl hover:bg-blue-500 transition-colors flex items-center'
 				>
 					<PlusCircle className='h-5 w-5 mr-1' />
-					Add
+					Добавить
 				</button>
 			</div>
 
@@ -152,21 +152,21 @@ const SpecificationsTab: React.FC<SpecificationsTabProps> = ({
 					))}
 					{getActiveSpecs().length === 0 && (
 						<li className='text-gray-400 text-center p-4 italic'>
-							No specifications added for{' '}
+							Нет характеристик, добавленных для{' '}
 							{activeTab === 'en'
-								? 'English'
+								? 'Английского'
 								: activeTab === 'ru'
-								? 'Russian'
-								: 'Armenian'}{' '}
-							yet.
+								? 'Русского'
+								: 'Армянского'}{' '}
+							пока нет.
 						</li>
 					)}
 				</ul>
 			</div>
 
 			<p className='text-sm text-gray-400 mt-4'>
-				Add technical specifications for the product in all three languages to
-				provide complete information for customers.
+				Добавьте технические характеристики продукта на всех трёх языках, чтобы
+				предоставить покупателям полную информацию.
 			</p>
 		</div>
 	)

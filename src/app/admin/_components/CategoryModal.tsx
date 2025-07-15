@@ -119,17 +119,15 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 	if (!isOpen) return null
 
 	return (
-		<div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm overflow-y-auto'>
+		<div className='fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xs overflow-y-auto'>
 			<div className='bg-[#202529] rounded-xl shadow-xl w-full max-w-md mx-4 md:mx-auto'>
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-gray-700 p-4'>
 					<h2 className='text-xl font-semibold text-white'>
 						{title ||
 							(mode === 'create'
-								? t('categories.addCategory', { defaultValue: 'Add Category' })
-								: t('categories.editCategory', {
-										defaultValue: 'Edit Category',
-								  }))}
+								? 'Добавить категорию'
+								: 'Редактировать категорию')}
 					</h2>
 					<button
 						onClick={onClose}
@@ -145,8 +143,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 					{/* Primary name field */}
 					<div className='mb-6'>
 						<label className='block text-sm font-medium text-gray-300 mb-2'>
-							{t('categories.primaryName', { defaultValue: 'Primary Name' })}{' '}
-							<span className='text-red-500'>*</span>
+							{'Название категории'} <span className='text-red-500'>*</span>
 						</label>
 						<input
 							type='text'
@@ -156,9 +153,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 							className={`w-full bg-[#2C3136] text-white p-3 rounded-lg border ${
 								errors.name ? 'border-red-500' : 'border-gray-600'
 							} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-							placeholder={t('categories.primaryNamePlaceholder', {
-								defaultValue: 'Primary display name',
-							})}
+							placeholder='Название категории'
 						/>
 						{errors.name && (
 							<p className='mt-1 text-sm text-red-500'>{errors.name}</p>
@@ -169,9 +164,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 					<div className='mb-6'>
 						<h3 className='flex items-center gap-2 mb-3 text-base font-medium text-gray-300'>
 							<Globe className='w-4 h-4 text-blue-400' />
-							{t('categories.translations', {
-								defaultValue: 'Language Translations',
-							})}
+							{'Языковые переводы'}
 						</h3>
 
 						<div className='flex border-b border-gray-700 mb-4'>
@@ -184,7 +177,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 										: 'text-gray-400 hover:text-gray-300'
 								}`}
 							>
-								🇺🇸 English
+								🇺🇸 Английский
 							</button>
 							<button
 								type='button'
@@ -195,7 +188,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 										: 'text-gray-400 hover:text-gray-300'
 								}`}
 							>
-								🇷🇺 Russian
+								🇷🇺 Русский
 							</button>
 							<button
 								type='button'
@@ -206,7 +199,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 										: 'text-gray-400 hover:text-gray-300'
 								}`}
 							>
-								🇦🇲 Armenian
+								🇦🇲 Армянский
 							</button>
 						</div>
 
@@ -214,9 +207,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 						{activeTab === 'en' && (
 							<div>
 								<label className='block text-sm font-medium text-gray-300 mb-2'>
-									{t('categories.englishName', {
-										defaultValue: 'English Name',
-									})}{' '}
+									{'Название на английском'}{' '}
 									<span className='text-red-500'>*</span>
 								</label>
 								<input
@@ -227,9 +218,6 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 									className={`w-full bg-[#2C3136] text-white p-3 rounded-lg border ${
 										errors.name_en ? 'border-red-500' : 'border-gray-600'
 									} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-									placeholder={t('categories.englishNamePlaceholder', {
-										defaultValue: 'Category name in English',
-									})}
 								/>
 								{errors.name_en && (
 									<p className='mt-1 text-sm text-red-500'>{errors.name_en}</p>
@@ -241,9 +229,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 						{activeTab === 'ru' && (
 							<div>
 								<label className='block text-sm font-medium text-gray-300 mb-2'>
-									{t('categories.russianName', {
-										defaultValue: 'Russian Name',
-									})}
+									{'Название на русском'}{' '}
+									<span className='text-red-500'>*</span>
 								</label>
 								<input
 									type='text'
@@ -251,9 +238,6 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 									value={category.name_ru}
 									onChange={handleChange}
 									className='w-full bg-[#2C3136] text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500'
-									placeholder={t('categories.russianNamePlaceholder', {
-										defaultValue: 'Category name in Russian',
-									})}
 								/>
 							</div>
 						)}
@@ -262,9 +246,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 						{activeTab === 'am' && (
 							<div>
 								<label className='block text-sm font-medium text-gray-300 mb-2'>
-									{t('categories.armenianName', {
-										defaultValue: 'Armenian Name',
-									})}
+									{'Название на армянском'}{' '}
+									<span className='text-red-500'>*</span>
 								</label>
 								<input
 									type='text'
@@ -272,23 +255,10 @@ const CategoryModal: React.FC<CategoryModalProps> = ({
 									value={category.name_am}
 									onChange={handleChange}
 									className='w-full bg-[#2C3136] text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500'
-									placeholder={t('categories.armenianNamePlaceholder', {
-										defaultValue: 'Category name in Armenian',
-									})}
+									
 								/>
 							</div>
 						)}
-					</div>
-
-					{/* Note about required fields */}
-					<div className='mb-6 p-3 bg-blue-900/20 rounded-lg border border-blue-800 flex items-start'>
-						<AlertTriangle className='w-5 h-5 text-blue-400 mr-2 flex-shrink-0 mt-0.5' />
-						<p className='text-sm text-gray-300'>
-							{t('categories.requiredFieldsNote', {
-								defaultValue:
-									'Primary name and English name are required. Other language translations are optional.',
-							})}
-						</p>
 					</div>
 
 					{/* Action buttons */}

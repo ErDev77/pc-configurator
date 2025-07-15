@@ -512,9 +512,7 @@ const Admin = () => {
 				<div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8'>
 					{/* Sales Chart */}
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6'>
-						<h2 className='text-xl font-bold text-white mb-4'>
-							Обзор доходов
-						</h2>
+						<h2 className='text-xl font-bold text-white mb-4'>Обзор доходов</h2>
 						<div className='h-80'>
 							<Bar
 								data={salesChartData}
@@ -671,7 +669,9 @@ const Admin = () => {
 					</div>
 
 					<div className='bg-[#202529] rounded-xl shadow-lg p-6'>
-						<h2 className='text-xl font-bold text-white mb-4'>Последние заказы</h2>
+						<h2 className='text-xl font-bold text-white mb-4'>
+							Последние заказы
+						</h2>
 						<div className='overflow-y-auto max-h-80'>
 							{recentOrders.length > 0 ? (
 								<ul className='space-y-4'>
@@ -776,7 +776,7 @@ const Admin = () => {
 						</h2>
 						<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
 							<div className='bg-[#262a30] p-4 rounded-lg'>
-								<p className='text-gray-400 mb-1'>Page Load Time</p>
+								<p className='text-gray-400 mb-1'>Время загрузки страницы</p>
 								<div className='flex items-end gap-2'>
 									<p className='text-2xl font-bold text-white'>
 										{pageLoadTime ? (pageLoadTime / 1000).toFixed(2) : '-'} sec
@@ -785,11 +785,11 @@ const Admin = () => {
 								</div>
 							</div>
 							<div className='bg-[#262a30] p-4 rounded-lg'>
-								<p className='text-gray-400 mb-1'>Resources Loaded</p>
+								<p className='text-gray-400 mb-1'>Ресурсов загружено</p>
 								<p className='text-2xl font-bold text-white'>3 APIs</p>
 							</div>
 							<div className='bg-[#262a30] p-4 rounded-lg'>
-								<p className='text-gray-400 mb-1'>Last Updated</p>
+								<p className='text-gray-400 mb-1'>Последнее обновление</p>
 								<p className='text-2xl font-bold text-white'>
 									{new Date().toLocaleTimeString()}
 								</p>

@@ -168,20 +168,20 @@ const CompatibilitiesList: React.FC<Props> = ({ componentId }) => {
 		<div className='bg-[#202529] p-6 rounded-2xl border border-gray-700 shadow-lg'>
 			<h3 className='text-xl text-white font-bold mb-4 flex items-center'>
 				<CheckCircle className='h-5 w-5 mr-2 text-blue-400' />
-				Compatible Components
+				Совместимые комплектующие
 			</h3>
 
 			{isLoading ? (
 				<div className='flex justify-center items-center p-8'>
 					<div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500'></div>
-					<span className='ml-3 text-blue-400'>Loading compatibilities...</span>
+					<span className='ml-3 text-blue-400'>Загрузка совместимости...</span>
 				</div>
 			) : isEmpty || compatibilities.length === 0 ? (
 				<div className='text-center py-8 px-4'>
 					<AlertCircle className='h-10 w-10 text-yellow-500 mx-auto mb-3' />
-					<p className='text-gray-300 mb-2'>No compatibilities found</p>
+					<p className='text-gray-300 mb-2'>Совместимость не найдена</p>
 					<p className='text-gray-400 text-sm'>
-						Add compatible components in the section above
+						Добавьте совместимые комплектующие в разделе выше
 					</p>
 				</div>
 			) : (
@@ -227,7 +227,7 @@ const CompatibilitiesList: React.FC<Props> = ({ componentId }) => {
 											<button
 												className='bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg transition-colors'
 												onClick={() => handleRemoveCompatibility(comp.id)}
-												title='Remove compatibility'
+												title='Удалить совместимость'
 											>
 												<Trash size={16} />
 											</button>
@@ -257,7 +257,7 @@ const CompatibilitiesList: React.FC<Props> = ({ componentId }) => {
 						d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
 					></path>
 				</svg>
-				Refresh list
+				Обновить список
 			</button>
 		</div>
 	)
